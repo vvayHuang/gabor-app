@@ -14,8 +14,7 @@
             </p>
         </div>
 
-        <NuxtLink to="/completion"
-            class="w-full py-2 bg-transparent border border-inverse-on-surface text-inverse-on-surface rounded-full hover:bg-gray-900 transition">
+        <NuxtLink to="/completion" class="w-full py-2 bg-transparent text-inverse-on-surface/50 transition">
             略過
         </NuxtLink>
     </div>

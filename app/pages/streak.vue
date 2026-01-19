@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col min-h-screen px-6 py-8 text-center">
+    <div class="flex flex-col min-h-screen px-4 py-8 text-center">
         <!-- Center Content -->
         <div class="flex-1 flex flex-col items-center justify-center space-y-12">
             <div class="space-y-2">
@@ -22,7 +22,7 @@
         </div>
 
         <!-- Bottom Button -->
-        <div class="w-full max-w-md mx-auto pb-[92px]">
+        <div class="w-full max-w-md mx-auto">
             <NuxtLink to="/timer"
                 class="w-full py-2 bg-primary text-on-primary rounded-full hover:bg-primary-container transition block font-bold">
                 Next Step

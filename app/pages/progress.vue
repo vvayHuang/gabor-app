@@ -11,7 +11,7 @@
         <!-- Bottom Button -->
         <div class="w-full max-w-md mx-auto">
             <NuxtLink to="/streak"
-                class="w-full py-4 bg-primary text-on-primary rounded-full hover:bg-primary-container transition block font-bold">
+                class="w-full py-2 bg-primary text-on-primary rounded-full hover:bg-primary-container transition block font-bold">
                 Continue
             </NuxtLink>
         </div>

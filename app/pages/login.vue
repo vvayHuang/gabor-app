@@ -7,14 +7,14 @@
         <div class="w-full max-w-sm space-y-6">
             <button @click="handleLogin"
                 class="w-full py-4 border border-inverse-on-surface rounded-full flex items-center justify-center space-x-3 hover:bg-gray-800 transition group">
-                <Icon name="logos:google-icon" class="w-5 h-5" />
-                <span class="text-gray-300 group-hover:text-white">Sign in with Google</span>
+                <Icon name="simple-icons:google" size="24" mode="svg" class="text-inverse-on-surface" />
+                <span class="text-inverse-on-surface group-hover:text-white">Sign in with Google</span>
             </button>
 
             <button @click="handleLogin"
                 class="w-full py-4 border border-inverse-on-surface rounded-full flex items-center justify-center space-x-3 hover:bg-gray-800 transition group">
-                <Icon name="logos:apple" class="w-5 h-5" />
-                <span class="text-gray-300 group-hover:text-white">Sign in with Apple</span>
+                <Icon name="simple-icons:apple" size="24" mode="svg" class="text-inverse-on-surface" />
+                <span class="text-inverse-on-surface group-hover:text-white">Sign in with Apple</span>
             </button>
 
             <button @click="handleLogin"
