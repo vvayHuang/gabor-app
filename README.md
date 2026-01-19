@@ -1,10 +1,10 @@
-# Nuxt Minimal Starter
+# Gabor App Wireframe Demo (Nuxt)
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+這是一個使用 [Nuxt.js](https://nuxt.com/) 開發的 Gabor App 線框圖原型專案。
 
-## Setup
+## 專案設定
 
-Make sure to install dependencies:
+請確保已安裝所有依賴套件：
 
 ```bash
 # npm
@@ -20,9 +20,9 @@ yarn install
 bun install
 ```
 
-## Development Server
+## 開發伺服器
 
-Start the development server on `http://localhost:3000`:
+啟動開發伺服器，應用程式將運行在 `http://localhost:3000`：
 
 ```bash
 # npm
@@ -38,9 +38,9 @@ yarn dev
 bun run dev
 ```
 
-## Production
+## 生產環境
 
-Build the application for production:
+建置應用程式以用於生產環境：
 
 ```bash
 # npm
@@ -56,7 +56,7 @@ yarn build
 bun run build
 ```
 
-Locally preview production build:
+在本地預覽生產版本的建置成果：
 
 ```bash
 # npm
@@ -72,4 +72,4 @@ yarn preview
 bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+更多關於部署的資訊，請參考 [Nuxt 部署文件](https://nuxt.com/docs/getting-started/deployment)。

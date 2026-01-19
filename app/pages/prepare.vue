@@ -1,18 +1,22 @@
 <template>
-    <div class="flex flex-col items-center justify-center min-h-screen px-8 space-y-12 text-center">
-        <div class="space-y-6 max-w-md">
-            <h2 class="text-2xl font-bold text-white">準備好放鬆了嗎？</h2>
-            <div class="h-px w-12 bg-gray-700 mx-auto"></div>
-            <p class="text-gray-400 leading-relaxed text-lg">
-                請找一個安靜的環境。<br>
-                調整螢幕亮度至舒適。<br>
-                保持與螢幕適當的距離。
-            </p>
+    <div class="flex flex-col min-h-screen px-4 py-8 text-center">
+        <!-- Center Content -->
+        <div class="flex-1 flex flex-col items-center justify-center">
+            <div class="space-y-4 max-w-md">
+                <h2 class="display-sm-emphasis text-inverse-on-surface">準備好放鬆了嗎？</h2>
+                <p class="headline-sm text-inverse-on-surface">
+                    請盡量在微光環境中使用
+                </p>
+            </div>
         </div>
 
-        <NuxtLink to="/task/grid"
-            class="w-full max-w-xs py-4 bg-gray-800/50 border border-yellow-700 text-yellow-500 font-bold rounded-full hover:bg-yellow-900/20 transition tracking-wider">
-            開始任務
-        </NuxtLink>
+        <!-- Bottom Button -->
+        <div class="w-full max-w-md mx-auto pb-[92px]">
+            <NuxtLink to="/task/grid"
+                class="w-full py-4 bg-primary text-on-primary rounded-full hover:bg-primary-container transition block font-bold">
+                進入訓練
+            </NuxtLink>
+            <p class="text-sm text-inverse-on-surface mt-2">上次訓練時間 : 15分</p>
+        </div>
     </div>
 </template>

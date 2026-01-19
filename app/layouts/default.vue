@@ -25,7 +25,7 @@ const route = useRoute();
 
 // Pages where BottomNav should be hidden
 // strict matches
-const hideNavRoutes = ['/', '/login', '/prepare', '/timer', '/completion', '/progress'];
+const hideNavRoutes = ['/', '/login', '/timer', '/completion', '/progress'];
 
 const showBottomNav = computed(() => {
     // Also hide if route starts with /task/ maybe? Spec doesn't strictly say, 
@@ -53,7 +53,6 @@ const showBottomNav = computed(() => {
     const immersivePages = [
         'index',
         'login',
-        'prepare',
         'task-grid',
         'task-variation',
         'timer',

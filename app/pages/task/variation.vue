@@ -1,12 +1,11 @@
 <template>
-    <div class="flex flex-col items-center justify-center min-h-screen p-4 space-y-8 bg-black">
+    <div class="flex flex-col items-center justify-center min-h-screen p-4 space-y-8">
         <!-- Header -->
-        <div class="fixed top-0 left-0 w-full p-6 flex justify-between items-center z-10">
-            <button class="text-gray-500 hover:text-white" @click="router.push('/task/grid')">
-                <Icon name="material-symbols:arrow-back" class="text-2xl" />
+        <div class="fixed top-[62px] left-0 w-full p-6 flex justify-between items-center z-10">
+            <button class="text-gray-500 hover:text-white" @click="router.push('/prepare')">
+                <Icon name="material-symbols:close" size="24" />
             </button>
             <span class="text-gray-500 text-sm tracking-widest">SESSION 2/5</span>
-            <div class="w-6"></div>
         </div>
 
         <!-- Grid 3x3 -->
@@ -19,10 +18,6 @@
                 </div>
                 <GaborCanvas :size="80" :params="getParams(i)" />
             </div>
-        </div>
-
-        <div class="text-center text-gray-600 text-xs tracking-wider uppercase mt-8">
-            Select the odd one
         </div>
     </div>
 </template>
