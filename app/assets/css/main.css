@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+    --color-primary: #695D40;
+    --color-surface-tint: #695D40;
+    --color-on-primary: #FFFFFF;
+    --color-primary-container: #CDBE9A;
+    --color-on-primary-container: #574D30;
+    --color-secondary: #332F25;
+    --color-on-secondary: #FFFFFF;
+    --color-secondary-container: #4A453A;
+    --color-on-secondary-container: #BAB2A4;
+    --color-tertiary: #575858;
+    --color-on-tertiary: #FFFFFF;
+    --color-tertiary-container: #707070;
+    --color-on-tertiary-container: #F6F5F4;
+    --color-error: #8A2D2C;
+    --color-on-error: #FFFFFF;
+    --color-error-container: #A94442;
+    --color-on-error-container: #FFDBD8;
+    --color-background: #FEF8F4;
+    --color-on-background: #1D1B19;
+    --color-surface: #FDF8F8;
+    --color-on-surface: #1C1B1B;
+    --color-surface-variant: #E3E2E6;
+    --color-on-surface-variant: #46464A;
+    --color-outline: #77777B;
+    --color-outline-variant: #C7C6CA;
+    --color-shadow: #000000;
+    --color-scrim: #000000;
+    --color-inverse-surface: #313030;
+    --color-inverse-on-surface: #F4F0EF;
+    --color-inverse-primary: #D4C5A1;
+    --color-primary-fixed: #F1E1BB;
+    --color-on-primary-fixed: #221B04;
+    --color-primary-fixed-dim: #D4C5A1;
+    --color-on-primary-fixed-variant: #50462A;
+    --color-secondary-fixed: #EAE1D2;
+    --color-on-secondary-fixed: #1F1B12;
+    --color-secondary-fixed-dim: #CEC6B7;
+    --color-on-secondary-fixed-variant: #4B463B;
+    --color-tertiary-fixed: #E4E2E2;
+    --color-on-tertiary-fixed: #1B1C1C;
+    --color-tertiary-fixed-dim: #C7C6C6;
+    --color-on-tertiary-fixed-variant: #464747;
+    --color-surface-dim: #DDD9D8;
+    --color-surface-bright: #FDF8F8;
+    --color-surface-container-lowest: #FFFFFF;
+    --color-surface-container-low: #F7F3F2;
+    --color-surface-container: #F1EDEC;
+    --color-surface-container-high: #EBE7E6;
+    --color-surface-container-highest: #E5E2E1;
+
+    --font-sans: 'Noto Sans TC',ui-ans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+@utility display-lg {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 57px;
+}
+@utility headline-lg-emphasis {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 40px;
+}
+@utility title-large-emphasis {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 28px;
+}
+@layer components {
+    p{
+        color: var(--color-inverse-on-surface);
+    }
+}
