@@ -1,22 +1,28 @@
 <template>
-    <div class="flex flex-col min-h-screen space-y-8 bg-black p-6 pb-24 text-white">
-        <h1 class="text-2xl font-bold">紀錄</h1>
+    <div class="flex flex-col min-h-screen space-y-8 px-4 pb-6 text-inverse-on-surface">
+        <AppBar headline="紀錄" class="mt-[62px]">
+            <template #left>
+                <NuxtLink to="/prepare" class="p-2">
+                    <Icon name="material-symbols:arrow-back-rounded" size="24" class="text-inverse-on-surface" />
+                </NuxtLink>
+            </template>
+        </AppBar>
 
         <!-- Summary -->
         <div class="grid grid-cols-2 gap-4">
             <div class="bg-gray-900 rounded-xl p-4 border border-gray-800">
                 <div class="text-4xl font-bold font-mono">12</div>
-                <div class="text-xs text-gray-500 uppercase mt-1">Total Sessions</div>
+                <div class="text-xs uppercase mt-1">Total Sessions</div>
             </div>
             <div class="bg-gray-900 rounded-xl p-4 border border-gray-800">
                 <div class="text-4xl font-bold font-mono">5</div>
-                <div class="text-xs text-gray-500 uppercase mt-1">Current Streak</div>
+                <div class="text-xs uppercase mt-1">Current Streak</div>
             </div>
         </div>
 
         <!-- Bar Chart Placeholder -->
         <div class="space-y-2">
-            <h3 class="text-sm font-bold text-gray-400 uppercase">Weekly Activity</h3>
+            <h3 class="text-sm font-bold uppercase">Weekly Activity</h3>
             <div
                 class="h-40 flex items-end justify-between space-x-2 bg-gray-900/50 rounded-xl p-4 border border-gray-800">
                 <!-- Mock Bars -->

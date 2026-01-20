@@ -1,6 +1,12 @@
 <template>
-    <div class="flex flex-col min-h-screen space-y-8 bg-black p-6 pb-24 text-white">
-        <h1 class="text-2xl font-bold">Profile</h1>
+    <div class="flex flex-col min-h-screen space-y-8 px-4 pb-24 text-inverse-on-surface">
+        <AppBar headline="個人資料" class="mt-[62px]">
+            <template #left>
+                <NuxtLink to="/prepare" class="p-2">
+                    <Icon name="material-symbols:arrow-back-rounded" size="24" class="text-inverse-on-surface" />
+                </NuxtLink>
+            </template>
+        </AppBar>
 
         <div class="flex items-center space-x-4">
             <div class="w-20 h-20 bg-gray-800 rounded-full border-2 border-gray-700"></div>

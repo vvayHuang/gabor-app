@@ -1,23 +1,30 @@
 <template>
-    <div class="flex flex-col min-h-screen space-y-8 bg-black p-6 pb-24">
-        <h1 class="text-2xl font-bold text-white">設定</h1>
-
+    <div class="flex flex-col min-h-screen space-y-8 px-4 pb-24 text-inverse-on-surface">
+        <AppBar headline="設定" class="mt-[62px]">
+            <template #left>
+                <NuxtLink to="/prepare" class="p-2">
+                    <Icon name="material-symbols:arrow-back-rounded" size="24" class="text-inverse-on-surface" />
+                </NuxtLink>
+            </template>
+        </AppBar>
+        <h2 class="text-lg font-bold text-white mb-4">偏好設置</h2>
         <div class="space-y-6">
             <!-- Use params from useGaborMock -->
-            <!-- Orientation -->
-            <WireSlider label="Orientation" :min="0" :max="180" :step="1" v-model="params.orientation" />
 
-            <!-- Spatial Frequency -->
-            <WireSlider label="Spatial Frequency" :min="0.1" :max="20" :step="0.1" v-model="params.frequency" />
+            <!-- Symbol Contrast -->
+            <WireSlider label="符號對比" :min="0" :max="100" :step="10" v-model="params.symbolContrast" />
 
-            <!-- Contrast -->
-            <WireSlider label="Contrast" :min="0" :max="1" :step="0.01" v-model="params.contrast" />
+            <!-- Color Temperature -->
+            <WireSlider label="色溫調整" :min="0" :max="100" :step="10" v-model="params.colorTemperature" />
 
-            <!-- Sigma -->
-            <WireSlider label="Sigma" :min="1" :max="100" :step="1" v-model="params.sigma" />
+            <!-- Font Size -->
+            <WireSlider label="字體大小" :min="0" :max="100" :step="10" v-model="params.fontSize" />
 
-            <!-- Phase -->
-            <WireSlider label="Phase" :min="0" :max="360" :step="1" v-model="params.phase" />
+            <!-- Screen Brightness -->
+            <WireSlider label="螢幕亮度" :min="0" :max="100" :step="10" v-model="params.screenBrightness" />
+
+            <!-- Volume -->
+            <WireSlider label="音量" :min="0" :max="100" :step="10" v-model="params.volume" />
         </div>
 
         <div class="mt-8">

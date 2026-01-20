@@ -14,8 +14,6 @@
             </p>
         </div>
 
-        <NuxtLink to="/completion" class="w-full py-2 bg-transparent text-inverse-on-surface/50 transition">
-            略過
-        </NuxtLink>
+        <GaborButton variant="ghost" to="/completion" label="略過" class="text-inverse-on-surface/50" />
     </div>
 </template>

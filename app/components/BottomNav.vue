@@ -18,6 +18,11 @@
                 active-class="text-on-secondary-container bg-secondary rounded-full py-1">
                 <Icon name="material-symbols:settings" size="24" />
             </NuxtLink>
+            <NuxtLink to="/profile"
+                class="flex flex-col items-center justify-center w-full h-full text-inverse-on-surface hover:text-gray-300 transition-colors"
+                active-class="text-on-secondary-container bg-secondary rounded-full py-1">
+                <Icon name="material-symbols:person" size="24" />
+            </NuxtLink>
         </div>
     </div>
 </template>

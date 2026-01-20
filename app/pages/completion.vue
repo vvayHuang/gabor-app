@@ -9,14 +9,8 @@
 
         <!-- Bottom Buttons -->
         <div class="flex space-x-4 w-full max-w-md mx-auto py-4">
-            <NuxtLink to="/records"
-                class="w-full py-2 text-inverse-on-surface border border-inverse-on-surface rounded-full hover:bg-gray-800 transition font-bold">
-                查看今日紀錄
-            </NuxtLink>
-            <NuxtLink to="/"
-                class="w-full py-2 text-inverse-on-surface border border-inverse-on-surface rounded-full hover:bg-gray-800 transition font-bold">
-                回首頁
-            </NuxtLink>
+            <GaborButton variant="outline" to="/records" label="查看今日紀錄" />
+            <GaborButton variant="outline" to="/" label="回首頁" />
         </div>
     </div>
 </template>

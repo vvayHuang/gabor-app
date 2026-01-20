@@ -5,22 +5,12 @@
             <p class="title-large-emphasis text-inverse-on-surface">很高興再次見到你！</p>
         </div>
         <div class="w-full max-w-sm space-y-6">
-            <button @click="handleLogin"
-                class="w-full py-4 border border-inverse-on-surface rounded-full flex items-center justify-center space-x-3 hover:bg-gray-800 transition group">
-                <Icon name="simple-icons:google" size="24" mode="svg" class="text-inverse-on-surface" />
-                <span class="text-inverse-on-surface group-hover:text-white">Sign in with Google</span>
-            </button>
+            <GaborButton variant="outline" icon="simple-icons:google" label="Sign in with Google"
+                @click="handleLogin" />
 
-            <button @click="handleLogin"
-                class="w-full py-4 border border-inverse-on-surface rounded-full flex items-center justify-center space-x-3 hover:bg-gray-800 transition group">
-                <Icon name="simple-icons:apple" size="24" mode="svg" class="text-inverse-on-surface" />
-                <span class="text-inverse-on-surface group-hover:text-white">Sign in with Apple</span>
-            </button>
+            <GaborButton variant="outline" icon="simple-icons:apple" label="Sign in with Apple" @click="handleLogin" />
 
-            <button @click="handleLogin"
-                class="w-full py-4 bg-transparent border border-transparent rounded-2xl flex items-center justify-center text-gray-500 text-sm hover:text-gray-300">
-                Skip for now
-            </button>
+            <GaborButton variant="ghost" label="Skip for now" @click="handleLogin" class="text-sm" />
         </div>
     </div>
 </template>
