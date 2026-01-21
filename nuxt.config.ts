@@ -5,12 +5,23 @@ export default defineNuxtConfig({
   },
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
-  modules: ['@nuxt/icon', '@nuxtjs/google-fonts'],
-  googleFonts: {
-    families: {
-      'Noto Sans TC': [100, 200, 300, 400, 500, 600, 700, 800, 900],
+  app: {
+    head: {
+      title: 'Gabor App',
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: '' },
+        { name: 'format-detection', content: 'telephone=no' },
+      ],
+      link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
     },
-    display: 'swap',
+  },
+  modules: ['@nuxt/icon', '@nuxt/fonts'],
+  fonts: {
+    families: [
+      { name: 'Noto Sans TC', provider: 'google', weights: ['100', '200', '300', '400', '500', '600', '700', '800', '900'] }
+    ],
   },
   css: ['~/assets/css/main.css'],
   postcss: {

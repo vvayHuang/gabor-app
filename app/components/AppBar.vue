@@ -9,7 +9,7 @@
 
         <!-- Centered Headline -->
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <h1 class="text-2xl font-bold pointer-events-auto">{{ headline }}</h1>
+            <h1 class="title-lg pointer-events-auto">{{ headline }}</h1>
         </div>
 
         <!-- Right Slot -->

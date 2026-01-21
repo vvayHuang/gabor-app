@@ -8,22 +8,23 @@
             </template>
         </AppBar>
 
-        <div class="flex items-center space-x-4">
-            <div class="w-20 h-20 bg-gray-800 rounded-full border-2 border-gray-700"></div>
+        <div class="flex flex-col items-center space-y-2">
+            <div class="w-30 h-30 bg-gray-800 rounded-full border-2 border-outline"></div>
             <div>
-                <h2 class="text-xl font-bold">User Name</h2>
-                <div class="text-gray-500 text-sm">Vision Explorer</div>
+                <h2 class="title-lg-emphasis text-inverse-on-surface">User Name</h2>
+                <div class="body-medium text-inverse-on-surface">Vision Explorer</div>
             </div>
         </div>
-
-        <div class="h-px w-full bg-gray-800"></div>
-
-        <div class="space-y-4">
-            <h3 class="text-sm font-bold text-gray-400 uppercase">Achievements</h3>
+        <div class="space-y-4 py-4">
+            <h3 class="title-lg-emphasis text-on-surface-variant">視覺專注力等級</h3>
+            <p class="title-lg-emphasis text-inverse-on-surface">初學者</p>
+        </div>
+        <div class="space-y-4 py-4">
+            <h3 class="title-lg-emphasis text-on-surface-variant">光榮時刻</h3>
             <div class="grid grid-cols-4 gap-4">
-                <div v-for="i in 4" :key="i"
-                    class="aspect-square bg-gray-900 rounded-xl flex items-center justify-center border border-gray-800">
-                    <Icon name="material-symbols:emoji-events" class="text-2xl text-gray-600" />
+                <div v-for="i in 6" :key="i"
+                    class="aspect-square rounded-xl flex items-center justify-center border border-outline">
+                    <Icon name="material-symbols:emoji-events" class="text-2xl text-primary" />
                 </div>
             </div>
         </div>
