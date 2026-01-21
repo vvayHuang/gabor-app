@@ -7,25 +7,51 @@
                 </NuxtLink>
             </template>
         </AppBar>
-        <h2 class="text-lg font-bold text-white mb-4">偏好設置</h2>
-        <div class="space-y-6">
-            <!-- Use params from useGaborMock -->
 
-            <!-- Symbol Contrast -->
-            <WireSlider label="符號對比" :min="0" :max="100" :step="10" v-model="params.symbolContrast" />
+        <!-- System & Environment -->
+        <section>
+            <h2 class="headline-sm font-bold text-white mb-6">系統與環境</h2>
+            <div class="space-y-6">
+                <WireSwitch label="深色模式" v-model="params.isDarkMode" />
+                <WireSwitch label="通知" v-model="params.isNotificationsEnabled" />
 
-            <!-- Color Temperature -->
-            <WireSlider label="色溫調整" :min="0" :max="100" :step="10" v-model="params.colorTemperature" />
+                <div class="flex flex-wrap items-center gap-3">
+                    <label class="label-md text-inverse-on-surface pl-1">白噪音</label>
+                    <WireSelectButton label="海浪" :selected="params.whiteNoiseType === 'waves'"
+                        @click="params.whiteNoiseType = 'waves'" />
+                    <WireSelectButton label="森林" :selected="params.whiteNoiseType === 'forest'"
+                        @click="params.whiteNoiseType = 'forest'" />
+                    <WireSelectButton label="雨聲" :selected="params.whiteNoiseType === 'rain'"
+                        @click="params.whiteNoiseType = 'rain'" />
+                </div>
+                <WireSlider label="螢幕亮度" :min="0" :max="100" :step="10" v-model="params.screenBrightness" />
+                <WireSlider label="音量" :min="0" :max="100" :step="10" v-model="params.volume" />
+            </div>
+        </section>
 
-            <!-- Font Size -->
-            <WireSlider label="字體大小" :min="0" :max="100" :step="10" v-model="params.fontSize" />
+        <div class="h-px bg-white/10 my-4"></div>
 
-            <!-- Screen Brightness -->
-            <WireSlider label="螢幕亮度" :min="0" :max="100" :step="10" v-model="params.screenBrightness" />
+        <!-- Visual Comfort -->
+        <section>
+            <h2 class="headline-sm font-bold text-white mb-6">視覺舒適度</h2>
+            <div class="space-y-6">
+                <WireSlider label="色溫調整" :min="0" :max="100" :step="10" v-model="params.colorTemperature" />
+                <WireSlider label="字體大小" :min="0" :max="100" :step="10" v-model="params.fontSize" />
+            </div>
+        </section>
 
-            <!-- Volume -->
-            <WireSlider label="音量" :min="0" :max="100" :step="10" v-model="params.volume" />
-        </div>
+        <div class="h-px bg-white/10 my-4"></div>
+
+        <!-- Symbol Configuration -->
+        <section>
+            <h2 class="headline-sm font-bold text-white mb-6">蓋博符號配置</h2>
+            <div class="space-y-6">
+                <WireSlider label="符號對比" :min="0" :max="100" :step="10" v-model="params.symbolContrast" />
+                <WireSlider label="符號大小" :min="10" :max="100" :step="5" v-model="params.symbolSize" />
+                <WireSlider label="線條密度" :min="1" :max="20" :step="1" v-model="params.stripeDensity" />
+                <WireSlider label="漂移速度" :min="0" :max="10" :step="1" v-model="params.driftSpeed" />
+            </div>
+        </section>
 
         <div class="mt-8">
             <h2 class="text-lg font-bold text-white mb-4">預覽</h2>

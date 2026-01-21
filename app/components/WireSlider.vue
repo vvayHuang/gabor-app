@@ -1,5 +1,5 @@
 <template>
-    <div class="flex justify-between space-y-4">
+    <div class="flex justify-between space-y-7">
         <div class="flex justify-between items-center w-[77px]">
             <label class="label-md text-inverse-on-surface pl-1">{{ label }}</label>
         </div>
@@ -13,7 +13,7 @@
             </div>
 
             <!-- Handle -->
-            <div class="absolute top-1/2 -translate-y-1/2 w-1.5 h-11 bg-[#756F5B] rounded-full shadow-sm transition-all duration-75 ease-out pointer-events-none"
+            <div class="absolute top-1/2 -translate-y-1/2 w-1 h-11 bg-[#756F5B] rounded-full shadow-sm transition-all duration-75 ease-out pointer-events-none"
                 :style="{ left: `calc(${percentage}% - 3px)` }">
             </div>
         </div>
