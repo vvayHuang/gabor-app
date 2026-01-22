@@ -2,12 +2,13 @@
 
 ## 專案概述
 
-此專案是一個基於 Nuxt.js 的 Web 應用程式，作為「Gabor App」的線框圖（Wireframe）原型。此應用程式旨在引導使用者完成一系列與 Gabor 斑塊（一種用於視覺感知研究的視覺刺激）相關的視覺任務。整個流程包括登入、準備、任務網格和完成畫面。
+此專案是一個基於 Nuxt.js 的 Web 應用程式，作為「Gabor App」的線框圖（Wireframe）原型。此應用程式旨在引導使用者完成一系列與 Gabor 斑塊（一種用於視覺感知研究的視覺刺激）相關的視覺任務。整個流程包括帶有動畫效果的啟動畫面、登入、準備、具有進度追蹤和退出確認的任務網格，以及完成畫面。
 
 ### 核心技術
 
 *   **框架:** [Nuxt.js](https://nuxt.com/) (v4.2.2) 搭配 Vue.js (v3.5.26)
 *   **樣式:** [Tailwind CSS](https://tailwindcss.com/)
+*   **動畫:** [GSAP (GreenSock Animation Platform)](https://gsap.com/) 用於實現啟動畫面等流暢的過渡動畫。
 *   **圖示:** [Nuxt Icon](https://nuxt.com/modules/icon)
 *   **字體:** [Nuxt Google Fonts](https://google-fonts.nuxtjs.org/) (使用 Noto Sans TC)
 *   **圖形:** [p5.js](https://p5js.org/) 用於在畫布上渲染 Gabor 斑塊的視覺化效果。
@@ -18,7 +19,11 @@
 *   **結構:** 標準的 Nuxt.js 目錄結構。
 *   **路由:** 使用基於檔案的路由系統，頁面位於 `app/pages/` 目錄中。
 *   **佈局:** 單一的預設佈局 (`app/layouts/default.vue`) 提供了主要的頁面結構，其中包含一個底部導覽列，該導覽列會根據當前路由有條件地顯示。
-*   **元件:** 可重複使用的 UI 元件，如 `GaborCanvas.vue`、`BottomNav.vue` 和 `ProgressCircle.vue`，存放於 `app/components/` 目錄中。
+*   **元件:** 可重複使用的 UI 元件存放於 `app/components/` 目錄中。
+    *   `GaborCanvas.vue`: 透過動態載入 p5.js 僅在客戶端進行渲染，以解決 SSR（伺服器端渲染）問題並實現 Gabor 斑塊的視覺化。
+    *   `TaskProgress.vue`: 顯示使用者在任務階段中的進度。
+    *   `IconButton.vue`: 用於建立帶有圖示的標準化按鈕。
+    *   其他元件包括 `BottomNav.vue`、`ProgressCircle.vue` 等。
 *   **狀態管理:** 使用一個簡單的 `composable` (`app/composables/useGaborMock.ts`) 來管理 Gabor 斑塊參數的狀態。
 
 ## 建置與執行

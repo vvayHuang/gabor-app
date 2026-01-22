@@ -5,7 +5,7 @@ export function useGaborMock() {
         orientation: 0,
         frequency: 1,
         contrast: 0.5,
-        sigma: 20,
+        sigma: 50,
         phase: 0,
         // Settings - System
         isDarkMode: true, // Default to true as per image dark theme

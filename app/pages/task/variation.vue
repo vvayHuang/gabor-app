@@ -10,8 +10,7 @@
 
         <!-- Grid 3x3 -->
         <div class="grid grid-cols-3 gap-3 w-full max-w-sm aspect-square">
-            <div v-for="i in 9" :key="i"
-                class="relative group border border-gray-800 rounded-xl flex items-center justify-center bg-gray-900/50 cursor-pointer"
+            <div v-for="i in 9" :key="i" class="relative group flex items-center justify-center cursor-pointer"
                 @click="handleInteraction">
                 <div
                     class="absolute inset-0 border-2 border-transparent group-hover:border-gray-600 rounded-xl transition-colors pointer-events-none z-10">
