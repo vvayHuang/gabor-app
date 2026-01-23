@@ -62,7 +62,7 @@ const getParams = (index: number) => {
         ...params,
         orientation: params.orientation + (index * 45),
         // Vary frequency slightly but keep it visible
-        frequency: params.frequency + (index * 0.2),
+        frequency: params.frequency + (index * 0.005),
     }
 }
 

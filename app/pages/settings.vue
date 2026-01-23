@@ -64,6 +64,16 @@
 
 <script setup lang="ts">
 import { useGaborMock } from '~/composables/useGaborMock';
+import { watchEffect } from 'vue';
 
 const { params } = useGaborMock();
+
+// Sync slider values to Gabor params for preview
+watchEffect(() => {
+    params.contrast = params.symbolContrast / 100;
+    params.sigma = params.symbolSize;
+    // Map density 1-20 to frequency ~0.01-0.1
+    // Density 10 (default) -> 0.05
+    params.frequency = params.stripeDensity / 200;
+});
 </script>

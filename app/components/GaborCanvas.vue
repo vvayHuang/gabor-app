@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<{
         orientation: 0,
         frequency: 0.05,
         contrast: 1,
-        sigma: 70, // Updated default sigma
+        sigma: 40,
         phase: 0
     })
 });
@@ -50,9 +50,9 @@ const drawGabor = () => {
     const h = p.height;
     const cx = w / 2;
     const cy = h / 2;
-    const normFreq = frequency * 0.05;
-
-    p.background(127); // Set a neutral gray background
+    
+    // Clear background to ensure transparency works
+    p.clear();
     p.loadPixels();
 
     for (let y = 0; y < h; y++) {
@@ -63,20 +63,23 @@ const drawGabor = () => {
             // Rotate coordinates
             const rx = xx * cosTheta + yy * sinTheta;
 
-            // Gaussian envelope - this now controls both contrast and alpha
-            const envelope = p.exp(-(xx * xx + yy * yy) / (2 * sigma * sigma));
+            // Gaussian envelope - controls contrast falloff and alpha
+            const distSq = xx * xx + yy * yy;
+            const envelope = p.exp(-(distSq) / (2 * sigma * sigma));
 
             // Sinusoidal carrier
-            const carrier = p.sin(p.TWO_PI * normFreq * rx + phase);
+            // Formula: sin(rotX * frequency * TWO_PI)
+            const carrier = p.sin(p.TWO_PI * frequency * rx + phase);
 
             // Calculate final grayscale value
+            // Formula: 127 + (127 * sineVal * gaussVal * contrast)
             const gray = 127 + (127 * carrier * envelope * contrast);
             
             const index = (x + y * w) * 4;
             p.pixels[index]     = gray;
             p.pixels[index + 1] = gray;
             p.pixels[index + 2] = gray;
-            // Alpha is now directly controlled by the envelope for a smooth fade
+            // Alpha controlled by envelope for smooth circular fade
             p.pixels[index + 3] = p.map(envelope, 0, 1, 0, 255);
         }
     }

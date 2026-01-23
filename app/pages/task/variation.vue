@@ -31,9 +31,9 @@ const { params } = useGaborMock();
 const getParams = (index: number) => {
     // Make one different
     if (index === 5) {
-        return { ...params, orientation: 90, frequency: 2, contrast: 1 };
+        return { ...params, orientation: 90, frequency: 0.07, contrast: 1 };
     }
-    return { ...params, orientation: 0, frequency: 1, contrast: 0.5 };
+    return { ...params, orientation: 0, frequency: 0.05, contrast: 0.5 };
 }
 
 const handleInteraction = () => {
