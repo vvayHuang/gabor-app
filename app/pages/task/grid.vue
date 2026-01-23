@@ -52,7 +52,12 @@
                 </div>
 
                 <ClientOnly>
-                    <GaborCanvas :size="gridSize === 2 ? 172 : 110" :params="item" />
+                    <GaborCanvas 
+                        :ref="el => { if (el) canvasRefs[index] = el }"
+                        :size="gridSize === 2 ? 172 : 110" 
+                        :params="item"
+                        :primary-color="primaryColor"
+                        :secondary-color="secondaryColor" />
                 </ClientOnly>
             </div>
         </div>
@@ -63,6 +68,8 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
 import { ref, onMounted } from 'vue';
+import { useGameState } from '~/composables/useGameState';
+import { useGamePersistence } from '~/composables/useGamePersistence';
 
 import GaborCanvas from '~/components/GaborCanvas.vue';
 import TaskProgress from '~/components/TaskProgress.vue';
@@ -71,7 +78,10 @@ import IconButton from '~/components/IconButton.vue';
 const router = useRouter();
 const route = useRoute();
 
-// --- Game State ---
+// --- Game State Management ---
+const gameState = useGameState();
+const persistence = useGamePersistence();
+
 type GamePhase = '2x2_LEVELS' | '3x3_LEVELS' | 'GAME_OVER';
 type FeedbackState = 'IDLE' | 'SUCCESS' | 'ERROR';
 
@@ -84,13 +94,17 @@ const gameStarted = ref(false);
 
 const feedbackState = ref<FeedbackState>('IDLE');
 const selectedIndex = ref(-1);
+const canvasRefs = ref<any[]>([]);
+const clickStartTime = ref(0);
+
+// --- Gabor Colors ---
+const primaryColor = ref('#FFFFFF');
+const secondaryColor = ref('#000000');
 
 // --- Gabor Generation State ---
 const gridItems = ref<any[]>([]);
 const targetIndex = ref(0);
-const baseContrast = 1.0; // Fixed for now, can be adaptive later
-const baseSigma = 40; // Fixed for now
-const baseFrequencyRange = { min: 0.02, max: 0.08 };
+const baseSigma = 40;
 
 // --- Methods ---
 
@@ -104,30 +118,31 @@ const startNewGame = () => {
 };
 
 const generateLevel = () => {
-    feedbackState.value = 'IDLE'; // Reset feedback state
-    selectedIndex.value = -1; // Reset selected index
+    feedbackState.value = 'IDLE';
+    selectedIndex.value = -1;
+    clickStartTime.value = Date.now();
 
     const count = gridSize.value * gridSize.value;
     targetIndex.value = Math.floor(Math.random() * count);
 
+    // Use adaptive difficulty from game state
+    const { frequency, contrast } = gameState.state.difficulty;
+    
     // Difficulty Algorithm: difficultyOffset decreases as globalLevel increases
-    // minOffset for 2x2: e.g., 10 degrees. for 3x3: e.g., 8 degrees
-    const minOffset = gridSize.value === 2 ? 10 : 8; // Example minOffset
-    // Decrease offset by 2 degrees for every 2 global levels, up to a certain point
+    const minOffset = gridSize.value === 2 ? 10 : 8;
     const difficultyOffset = Math.max(minOffset, 45 - Math.floor(globalLevel.value / 2) * 2);
 
-    const baseAngle = Math.random() * 360; // Random base angle
+    const baseAngle = Math.random() * 360;
     const targetAngle = (baseAngle + difficultyOffset) % 360;
 
     gridItems.value = Array.from({ length: count }, (_, i) => {
         const isTarget = i === targetIndex.value;
-        const phase = Math.random() * Math.PI * 2; // Random phase for every patch
-        const frequency = baseFrequencyRange.min + Math.random() * (baseFrequencyRange.max - baseFrequencyRange.min); // Random frequency
+        const phase = Math.random() * Math.PI * 2; // Random phase
 
         return {
             orientation: isTarget ? targetAngle : baseAngle,
-            frequency: frequency,
-            contrast: baseContrast,
+            frequency: frequency + (Math.random() * 0.01 - 0.005), // Slight variation
+            contrast: contrast,
             sigma: baseSigma,
             phase: phase,
         };
@@ -135,43 +150,53 @@ const generateLevel = () => {
 };
 
 const handleInteraction = (index: number) => {
-    if (feedbackState.value !== 'IDLE') return; // Prevent multiple clicks during feedback
+    if (feedbackState.value !== 'IDLE') return;
 
     selectedIndex.value = index;
+    const responseTime = Date.now() - clickStartTime.value;
+    const isCorrect = index === targetIndex.value;
 
-    if (index === targetIndex.value) {
-        // Correct guess
+    // Record response in game state
+    gameState.recordResponse(isCorrect, responseTime);
+
+    if (isCorrect) {
+        // Trigger visual feedback on canvas
+        const canvas = canvasRefs.value[index];
+        if (canvas && canvas.triggerInvert) {
+            canvas.triggerInvert();
+        }
         feedbackState.value = 'SUCCESS';
 
-        // Use a timeout for the invert effect duration
         setTimeout(() => {
             currentLevelInPhase.value++;
             globalLevel.value++;
 
             if (currentLevelInPhase.value > levelsPerPhase) {
-                // End of current phase
+                // End of phase - save progress
+                persistence.updateHighScore(gameState.state.session.score);
+                persistence.updateConsecutiveDays();
+                persistence.addTrainingTime(gameState.state.session.totalTime);
+                
                 if (gamePhase.value === '2x2_LEVELS') {
-                    router.push('/task/rest'); // Navigate to rest page
+                    router.push('/task/rest');
                     return;
                 } else if (gamePhase.value === '3x3_LEVELS') {
                     gamePhase.value = 'GAME_OVER';
-                    // alert('遊戲結束！'); // Temporary feedback
-                    router.push('/prepare'); // Go back to prepare page
+                    router.push('/completion');
                     return;
                 }
             }
-            generateLevel(); // Generate next level
-        }, 150); // 150ms invert effect duration
+            generateLevel();
+        }, 150);
     } else {
-        // Incorrect guess
         feedbackState.value = 'ERROR';
-        if (navigator.vibrate) navigator.vibrate(200); // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(200);
 
         setTimeout(() => {
-            feedbackState.value = 'IDLE'; // Reset feedback state after shake
+            feedbackState.value = 'IDLE';
             selectedIndex.value = -1;
-            generateLevel(); // Regenerate level after error
-        }, 500); // Shake duration
+            generateLevel();
+        }, 500);
     }
 };
 
