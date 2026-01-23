@@ -12,8 +12,19 @@
 
         <!-- Bottom Button -->
         <div class="w-full max-w-md mx-auto pb-[68px]">
-            <GaborButton variant="primary" to="/task/grid" label="進入訓練" />
+            <GaborButton variant="primary" label="進入訓練" @click="startGame" />
             <p class="text-sm text-inverse-on-surface mt-2">上次訓練時間 : 15分</p>
         </div>
     </div>
 </template>
+
+<script setup lang="ts">
+import { useRouter } from 'vue-router';
+import GaborButton from '~/components/GaborButton.vue'; // Make sure this path is correct
+
+const router = useRouter();
+
+const startGame = () => {
+    router.push('/task/grid');
+};
+</script>
