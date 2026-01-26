@@ -212,7 +212,7 @@ const handleInteraction = (index: number) => {
 
 
                     gamePhase.value = 'GAME_OVER';
-                    router.push('/progress'); // Go to Progress page as requested
+                    router.push('/daily-goal'); // Go to Daily Goal page
                     return;
                 }
             }
