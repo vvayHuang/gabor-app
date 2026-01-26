@@ -1,5 +1,6 @@
 <template>
-    <div class="flex flex-col items-center justify-center min-h-screen p-4 space-y-8 relative">
+    <div class="flex flex-col items-center justify-center min-h-screen p-4 space-y-8 relative transition-colors duration-100"
+        :class="{ 'bg-error/20': feedbackState === 'ERROR' }">
         <!-- Header -->
         <div class="fixed top-[62px] left-0 w-full px-4 flex justify-between items-center z-20 gap-12">
             <!-- Exit Button -->
@@ -33,7 +34,8 @@
         </div>
 
         <!-- Grid -->
-        <div v-if="gameStarted" class="grid gap-4 w-full max-w-sm aspect-square transition-transform duration-100"
+        <div v-if="gameStarted && !showPhaseTransition"
+            class="grid gap-4 w-full max-w-sm aspect-square transition-transform duration-100 animate-fade-in-up"
             :class="[
                 gridSize === 2 ? 'grid-cols-2' : 'grid-cols-3',
                 feedbackState === 'ERROR' ? 'animate-shake' : ''
@@ -52,16 +54,22 @@
                 </div>
 
                 <ClientOnly>
-                    <GaborCanvas 
-                        :ref="el => { if (el) canvasRefs[index] = el }"
-                        :size="gridSize === 2 ? 172 : 110" 
-                        :params="item"
-                        :primary-color="primaryColor"
-                        :secondary-color="secondaryColor" />
+                    <GaborCanvas :ref="el => { if (el) canvasRefs[index] = el }" :size="gridSize === 2 ? 172 : 110"
+                        :params="item" :primary-color="primaryColor" :secondary-color="secondaryColor" />
                 </ClientOnly>
             </div>
         </div>
-        <div v-else class="text-white">Loading game...</div>
+
+        <!-- Phase Transition Button -->
+        <div v-if="showPhaseTransition" class="flex flex-col items-center space-y-4 animate-fade-in-up">
+            <h2 class="text-2xl font-light text-inverse-on-surface">第一階段完成</h2>
+            <button @click="startNextPhase"
+                class="px-8 py-4 bg-primary text-on-primary rounded-full text-lg font-medium hover:bg-primary-container hover:text-on-primary-container transition-all">
+                繼續第二階段
+            </button>
+        </div>
+
+        <div v-if="!gameStarted && !showPhaseTransition" class="text-white">Loading game...</div>
     </div>
 </template>
 
@@ -91,6 +99,7 @@ const globalLevel = ref(1);
 const levelsPerPhase = 5;
 const gridSize = ref(2); // Initial grid size
 const gameStarted = ref(false);
+const showPhaseTransition = ref(false);
 
 const feedbackState = ref<FeedbackState>('IDLE');
 const selectedIndex = ref(-1);
@@ -114,6 +123,17 @@ const startNewGame = () => {
     globalLevel.value = 1;
     gridSize.value = 2;
     gameStarted.value = true;
+    showPhaseTransition.value = false;
+    generateLevel();
+};
+
+const startNextPhase = () => {
+    gamePhase.value = '3x3_LEVELS';
+    gridSize.value = 3;
+    currentLevelInPhase.value = 1;
+    // Keep globalLevel continuous
+    gameStarted.value = true;
+    showPhaseTransition.value = false;
     generateLevel();
 };
 
@@ -127,7 +147,7 @@ const generateLevel = () => {
 
     // Use adaptive difficulty from game state
     const { frequency, contrast } = gameState.state.difficulty;
-    
+
     // Difficulty Algorithm: difficultyOffset decreases as globalLevel increases
     const minOffset = gridSize.value === 2 ? 10 : 8;
     const difficultyOffset = Math.max(minOffset, 45 - Math.floor(globalLevel.value / 2) * 2);
@@ -139,9 +159,16 @@ const generateLevel = () => {
         const isTarget = i === targetIndex.value;
         const phase = Math.random() * Math.PI * 2; // Random phase
 
+        // Calculate frequency with a safe minimum to prevent "blob" look
+        // Base variation + random factor
+        let randomFreq = frequency + (Math.random() * 0.04 - 0.02);
+        // Clamp to minimum 0.04 to ensure lines are visible
+        randomFreq = Math.max(0.04, randomFreq);
+
         return {
             orientation: isTarget ? targetAngle : baseAngle,
-            frequency: frequency + (Math.random() * 0.01 - 0.005), // Slight variation
+            // Multi-parameter Challenge: Random frequency for EACH patch, slightly varied around the base difficulty
+            frequency: randomFreq,
             contrast: contrast,
             sigma: baseSigma,
             phase: phase,
@@ -172,17 +199,20 @@ const handleInteraction = (index: number) => {
             globalLevel.value++;
 
             if (currentLevelInPhase.value > levelsPerPhase) {
-                // End of phase - save progress
-                persistence.updateHighScore(gameState.state.session.score);
-                persistence.updateConsecutiveDays();
-                persistence.addTrainingTime(gameState.state.session.totalTime);
-                
+                // End of phase
                 if (gamePhase.value === '2x2_LEVELS') {
-                    router.push('/task/rest');
+                    // Show manual transition button instead of auto-navigating
+                    showPhaseTransition.value = true;
                     return;
                 } else if (gamePhase.value === '3x3_LEVELS') {
+                    // End of entire session -> Save and Go to Rest
+                    persistence.updateHighScore(gameState.state.session.score);
+                    persistence.updateConsecutiveDays();
+                    persistence.addTrainingTime(gameState.state.session.totalTime);
+
+
                     gamePhase.value = 'GAME_OVER';
-                    router.push('/completion');
+                    router.push('/progress'); // Go to Progress page as requested
                     return;
                 }
             }
@@ -195,7 +225,8 @@ const handleInteraction = (index: number) => {
         setTimeout(() => {
             feedbackState.value = 'IDLE';
             selectedIndex.value = -1;
-            generateLevel();
+            // DO NOT regenerate level on error - play stays on same level per request
+            // generateLevel(); 
         }, 500);
     }
 };
@@ -218,13 +249,11 @@ const confirmExit = () => {
 
 // --- Lifecycle ---
 onMounted(() => {
+    // Always start fresh from 2x2 if coming here directly, or check query logic if needed
+    // But per request: 2x2 -> button -> 3x3.
+    // Let's stick to the standard flow primarily.
     if (route.query.phase === '3x3') {
-        gamePhase.value = '3x3_LEVELS';
-        gridSize.value = 3;
-        currentLevelInPhase.value = 1;
-        globalLevel.value = levelsPerPhase + 1; // Start global level after 2x2 phase
-        gameStarted.value = true;
-        generateLevel();
+        startNextPhase();
     } else {
         startNewGame();
     }
@@ -234,7 +263,9 @@ onMounted(() => {
 
 <style scoped>
 @keyframes shake {
-    0% {
+
+    0%,
+    100% {
         transform: translateX(0);
     }
 
@@ -242,20 +273,28 @@ onMounted(() => {
         transform: translateX(-2px);
     }
 
-    50% {
-        transform: translateX(2px);
-    }
-
     75% {
-        transform: translateX(-2px);
-    }
-
-    100% {
-        transform: translateX(0);
+        transform: translateX(2px);
     }
 }
 
 .animate-shake {
     animation: shake 0.2s ease-in-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
 }
 </style>

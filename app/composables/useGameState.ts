@@ -35,7 +35,7 @@ export function useGameState() {
             totalTime: 0
         },
         difficulty: {
-            frequency: 0.025, // 初始值：較粗條紋
+            frequency: 0.04, // 初始值：確保線條清晰 (0.025 -> 0.04)
             contrast: 1.0,
             gridSize: 4 // 2x2 grid
         }

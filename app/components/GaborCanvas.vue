@@ -1,8 +1,8 @@
 <template>
-    <div ref="canvasContainer" 
-         class="relative flex items-center justify-center [&>canvas]:rounded-full transition-transform duration-150"
-         :class="{ 'animate-shake': isShaking, 'invert': isInverted }"
-         :style="{ width: size + 'px', height: size + 'px' }">
+    <div ref="canvasContainer"
+        class="relative flex items-center justify-center [&>canvas]:rounded-full transition-transform duration-150"
+        :class="{ 'animate-shake': isShaking, 'invert': isInverted }"
+        :style="{ width: size + 'px', height: size + 'px' }">
         <!-- p5 canvas will be injected here -->
     </div>
 </template>
@@ -58,12 +58,16 @@ const drawGabor = () => {
     const h = p.height;
     const cx = w / 2;
     const cy = h / 2;
-    
+
+    // Tighter sigma for "concentrated" look as requested
+    // Previously passed as prop (40), now we override or adjust relative to size if needed
+    // User wants "line range concentrated", so let's use a smaller dynamic sigma
+    const effectiveSigma = props.size ? props.size / 6 : sigma;
+
     // Parse colors
     const c1 = p.color(props.primaryColor);
     const c2 = p.color(props.secondaryColor);
-    
-    // Clear background to ensure transparency works
+
     p.clear();
     p.loadPixels();
 
@@ -75,25 +79,22 @@ const drawGabor = () => {
             // Rotate coordinates
             const rx = xx * cosTheta + yy * sinTheta;
 
-            // Gaussian envelope - controls contrast falloff and alpha
-            // Formula: exp(-(d^2) / (2 * sigma^2))
             const distSq = xx * xx + yy * yy;
-            const envelope = p.exp(-(distSq) / (2 * sigma * sigma));
+            const envelope = p.exp(-(distSq) / (2 * effectiveSigma * effectiveSigma));
 
-            // Sinusoidal carrier with phase
-            // Formula: sin(x * frequency * TWO_PI + phase)
             const carrier = p.sin(p.TWO_PI * frequency * rx + phase);
 
-            // Interpolate between primary and secondary colors based on carrier and contrast
-            // Map carrier from [-1, 1] to [0, 1]
             const t = (carrier * contrast + 1) / 2;
             const interpolatedColor = p.lerpColor(c1, c2, t);
-            
+
+            // Add Noise
+            // Random value between -20 and 20 added to RGB channels
+            const noise = p.random(-20, 20);
+
             const index = (x + y * w) * 4;
-            p.pixels[index]     = p.red(interpolatedColor);
-            p.pixels[index + 1] = p.green(interpolatedColor);
-            p.pixels[index + 2] = p.blue(interpolatedColor);
-            // Alpha controlled by envelope for smooth circular fade (no hard edges)
+            p.pixels[index] = p.constrain(p.red(interpolatedColor) + noise, 0, 255);
+            p.pixels[index + 1] = p.constrain(p.green(interpolatedColor) + noise, 0, 255);
+            p.pixels[index + 2] = p.constrain(p.blue(interpolatedColor) + noise, 0, 255);
             p.pixels[index + 3] = p.map(envelope, 0, 1, 0, 255);
         }
     }
@@ -163,9 +164,19 @@ watch([() => props.primaryColor, () => props.secondaryColor], () => {
 
 <style scoped>
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-2px); }
-    75% { transform: translateX(2px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-2px);
+    }
+
+    75% {
+        transform: translateX(2px);
+    }
 }
 
 .animate-shake {
