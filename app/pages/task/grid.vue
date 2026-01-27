@@ -13,7 +13,7 @@
 
         <!-- Exit Confirmation Dialog -->
         <div v-if="showExitConfirmation"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm mb-0">
             <div
                 class="bg-surface-container-high p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4 border border-outline-variant">
                 <h3 class="text-xl font-bold text-on-surface mb-2">確定要離開嗎？</h3>
@@ -62,7 +62,7 @@
 
         <!-- Phase Transition Button -->
         <div v-if="showPhaseTransition" class="flex flex-col items-center space-y-4 animate-fade-in-up">
-            <h2 class="text-2xl font-light text-inverse-on-surface">第一階段完成</h2>
+            <h2 class="display-md text-inverse-on-surface">第一階段完成</h2>
             <GaborButton variant="primary" @click="startNextPhase" label="繼續第二階段" />
         </div>
 
