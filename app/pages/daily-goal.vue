@@ -2,8 +2,8 @@
     <div class="flex flex-col min-h-screen relative overflow-hidden">
         <!-- Progress Circle View -->
         <div ref="progressView" class="absolute inset-0 flex flex-col items-center justify-center">
-            <div class="flex flex-col items-center space-y-6">
-                <ProgressCircle :value="80" />
+            <div class="flex flex-col items-center space-y-12">
+                <ProgressCircle :elapsedSeconds="elapsedSeconds" />
                 <h3 class="headline-lg-emphasis text-inverse-on-surface">今日目標達成</h3>
             </div>
         </div>
@@ -90,20 +90,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import gsap from 'gsap';
 import ProgressCircle from '~/components/ProgressCircle.vue';
 import GaborButton from '~/components/GaborButton.vue';
+import { useGameState } from '~/composables/useGameState';
 
 const router = useRouter();
 const progressView = ref<HTMLElement | null>(null);
 const analysisView = ref<HTMLElement | null>(null);
 
-// Mock data - in real app, this would come from the calibration results
-const neuralSpeed = ref(2250);
-const successRate = ref(100);
-const levelAttained = ref('01');
+// Get game state to access session time
+const gameState = useGameState();
+
+// Convert totalTime from milliseconds to seconds (fallback to 323s for demo)
+const elapsedSeconds = computed(() => {
+    const time = Math.floor(gameState.state.session.totalTime / 1000);
+    return time > 0 ? time : 323;
+});
+
+// Derive metrics from actual session data
+const neuralSpeed = computed(() => Math.round(gameState.averageResponseTime.value));
+const successRate = computed(() => Math.round(gameState.accuracy.value));
+const levelAttained = computed(() => gameState.state.session.currentLevel.toString().padStart(2, '0'));
 const sensitivityIndex = ref(3);
 
 const recalibrate = () => {
@@ -112,6 +122,11 @@ const recalibrate = () => {
 };
 
 onMounted(() => {
+    // End session just in case it wasn't ended properly
+    if (gameState.state.session.totalTime === 0 && gameState.state.session.startTime > 0) {
+        gameState.endSession();
+    }
+
     // Wait 3 seconds, then fade out progress view and fade in analysis view
     gsap.timeline()
         .to(progressView.value, {

@@ -203,6 +203,7 @@ const handleInteraction = (index: number) => {
                     return;
                 } else if (gamePhase.value === '3x3_LEVELS') {
                     // End of entire session -> Save and Go to Rest
+                    gameState.endSession();
                     persistence.updateHighScore(gameState.state.session.score);
                     persistence.updateConsecutiveDays();
                     persistence.addTrainingTime(gameState.state.session.totalTime);

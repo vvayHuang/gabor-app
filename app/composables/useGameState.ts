@@ -13,33 +13,34 @@ export interface GameSession {
     totalTime: number
 }
 
+const state = reactive<{
+    gameState: GameState
+    session: GameSession
+    difficulty: {
+        frequency: number
+        contrast: number
+        gridSize: number
+    }
+}>({
+    gameState: 'START',
+    session: {
+        currentLevel: 1,
+        score: 0,
+        correctCount: 0,
+        incorrectCount: 0,
+        consecutiveCorrect: 0,
+        responseTimes: [],
+        startTime: 0,
+        totalTime: 0
+    },
+    difficulty: {
+        frequency: 0.04, // 初始值：確保線條清晰 (0.025 -> 0.04)
+        contrast: 1.0,
+        gridSize: 4 // 2x2 grid
+    }
+})
+
 export function useGameState() {
-    const state = reactive<{
-        gameState: GameState
-        session: GameSession
-        difficulty: {
-            frequency: number
-            contrast: number
-            gridSize: number
-        }
-    }>({
-        gameState: 'START',
-        session: {
-            currentLevel: 1,
-            score: 0,
-            correctCount: 0,
-            incorrectCount: 0,
-            consecutiveCorrect: 0,
-            responseTimes: [],
-            startTime: 0,
-            totalTime: 0
-        },
-        difficulty: {
-            frequency: 0.04, // 初始值：確保線條清晰 (0.025 -> 0.04)
-            contrast: 1.0,
-            gridSize: 4 // 2x2 grid
-        }
-    })
 
     // Adaptive Difficulty Logic
     const adjustDifficulty = (responseTime: number, isCorrect: boolean) => {
