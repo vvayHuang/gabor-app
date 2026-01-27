@@ -23,10 +23,7 @@
 
         <!-- Bottom Button -->
         <div class="w-full max-w-md mx-auto">
-            <NuxtLink to="/timer"
-                class="w-full py-2 bg-primary text-on-primary rounded-full hover:bg-primary-container transition block font-bold">
-                Next Step
-            </NuxtLink>
+            <GaborButton variant="primary" to="/timer" label="下一步" />
         </div>
     </div>
 </template>

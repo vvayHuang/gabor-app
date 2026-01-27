@@ -63,10 +63,7 @@
         <!-- Phase Transition Button -->
         <div v-if="showPhaseTransition" class="flex flex-col items-center space-y-4 animate-fade-in-up">
             <h2 class="text-2xl font-light text-inverse-on-surface">第一階段完成</h2>
-            <button @click="startNextPhase"
-                class="px-8 py-4 bg-primary text-on-primary rounded-full text-lg font-medium hover:bg-primary-container hover:text-on-primary-container transition-all">
-                繼續第二階段
-            </button>
+            <GaborButton variant="primary" @click="startNextPhase" label="繼續第二階段" />
         </div>
 
         <div v-if="!gameStarted && !showPhaseTransition" class="text-white">Loading game...</div>

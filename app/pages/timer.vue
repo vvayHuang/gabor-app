@@ -1,35 +1,29 @@
 <template>
-    <div class="flex flex-col items-center justify-center min-h-screen p-8 text-center relative overflow-hidden">
-        <!-- Timer Display -->
-        <div class="mb-12 space-y-4 font-light relative z-10">
-            <h2 class="text-3xl text-inverse-on-surface">休息時間</h2>
-            <div class="text-8xl text-primary font-mono tabular-nums leading-none tracking-tight">
-                00:{{ remainingSeconds.toString().padStart(2, '0') }}
+    <div class="flex flex-col items-center min-h-screen py-6 px-4 text-center relative overflow-hidden isolate">
+        <!-- Timer Display (Centered) -->
+        <div class="flex-1 flex flex-col items-center justify-center w-full z-10">
+            <div class="mb-12 space-y-4 font-light">
+                <div class="display-lg text-inverse-on-surface">
+                    {{ remainingSeconds.toString().padStart(2, '0') }}
+                </div>
+                <h2 class="headline-sm-emphasis text-inverse-on-surface">做得好，現在請閉上眼睛</h2>
+                <p class="body-lg">
+                    聽著浪聲，感受眼部肌肉的鬆弛。倒數結束後，我們夢裡見
+                </p>
             </div>
-            <p class="text-on-surface-variant text-lg">
-                聽著浪聲，感受眼部肌肉的鬆弛。<br>倒數結束後，我們夢裡見
-            </p>
         </div>
 
-        <!-- Skip Button -->
-        <div class="relative z-10">
-            <GaborButton variant="ghost" to="/completion" label="略過"
-                class="text-on-surface-variant hover:text-on-surface hover:bg-white/5" />
+        <!-- Skip Button (Bottom) -->
+        <div class="relative z-10 mt-auto pb-[135px]">
+            <GaborButton variant="ghost" to="/completion" label="略過" />
         </div>
 
-        <!-- Wave Animation Background -->
-        <div class="fixed inset-0 -z-10 opacity-30 pointer-events-none">
-            <div ref="waveContainer" class="w-full h-full blur-2xl"></div>
-        </div>
-
-        <!-- Background Noise -->
-        <div class="fixed inset-0 -z-20 opacity-[0.03] pointer-events-none">
-            <svg width="100%" height="100%">
-                <filter id="noise">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" />
-                </filter>
-                <rect width="100%" height="100%" filter="url(#noise)" />
-            </svg>
+        <!-- Wave Animation (Horizontal) -->
+        <div class="absolute bottom-[16px] inset-0 -z-10 pointer-events-none overflow-hidden">
+            <img ref="wave1" src="~/assets/wav-1.svg" class="absolute w-[200%] bottom-0" />
+            <img ref="wave2" src="~/assets/wav-2.svg" class="absolute w-[200%] bottom-0" />
+            <img ref="wave3" src="~/assets/wav-3.svg" class="absolute w-[200%] bottom-0" />
+            <img ref="wave4" src="~/assets/wav-4.svg" class="absolute w-[200%] bottom-0" />
         </div>
     </div>
 </template>
@@ -37,11 +31,15 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
+import gsap from 'gsap';
 import GaborButton from '~/components/GaborButton.vue';
 
 const router = useRouter();
-const waveContainer = ref<HTMLElement | null>(null);
-const remainingSeconds = ref(30);
+const remainingSeconds = ref(30000);
+const wave1 = ref(null);
+const wave2 = ref(null);
+const wave3 = ref(null);
+const wave4 = ref(null);
 
 // Countdown timer
 let countdownInterval: NodeJS.Timeout | null = null;
@@ -57,13 +55,46 @@ onMounted(() => {
         }
     }, 1000);
 
-    // Simple wave animation using CSS
-    if (waveContainer.value) {
-        waveContainer.value.innerHTML = `
-            <div class="absolute bottom-0 left-0 w-full h-[40vh] bg-gradient-to-t from-primary/40 to-transparent animate-wave"></div>
-            <div class="absolute bottom-0 left-0 w-full h-[35vh] bg-gradient-to-t from-primary/30 to-transparent animate-wave-delayed"></div>
-            <div class="absolute bottom-0 left-0 w-full h-[30vh] bg-gradient-to-t from-primary/20 to-transparent animate-wave-slow"></div>
-        `;
+    // GSAP Wave Animation (Horizontal)
+    // Randomize duration and delay for organic feel
+    if (wave1.value) {
+        gsap.to(wave1.value, {
+            x: 100, // Move right
+            duration: 60,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1
+        });
+    }
+    if (wave2.value) {
+        gsap.to(wave2.value, {
+            x: -80, // Move left
+            duration: 100,
+            delay: 1,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1
+        });
+    }
+    if (wave3.value) {
+        gsap.to(wave3.value, {
+            x: 120, // Move right
+            duration: 200,
+            delay: 2,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1
+        });
+    }
+    if (wave4.value) {
+        gsap.to(wave4.value, {
+            x: -100, // Move left
+            duration: 2000,
+            delay: 0.5,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1
+        });
     }
 });
 
@@ -73,55 +104,3 @@ onUnmounted(() => {
     }
 });
 </script>
-
-<style scoped>
-@keyframes wave {
-
-    0%,
-    100% {
-        transform: translateY(0) scaleY(1);
-    }
-
-    50% {
-        transform: translateY(-30px) scaleY(1.1);
-    }
-}
-
-@keyframes wave-delayed {
-
-    0%,
-    100% {
-        transform: translateY(0) scaleY(1);
-    }
-
-    50% {
-        transform: translateY(-25px) scaleY(1.05);
-    }
-}
-
-@keyframes wave-slow {
-
-    0%,
-    100% {
-        transform: translateY(0) scaleY(1);
-    }
-
-    50% {
-        transform: translateY(-15px) scaleY(1.02);
-    }
-}
-
-.animate-wave {
-    animation: wave 5s ease-in-out infinite;
-}
-
-.animate-wave-delayed {
-    animation: wave-delayed 6s ease-in-out infinite;
-    animation-delay: 1s;
-}
-
-.animate-wave-slow {
-    animation: wave-slow 8s ease-in-out infinite;
-    animation-delay: 2s;
-}
-</style>
