@@ -30,19 +30,32 @@ const props = withDefaults(defineProps<{
     })
 });
 
+const emit = defineEmits(['ready']);
+
 const canvasContainer = ref<HTMLElement | null>(null);
 const isShaking = ref(false);
 const isInverted = ref(false);
+const isReady = ref(false);
+
 let p5Instance: p5 | null = null;
-// Store the p5 class constructor dynamically
-let p5Constructor: typeof p5 | null = null;
+
+// Shared p5 loader promise
+let p5Promise: Promise<any> | null = null;
+const loadP5 = () => {
+    if (!p5Promise) {
+        p5Promise = import('p5').then(m => m.default || m);
+    }
+    return p5Promise;
+};
 
 const sketch = (p: p5) => {
     p.setup = () => {
         p.createCanvas(props.size, props.size);
         p.noLoop();
-        p.pixelDensity(1); // Ensure consistent pixel manipulation
-        drawGabor();
+        p.pixelDensity(1);
+        // Don't draw automatically, wait for parent to call it
+        isReady.value = true;
+        emit('ready');
     };
 };
 
@@ -59,10 +72,9 @@ const drawGabor = () => {
     const cx = w / 2;
     const cy = h / 2;
 
-    // Tighter sigma for "concentrated" look as requested
-    // Previously passed as prop (40), now we override or adjust relative to size if needed
-    // User wants "line range concentrated", so let's use a smaller dynamic sigma
-    const effectiveSigma = props.size ? props.size / 6 : sigma;
+    // Sigma defines the "spread" of the patch
+    const s = sigma || props.size / 6.5;
+    const twoSqSigma = 2 * s * s;
 
     // Parse colors
     const c1 = p.color(props.primaryColor);
@@ -79,23 +91,32 @@ const drawGabor = () => {
             // Rotate coordinates
             const rx = xx * cosTheta + yy * sinTheta;
 
+            // Gaussian envelope calculation
             const distSq = xx * xx + yy * yy;
-            const envelope = p.exp(-(distSq) / (2 * effectiveSigma * effectiveSigma));
+            const envelope = p.exp(-(distSq) / twoSqSigma);
 
-            const carrier = p.sin(p.TWO_PI * frequency * rx + phase);
+            // Sinusoidal carrier
+            const carrier = p.cos(p.TWO_PI * frequency * rx + phase);
 
-            const t = (carrier * contrast + 1) / 2;
-            const interpolatedColor = p.lerpColor(c1, c2, t);
+            // Real Gabor: Modulate carrier by contrast AND envelope
+            // This ensures the contrast fades towards the edges
+            const modulation = carrier * contrast * envelope;
 
-            // Add Noise
-            // Random value between -20 and 20 added to RGB channels
-            const noise = p.random(-20, 20);
+            // Map modulation [-1, 1] to t [0, 1] for color interpolation
+            // 0.5 is the neutral mid-point (gray if c1=white, c2=black)
+            const t = (modulation + 1) / 2;
 
             const index = (x + y * w) * 4;
-            p.pixels[index] = p.constrain(p.red(interpolatedColor) + noise, 0, 255);
-            p.pixels[index + 1] = p.constrain(p.green(interpolatedColor) + noise, 0, 255);
-            p.pixels[index + 2] = p.constrain(p.blue(interpolatedColor) + noise, 0, 255);
-            p.pixels[index + 3] = p.map(envelope, 0, 1, 0, 255);
+            const finalColor = p.lerpColor(c1, c2, t);
+            
+            p.pixels[index] = p.red(finalColor);
+            p.pixels[index + 1] = p.green(finalColor);
+            p.pixels[index + 2] = p.blue(finalColor);
+
+            // Use the envelope for alpha to blend with background
+            // Higher power makes the edges cleaner
+            const alpha = p.constrain(envelope * 255, 0, 255);
+            p.pixels[index + 3] = alpha;
         }
     }
 
@@ -121,17 +142,14 @@ const triggerShake = () => {
 // Expose methods to parent
 defineExpose({
     triggerInvert,
-    triggerShake
+    triggerShake,
+    drawGabor
 });
 
 onMounted(async () => {
     if (canvasContainer.value) {
         try {
-            // Dynamically import p5 to run only on client-side
-            const p5Module = await import('p5');
-            // Check if default export exists, otherwise use module itself (depends on build)
-            p5Constructor = p5Module.default || p5Module;
-
+            const p5Constructor = await loadP5();
             if (p5Constructor) {
                 p5Instance = new p5Constructor(sketch, canvasContainer.value);
             }
