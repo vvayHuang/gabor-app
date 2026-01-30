@@ -1,5 +1,6 @@
 <template>
-    <div class="flex flex-col items-center justify-center min-h-screen p-4 space-y-8 relative transition-colors duration-100">
+    <div
+        class="flex flex-col items-center justify-center min-h-screen p-4 space-y-8 relative transition-colors duration-100">
         <!-- Header -->
         <div class="fixed top-[62px] left-0 w-full px-4 flex justify-between items-center z-20 gap-12">
             <!-- Exit Button -->
@@ -33,10 +34,10 @@
         </div>
 
         <!-- Game Grid Container -->
-        <div v-if="gameStarted && !showPhaseTransition" class="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-[400px]">
+        <div v-if="gameStarted && !showPhaseTransition"
+            class="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-[400px]">
             <!-- Actual Game Grid -->
-            <div
-                class="grid w-full items-center justify-items-center transition-opacity duration-300 animate-fade-in-up"
+            <div class="grid w-full items-center justify-items-center transition-opacity duration-300 animate-fade-in-up"
                 :style="{
                     gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
                     gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
@@ -54,15 +55,15 @@
                     </div>
                     <ClientOnly>
                         <GaborCanvas :ref="el => { if (el) canvasRefs[index] = el }" :size="canvasSize" :params="item"
-                            :primary-color="primaryColor" :secondary-color="secondaryColor" @ready="handleCanvasReady" />
+                            :primary-color="primaryColor" :secondary-color="secondaryColor"
+                            @ready="handleCanvasReady" />
                     </ClientOnly>
                 </div>
             </div>
 
             <!-- Skeleton Shimmer Loader (Absolute Overlay) -->
             <div v-if="!isGridReady"
-                class="absolute inset-0 grid w-full items-center justify-items-center pointer-events-none"
-                :style="{
+                class="absolute inset-0 grid w-full items-center justify-items-center pointer-events-none" :style="{
                     gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
                     gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
                     gap: `${gridGap}px`
@@ -78,12 +79,18 @@
         </div>
 
         <!-- Phase Transition Button -->
-        <div v-if="showPhaseTransition" class="flex flex-col items-center space-y-6 animate-fade-in-up">
+        <div v-if="showPhaseTransition" class="fixed inset-0 z-30 flex flex-col items-center justify-center p-6 animate-fade-in-up">
             <div class="text-center space-y-2">
                 <h2 class="display-md text-white">第一階段完成</h2>
-                <p class="text-white/60">準備好進入更具挑戰性的第二階段了？</p>
+                <p class="body-large-emphasis text-white">準備好進入更具挑戰性的第二階段了？</p>
             </div>
-            <Buttons variant="primary" @click="startNextPhase" label="開始第二階段" />
+            
+            <!-- Bottom Button Container -->
+            <div class="fixed bottom-0 left-0 w-full p-6 pb-[68px]">
+                <div class="max-w-md mx-auto w-full">
+                    <Buttons variant="primary" @click="startNextPhase" label="開始" />
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -165,32 +172,32 @@ const startNewGame = () => {
     globalLevel.value = 1;
     gameStarted.value = true;
     showPhaseTransition.value = false;
-    
+
     // Clear refs when changing grid size
     canvasRefs.value = [];
     gridItemRefs.value = [];
-    
+
     generateLevel();
 };
 
 const startNextPhase = () => {
     showPhaseTransition.value = false;
     isGridReady.value = false; // Reset ready state immediately
-    
+
     // Update grid dimensions immediately to avoid count mismatch
     gamePhase.value = 'STAGE_2';
-    gridCols.value = 3; 
-    gridRows.value = 5; 
-    gridGap.value = 16; 
-    canvasSize.value = 90; 
+    gridCols.value = 3;
+    gridRows.value = 5;
+    gridGap.value = 16;
+    canvasSize.value = 90;
     currentLevelInPhase.value = 1;
     gameStarted.value = true;
-    
+
     // Clear old data to ensure fresh start
     gridItems.value = [];
     canvasRefs.value = [];
     gridItemRefs.value = [];
-    
+
     nextTick(() => {
         generateLevel();
     });
@@ -200,10 +207,10 @@ const generateLevel = () => {
     feedbackState.value = 'IDLE';
     selectedIndex.value = -1;
     readyCount.value = 0;
-    
+
     // Always show skeleton between levels for consistent feedback
     isGridReady.value = false;
-    
+
     nextTick(() => {
         clickStartTime.value = Date.now();
         const count = gridCols.value * gridRows.value;
@@ -233,7 +240,7 @@ const generateLevel = () => {
                 phase: phase,
             };
         });
-        
+
         // If components are already mounted (reused), p5 will update via 'watch'.
         // We give it a short time to finish rendering before hiding skeleton.
         setTimeout(() => {
@@ -272,7 +279,7 @@ const handleInteraction = (index: number) => {
                 } else if (gamePhase.value === 'STAGE_2') {
                     // Pre-calculate session end logic before navigation
                     gamePhase.value = 'GAME_OVER';
-                    
+
                     nextTick(() => {
                         gameState.endSession();
                         persistence.updateHighScore(gameState.state.session.score);
@@ -292,13 +299,13 @@ const handleInteraction = (index: number) => {
         // GSAP shake animation
         const targetEl = gridItemRefs.value[index];
         if (targetEl) {
-            gsap.fromTo(targetEl, 
-                { x: 0 }, 
-                { 
-                    x: 6, 
-                    duration: 0.07, 
-                    repeat: 5, 
-                    yoyo: true, 
+            gsap.fromTo(targetEl,
+                { x: 0 },
+                {
+                    x: 6,
+                    duration: 0.07,
+                    repeat: 5,
+                    yoyo: true,
                     ease: 'power2.inOut',
                     onComplete: () => {
                         gsap.set(targetEl, { x: 0 }); // Reset position
@@ -308,7 +315,7 @@ const handleInteraction = (index: number) => {
                 }
             );
         } else {
-             setTimeout(() => {
+            setTimeout(() => {
                 feedbackState.value = 'IDLE';
                 selectedIndex.value = -1;
             }, 500);
@@ -367,12 +374,10 @@ onMounted(() => {
 .skeleton-shimmer {
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.05) 50%,
-        transparent 100%
-    );
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.05) 50%,
+            transparent 100%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite linear;
 }
@@ -381,6 +386,7 @@ onMounted(() => {
     0% {
         background-position: -200% 0;
     }
+
     100% {
         background-position: 200% 0;
     }

@@ -17,11 +17,9 @@
                 <p class="title-large-emphasis text-inverse-on-surface">很高興再次見到你！</p>
             </div>
             <div class="w-full max-w-sm space-y-6">
-<Buttons variant="outline" icon="simple-icons:google" label="Sign in with Google"
-        class="text-sm" />
-    <Buttons variant="outline" icon="simple-icons:apple" label="Sign in with Apple"
-        class="text-sm" />
-    <Buttons variant="ghost" label="Skip for now" @click="handleLogin" class="text-sm" />
+                <Buttons variant="outline" icon="simple-icons:google" label="Sign in with Google" class="text-sm" />
+                <Buttons variant="outline" icon="simple-icons:apple" label="Sign in with Apple" class="text-sm" />
+                <Buttons variant="ghost" label="Skip for now" @click="handleLogin" class="text-sm" />
             </div>
         </div>
     </div>
@@ -43,7 +41,7 @@ const handleLogin = () => {
 onMounted(() => {
     if (splashContainer.value && loginContainer.value) {
         const tl = gsap.timeline();
-        
+
         // Initial setup for login - it's invisible and scaled down
         gsap.set(loginContainer.value, { opacity: 0, scale: 0.9 });
 
@@ -55,12 +53,12 @@ onMounted(() => {
             scale: 0.9,
             ease: "power2.inOut",
         })
-        .to(loginContainer.value, {
-            duration: 0.5,
-            opacity: 1,
-            scale: 1,
-            ease: "power2.out"
-        }, "-=0.3"); // Overlap animations for a smoother crossfade
+            .to(loginContainer.value, {
+                duration: 0.5,
+                opacity: 1,
+                scale: 1,
+                ease: "power2.out"
+            }, "-=0.3"); // Overlap animations for a smoother crossfade
     }
 })
 </script>

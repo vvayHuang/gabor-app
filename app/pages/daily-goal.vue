@@ -14,8 +14,7 @@
                 <div class="w-full max-w-2xl space-y-6">
                     <!-- Header -->
                     <div class="text-center space-y-1">
-                        <p class="label-md-emphasis text-primary uppercase">分析報告</p>
-                        <h1 class="display-md-emphasis text-on-background">校準完成</h1>
+                        <h1 class="display-sm-emphasis text-inverse-on-surface">分析報告</h1>
                     </div>
 
                     <!-- Metrics Grid -->
@@ -52,19 +51,6 @@
                             <div class="flex justify-center">
                                 <span class="display-sm-emphasis text-on-surface">{{ sensitivityIndex }}</span>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Diagnostic Verdict -->
-                    <div class="bg-surface-container-high rounded-2xl p-6 border-l-4 border-primary">
-                        <p class="label-md-emphasis text-on-surface mb-3 uppercase text-center">診斷結果</p>
-                        <div class="space-y-2">
-                            <p class="body-md text-on-surface-variant text-center">
-                                神經訊號：<span class="body-md-emphasis text-primary">穩定_最佳</span>
-                            </p>
-                            <p class="body-md text-on-surface-variant text-center">
-                                補償路徑：<span class="body-md-emphasis text-primary">持續_對比_強化</span>
-                            </p>
                         </div>
                     </div>
 
@@ -109,7 +95,7 @@ const elapsedSeconds = computed(() => {
     // If totalTime is abnormally large (e.g. over 24 hours), it's likely a calculation error from startTime=0
     const oneDayInMs = 24 * 60 * 60 * 1000;
     const totalTime = gameState.state.session.totalTime;
-    
+
     if (totalTime <= 0 || totalTime > oneDayInMs) {
         return 323; // Fallback to demo value if invalid
     }
