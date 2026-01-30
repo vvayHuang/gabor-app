@@ -32,36 +32,49 @@
             </div>
         </div>
 
-        <div v-show="gameStarted && !showPhaseTransition && isGridReady"
-            class="grid w-full h-full max-w-2xl mx-auto items-center justify-items-center transition-opacity duration-300 animate-fade-in-up"
-            :style="{
-                gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
-                gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
-                gap: `${gridGap}px`
-            }" :class="[isGridReady ? 'opacity-100' : 'opacity-0']">
-            <div v-for="(item, index) in gridItems" :key="`level-${globalLevel}-${index}`"
-                ref="gridItemRefs"
-                class="relative group aspect-square flex items-center justify-center cursor-pointer"
-                @click="handleInteraction(index)" :class="{ 'pointer-events-none': feedbackState !== 'IDLE' }">
-                <!-- Active state style on hover/active handled mainly by JS logic in real app, but CSS hover here -->
-                <div
-                    class="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-white/20 transition-colors pointer-events-none z-10">
+        <!-- Game Grid Container -->
+        <div v-if="gameStarted && !showPhaseTransition" class="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-[400px]">
+            <!-- Actual Game Grid -->
+            <div
+                class="grid w-full items-center justify-items-center transition-opacity duration-300 animate-fade-in-up"
+                :style="{
+                    gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
+                    gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
+                    gap: `${gridGap}px`
+                }" :class="[isGridReady ? 'opacity-100' : 'opacity-0']">
+                <div v-for="(item, index) in gridItems" :key="`cell-${index}`"
+                    :ref="(el) => { if (el) gridItemRefs[index] = el }"
+                    class="relative group aspect-square flex items-center justify-center cursor-pointer"
+                    @click="handleInteraction(index)" :class="{ 'pointer-events-none': feedbackState !== 'IDLE' }">
+                    <div
+                        class="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-white/20 transition-colors pointer-events-none z-10">
+                    </div>
+                    <div class="absolute inset-0 rounded-full bg-white mix-blend-difference pointer-events-none z-30 transition-opacity duration-75"
+                        :class="(feedbackState === 'SUCCESS' && selectedIndex === index) ? 'opacity-100' : 'opacity-0'">
+                    </div>
+                    <ClientOnly>
+                        <GaborCanvas :ref="el => { if (el) canvasRefs[index] = el }" :size="canvasSize" :params="item"
+                            :primary-color="primaryColor" :secondary-color="secondaryColor" @ready="handleCanvasReady" />
+                    </ClientOnly>
                 </div>
-
-                <!-- Feedback Overlay (Invert) -->
-                <div class="absolute inset-0 rounded-full bg-white mix-blend-difference pointer-events-none z-30 transition-opacity duration-75"
-                    :class="(feedbackState === 'SUCCESS' && selectedIndex === index) ? 'opacity-100' : 'opacity-0'">
-                </div>
-
-                <ClientOnly>
-                    <GaborCanvas :ref="el => { if (el) canvasRefs[index] = el }" :size="canvasSize" :params="item"
-                        :primary-color="primaryColor" :secondary-color="secondaryColor" @ready="handleCanvasReady" />
-                </ClientOnly>
             </div>
-        </div>
 
-        <div v-if="gameStarted && !showPhaseTransition && !isGridReady" class="text-white/40 animate-pulse">
-            準備中...
+            <!-- Skeleton Shimmer Loader (Absolute Overlay) -->
+            <div v-if="!isGridReady"
+                class="absolute inset-0 grid w-full items-center justify-items-center pointer-events-none"
+                :style="{
+                    gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
+                    gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
+                    gap: `${gridGap}px`
+                }">
+                <div v-for="i in (gridCols * gridRows)" :key="`skeleton-${i}`"
+                    class="aspect-square w-full h-full flex items-center justify-center">
+                    <div :style="{ width: canvasSize + 'px', height: canvasSize + 'px' }"
+                        class="rounded-full bg-white/5 overflow-hidden relative">
+                        <div class="absolute inset-0 skeleton-shimmer"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Phase Transition Button -->
@@ -72,8 +85,6 @@
             </div>
             <Buttons variant="primary" @click="startNextPhase" label="開始第二階段" />
         </div>
-
-        <div v-if="!gameStarted && !showPhaseTransition" class="text-white">Loading game...</div>
     </div>
 </template>
 
@@ -126,28 +137,20 @@ const baseSigma = 32;
 
 // --- Methods ---
 
-const drawCanvasesSequentially = (index = 0) => {
-    if (index >= canvasRefs.value.length) {
-        // All canvases are drawn
-        isGridReady.value = true;
-        return;
-    }
-
-    const canvas = canvasRefs.value[index];
-    if (canvas && canvas.drawGabor) {
-        canvas.drawGabor();
-    }
-
-    // Request the next frame to draw the next canvas
-    requestAnimationFrame(() => drawCanvasesSequentially(index + 1));
+const updateAllCanvases = () => {
+    canvasRefs.value.forEach(canvas => {
+        if (canvas && canvas.drawGabor) {
+            canvas.drawGabor();
+        }
+    });
+    isGridReady.value = true;
 }
-
 
 const handleCanvasReady = () => {
     readyCount.value++;
     if (readyCount.value >= gridItems.value.length) {
-        // All p5 instances are ready, now we can start drawing them sequentially
-        drawCanvasesSequentially();
+        // All p5 instances are ready, draw them all at once
+        updateAllCanvases();
     }
 };
 
@@ -161,67 +164,80 @@ const startNewGame = () => {
     globalLevel.value = 1;
     gameStarted.value = true;
     showPhaseTransition.value = false;
+    
+    // Clear refs when changing grid size
+    canvasRefs.value = [];
+    gridItemRefs.value = [];
+    
     generateLevel();
 };
 
 const startNextPhase = () => {
-    gamePhase.value = 'STAGE_2';
-    gridCols.value = 3; // From 5
-    gridRows.value = 5; // From 6
-    gridGap.value = 16; // More space, can use larger gap
-    canvasSize.value = 90; // Larger symbols as the grid is less dense
-    currentLevelInPhase.value = 1;
-    // Keep globalLevel continuous
-    gameStarted.value = true;
     showPhaseTransition.value = false;
-    generateLevel();
+    isGridReady.value = false; // Reset ready state immediately
+    
+    // Update grid dimensions immediately to avoid count mismatch
+    gamePhase.value = 'STAGE_2';
+    gridCols.value = 3; 
+    gridRows.value = 5; 
+    gridGap.value = 16; 
+    canvasSize.value = 90; 
+    currentLevelInPhase.value = 1;
+    gameStarted.value = true;
+    
+    // Clear old data to ensure fresh start
+    gridItems.value = [];
+    canvasRefs.value = [];
+    gridItemRefs.value = [];
+    
+    nextTick(() => {
+        generateLevel();
+    });
 };
 
 const generateLevel = () => {
     feedbackState.value = 'IDLE';
     selectedIndex.value = -1;
-    isGridReady.value = false;
     readyCount.value = 0;
-    clickStartTime.value = Date.now();
+    
+    // Always show skeleton between levels for consistent feedback
+    isGridReady.value = false;
+    
+    nextTick(() => {
+        clickStartTime.value = Date.now();
+        const count = gridCols.value * gridRows.value;
+        targetIndex.value = Math.floor(Math.random() * count);
 
-    const count = gridCols.value * gridRows.value;
-    targetIndex.value = Math.floor(Math.random() * count);
+        const { contrast } = gameState.state.difficulty;
+        const minOffset = 3;
+        const difficultyOffset = Math.max(minOffset, 30 - Math.floor(globalLevel.value / 2) * 4);
 
-    // Use adaptive difficulty from game state
-    const { contrast } = gameState.state.difficulty;
+        const baseAngle = Math.random() * 360;
+        const targetAngle = (baseAngle + difficultyOffset) % 360;
 
-    // Difficulty Algorithm: target angle offset decreases as globalLevel increases
-    const minOffset = 3;
-    const difficultyOffset = Math.max(minOffset, 30 - Math.floor(globalLevel.value / 2) * 4);
+        gridItems.value = Array.from({ length: count }, (_, i) => {
+            const isTarget = i === targetIndex.value;
+            const phase = Math.random() * Math.PI;
+            const baseFrequency = 5 / canvasSize.value;
+            const randomFreq = baseFrequency + (Math.random() - 0.5) * (baseFrequency * 0.9);
+            const sigma = canvasSize.value / (4.5 + (Math.random() - 0.5) * 1.5);
+            const fillerVariation = (Math.random() * 6 - 3);
+            const orientation = isTarget ? targetAngle : (baseAngle + fillerVariation) % 360;
 
-    const baseAngle = Math.random() * 360;
-    const targetAngle = (baseAngle + difficultyOffset) % 360;
-
-    gridItems.value = Array.from({ length: count }, (_, i) => {
-        const isTarget = i === targetIndex.value;
-        const phase = Math.random() * Math.PI; // Random phase for variety
-
-        // --- Responsive Gabor Parameters ---
-        // Frequency (lines per pixel) scaled with canvas size for consistent appearance
-        const baseFrequency = 5 / canvasSize.value;
-        // Increased variation for frequency (more noticeable difference in line count)
-        const randomFreq = baseFrequency + (Math.random() - 0.5) * (baseFrequency * 0.9);
-
-        // Sigma (envelope size) scaled to canvas size, with added variation
-        // This makes the patch size itself slightly different each time
-        const sigma = canvasSize.value / (4.5 + (Math.random() - 0.5) * 1.5);
+            return {
+                orientation: orientation,
+                frequency: randomFreq,
+                contrast: contrast,
+                sigma: sigma,
+                phase: phase,
+            };
+        });
         
-        // Orientation variety for fillers
-        const fillerVariation = (Math.random() * 6 - 3);
-        const orientation = isTarget ? targetAngle : (baseAngle + fillerVariation) % 360;
-
-        return {
-            orientation: orientation,
-            frequency: randomFreq,
-            contrast: contrast,
-            sigma: sigma,
-            phase: phase,
-        };
+        // If components are already mounted (reused), p5 will update via 'watch'.
+        // We give it a short time to finish rendering before hiding skeleton.
+        setTimeout(() => {
+            updateAllCanvases();
+        }, 300);
     });
 };
 
@@ -232,42 +248,42 @@ const handleInteraction = (index: number) => {
     const responseTime = Date.now() - clickStartTime.value;
     const isCorrect = index === targetIndex.value;
 
-    // Record response in game state
     gameState.recordResponse(isCorrect, responseTime);
 
     if (isCorrect) {
-        // Trigger visual feedback on canvas
         const canvas = canvasRefs.value[index];
         if (canvas && canvas.triggerInvert) {
             canvas.triggerInvert();
         }
         feedbackState.value = 'SUCCESS';
 
+        // Increased timeout slightly for better visual feedback before transition
         setTimeout(() => {
+            if (gamePhase.value === 'GAME_OVER') return;
+
             currentLevelInPhase.value++;
             globalLevel.value++;
 
             if (currentLevelInPhase.value > levelsPerPhase) {
-                // End of phase
                 if (gamePhase.value === 'STAGE_1') {
-                    // Show manual transition button
                     showPhaseTransition.value = true;
                     return;
                 } else if (gamePhase.value === 'STAGE_2') {
-                    // End of entire session -> Save and Go to Rest
-                    gameState.endSession();
-                    persistence.updateHighScore(gameState.state.session.score);
-                    persistence.updateConsecutiveDays();
-                    persistence.addTrainingTime(gameState.state.session.totalTime);
-
-
+                    // Pre-calculate session end logic before navigation
                     gamePhase.value = 'GAME_OVER';
-                    router.push('/daily-goal'); // Go to Daily Goal page
+                    
+                    nextTick(() => {
+                        gameState.endSession();
+                        persistence.updateHighScore(gameState.state.session.score);
+                        persistence.updateConsecutiveDays();
+                        persistence.addTrainingTime(gameState.state.session.totalTime);
+                        router.push('/daily-goal');
+                    });
                     return;
                 }
             }
             generateLevel();
-        }, 150);
+        }, 200);
     } else {
         feedbackState.value = 'ERROR';
         if (navigator.vibrate) navigator.vibrate(100);
@@ -345,5 +361,27 @@ onMounted(() => {
 
 .animate-fade-in-up {
     animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.skeleton-shimmer {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.05) 50%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
 }
 </style>
