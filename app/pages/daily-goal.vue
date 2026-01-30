@@ -104,10 +104,16 @@ const analysisView = ref<HTMLElement | null>(null);
 // Get game state to access session time
 const gameState = useGameState();
 
-// Convert totalTime from milliseconds to seconds (fallback to 323s for demo)
+// Convert totalTime from milliseconds to seconds (with safety check)
 const elapsedSeconds = computed(() => {
-    const time = Math.floor(gameState.state.session.totalTime / 1000);
-    return time > 0 ? time : 323;
+    // If totalTime is abnormally large (e.g. over 24 hours), it's likely a calculation error from startTime=0
+    const oneDayInMs = 24 * 60 * 60 * 1000;
+    const totalTime = gameState.state.session.totalTime;
+    
+    if (totalTime <= 0 || totalTime > oneDayInMs) {
+        return 323; // Fallback to demo value if invalid
+    }
+    return Math.floor(totalTime / 1000);
 });
 
 // Derive metrics from actual session data

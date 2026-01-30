@@ -155,6 +155,7 @@ const handleCanvasReady = () => {
 };
 
 const startNewGame = () => {
+    gameState.startSession();
     gamePhase.value = 'STAGE_1';
     gridCols.value = 3;
     gridRows.value = 4;
