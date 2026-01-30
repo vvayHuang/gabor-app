@@ -25,6 +25,6 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const startGame = () => {
-    router.push('/task/GameGrid');
+    router.push('/task/game-grid');
 };
 </script>
