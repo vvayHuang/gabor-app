@@ -43,7 +43,7 @@ const showNavigationBar = computed(() => {
     const immersivePages = [
         'index',
         'login',
-        'task-grid',
+        'task-game-grid',
         'timer',
         'completion',
         'progress',
