@@ -118,7 +118,7 @@ const sensitivityIndex = ref(3);
 
 const recalibrate = () => {
     // Reset and go back to task grid
-    router.push('/task/grid');
+    router.push('/task/GameGrid');
 };
 
 onMounted(() => {
