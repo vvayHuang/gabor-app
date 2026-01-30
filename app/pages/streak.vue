@@ -27,7 +27,7 @@
         <!-- Bottom Button -->
         <div class="w-full max-w-md mx-auto transition-opacity duration-1000"
             :class="showButton ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-            <GaborButton variant="primary" to="/timer" label="下一步" />
+            <Buttons variant="primary" to="/timer" label="下一步" />
         </div>
     </div>
 </template>

@@ -15,7 +15,7 @@
 
         <!-- Skip Button (Bottom) -->
         <div class="relative z-10 mt-auto pb-[135px]">
-            <GaborButton variant="ghost" to="/completion" label="略過" />
+            <Buttons variant="ghost" to="/completion" label="略過" />
         </div>
 
         <!-- Wave Animation (Horizontal) -->
@@ -32,10 +32,10 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import gsap from 'gsap';
-import GaborButton from '~/components/GaborButton.vue';
+
 
 const router = useRouter();
-const remainingSeconds = ref(30000);
+const remainingSeconds = ref(30);
 const wave1 = ref(null);
 const wave2 = ref(null);
 const wave3 = ref(null);

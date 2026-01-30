@@ -1,9 +1,9 @@
 <template>
     <div class="flex flex-col min-h-screen relative overflow-hidden">
-        <!-- Progress Circle View -->
+        <!-- TimeSphere View -->
         <div ref="progressView" class="absolute inset-0 flex flex-col items-center justify-center">
             <div class="flex flex-col items-center space-y-12">
-                <ProgressCircle :elapsedSeconds="elapsedSeconds" />
+                <TimeSphere :elapsedSeconds="elapsedSeconds" />
                 <h3 class="headline-lg-emphasis text-inverse-on-surface">今日目標達成</h3>
             </div>
         </div>
@@ -70,8 +70,8 @@
 
                     <!-- Action Buttons -->
                     <div class="flex flex-col gap-4 pb-8">
-                        <GaborButton variant="outline" label="重新校準" @click="recalibrate" class="w-full" />
-                        <GaborButton variant="primary" label="繼續" to="/streak" class="w-full" />
+                        <Buttons variant="outline" label="重新校準" @click="recalibrate" class="w-full" />
+                        <Buttons variant="primary" label="繼續" to="/streak" class="w-full" />
                     </div>
                 </div>
             </div>
@@ -93,8 +93,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import gsap from 'gsap';
-import ProgressCircle from '~/components/ProgressCircle.vue';
-import GaborButton from '~/components/GaborButton.vue';
+
+
 import { useGameState } from '~/composables/useGameState';
 
 const router = useRouter();

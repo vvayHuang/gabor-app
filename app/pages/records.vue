@@ -1,12 +1,12 @@
 <template>
     <div class="flex flex-col min-h-screen space-y-8 px-4 pb-6 text-inverse-on-surface">
-        <AppBar headline="紀錄" class="mt-[62px]">
+        <AppBars headline="紀錄" class="mt-[62px]">
             <template #left>
                 <NuxtLink to="/prepare" class="p-2">
                     <Icon name="material-symbols:arrow-back-rounded" size="24" class="text-inverse-on-surface" />
                 </NuxtLink>
             </template>
-        </AppBar>
+        </AppBars>
         <!-- Bar Chart Placeholder -->
         <div class="space-y-2">
             <div class="flex justify-between items-center">

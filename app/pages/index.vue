@@ -17,11 +17,11 @@
                 <p class="title-large-emphasis text-inverse-on-surface">很高興再次見到你！</p>
             </div>
             <div class="w-full max-w-sm space-y-6">
-                <GaborButton variant="outline" icon="simple-icons:google" label="Sign in with Google"
-                    @click="handleLogin" />
-                <GaborButton variant="outline" icon="simple-icons:apple" label="Sign in with Apple"
-                    @click="handleLogin" />
-                <GaborButton variant="ghost" label="Skip for now" @click="handleLogin" class="text-sm" />
+<Buttons variant="outline" icon="simple-icons:google" label="Sign in with Google"
+        class="text-sm" />
+    <Buttons variant="outline" icon="simple-icons:apple" label="Sign in with Apple"
+        class="text-sm" />
+    <Buttons variant="ghost" label="Skip for now" @click="handleLogin" class="text-sm" />
             </div>
         </div>
     </div>

@@ -27,7 +27,7 @@
             enter-from-class="transform translate-y-full opacity-0" enter-to-class="transform translate-y-0 opacity-100"
             leave-active-class="transition ease-in duration-200" leave-from-class="transform translate-y-0 opacity-100"
             leave-to-class="transform translate-y-full opacity-0">
-            <BottomNav v-if="showBottomNav" />
+            <NavigationBar v-if="showNavigationBar" />
         </transition>
     </div>
 </template>
@@ -38,7 +38,7 @@ import { useRoute } from 'vue-router';
 
 const route = useRoute();
 
-const showBottomNav = computed(() => {
+const showNavigationBar = computed(() => {
     // Immersive pages:
     const immersivePages = [
         'index',

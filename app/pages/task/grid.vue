@@ -7,7 +7,7 @@
                 class="hover:bg-white/10 text-inverse-on-surface hover:text-white" @click="handleExit" />
 
             <!-- Progress Bar -->
-            <TaskProgress :current="currentLevelInPhase" :total="levelsPerPhase" width="100%" class="flex-1" />
+            <ProgressIndicators :current="currentLevelInPhase" :total="levelsPerPhase" width="100%" class="flex-1" />
         </div>
 
         <!-- Exit Confirmation Dialog -->
@@ -70,7 +70,7 @@
                 <h2 class="display-md text-white">第一階段完成</h2>
                 <p class="text-white/60">準備好進入更具挑戰性的第二階段了？</p>
             </div>
-            <GaborButton variant="primary" @click="startNextPhase" label="開始第二階段" />
+            <Buttons variant="primary" @click="startNextPhase" label="開始第二階段" />
         </div>
 
         <div v-if="!gameStarted && !showPhaseTransition" class="text-white">Loading game...</div>
@@ -84,9 +84,7 @@ import { gsap } from 'gsap';
 import { useGameState } from '~/composables/useGameState';
 import { useGamePersistence } from '~/composables/useGamePersistence';
 
-import GaborCanvas from '~/components/GaborCanvas.vue';
-import TaskProgress from '~/components/TaskProgress.vue';
-import IconButton from '~/components/IconButton.vue';
+
 
 const router = useRouter();
 const route = useRoute();

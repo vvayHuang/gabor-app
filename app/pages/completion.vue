@@ -9,8 +9,8 @@
 
         <!-- Bottom Buttons -->
         <div class="flex space-x-6 w-full max-w-md mx-auto py-4">
-            <GaborButton variant="outline" to="/records" label="查看今日紀錄" />
-            <GaborButton variant="outline" to="/" label="回首頁" />
+            <Buttons variant="outline" to="/records" label="查看今日紀錄" />
+            <Buttons variant="outline" to="/" label="回首頁" />
         </div>
     </div>
 </template>
