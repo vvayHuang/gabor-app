@@ -16,19 +16,14 @@
                 <rect width="100%" height="100%" filter="url(#noiseFilter)" />
             </svg>
         </div>
+        
         <!-- Main Content Area with safe area padding -->
-        <!-- Added pb-20 to ensure content isn't hidden behind bottom nav -->
         <main class="w-full min-h-screen transition-all duration-300">
             <slot />
         </main>
 
-        <!-- Bottom Navigation -->
-        <transition enter-active-class="transition ease-out duration-300"
-            enter-from-class="transform translate-y-full opacity-0" enter-to-class="transform translate-y-0 opacity-100"
-            leave-active-class="transition ease-in duration-200" leave-from-class="transform translate-y-0 opacity-100"
-            leave-to-class="transform translate-y-full opacity-0">
-            <NavigationBar v-if="showNavigationBar" />
-        </transition>
+        <!-- Bottom Navigation: 移除了 transition 與隱藏限制 -->
+        <NavigationBar v-if="showNavigationBar" />
     </div>
 </template>
 
@@ -39,19 +34,12 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 
 const showNavigationBar = computed(() => {
-    // Immersive pages:
+    // 只有在首頁(啟動頁)與遊戲進行中隱藏導覽列
     const immersivePages = [
         'index',
-        'login',
         'task-game-grid',
         'timer',
         'completion',
-        'progress',
-        'streak',
-        'records',
-        'profile',
-        'settings',
-        'daily-goal'
     ];
 
     return !immersivePages.includes(route.name as string);

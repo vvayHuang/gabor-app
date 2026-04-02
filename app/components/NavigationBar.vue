@@ -1,28 +1,33 @@
+<script setup lang="ts">
+const mainItems = [
+    { to: '/prepare', icon: 'material-symbols:language', label: '首頁' },
+    { to: '/records', icon: 'material-symbols:schedule-outline', label: '紀錄' },
+    { to: '/settings', icon: 'material-symbols:settings', label: '設定' },
+];
+
+const sideItem = { to: '/profile', icon: 'material-symbols:person', label: '個人' };
+</script>
+
 <template>
-    <div class="fixed bottom-6 left-[16px] right-[16px] w-[360px] bg-white/10 rounded-full">
-        <div class="flex justify-around items-center py-2 px-4">
-            <NuxtLink to="/prepare"
-                class="flex flex-col items-center justify-center w-full h-full text-inverse-on-surface hover:text-gray-300 transition-colors"
-                active-class="text-on-secondary-container bg-secondary rounded-full py-1">
-                <Icon name="material-symbols:language" size="24" />
-            </NuxtLink>
+    <div class="fixed bottom-8 left-0 right-0 w-full z-50 px-6 flex justify-between items-center pointer-events-none">
 
-            <NuxtLink to="/records"
-                class="flex flex-col items-center justify-center w-full h-full text-inverse-on-surface hover:text-gray-300 transition-colors"
-                active-class="text-on-secondary-container bg-secondary rounded-full py-1">
-                <Icon name="material-symbols:schedule-outline" size="24" />
-            </NuxtLink>
-
-            <NuxtLink to="/settings"
-                class="flex flex-col items-center justify-center w-full h-full text-inverse-on-surface hover:text-gray-300 transition-colors"
-                active-class="text-on-secondary-container bg-secondary rounded-full py-1">
-                <Icon name="material-symbols:settings" size="24" />
-            </NuxtLink>
-            <NuxtLink to="/profile"
-                class="flex flex-col items-center justify-center w-full h-full text-inverse-on-surface hover:text-gray-300 transition-colors"
-                active-class="text-on-secondary-container bg-secondary rounded-full py-1">
-                <Icon name="material-symbols:person" size="24" />
-            </NuxtLink>
+        <!-- 左側群組 -->
+        <div class="pointer-events-auto h-[58px]">
+            <LiquidGlass rounded="full" :border="false" class="h-full">
+                <div class="flex items-center h-full px-1 -space-x-[10px]">
+                    <NavigationItem v-for="item in mainItems" :key="item.to" v-bind="item" />
+                </div>
+            </LiquidGlass>
         </div>
+
+        <!-- 右側獨立項目 -->
+        <div class="pointer-events-auto h-[58px] w-[58px]">
+            <LiquidGlass rounded="full" :border="false" class="h-full w-full">
+                <div class="flex items-center justify-center h-full">
+                    <NavigationItem v-bind="sideItem" size="small" :show-label="false" />
+                </div>
+            </LiquidGlass>
+        </div>
+
     </div>
 </template>
