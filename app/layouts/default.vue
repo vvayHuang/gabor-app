@@ -1,6 +1,6 @@
 <template>
     <div
-        class="min-h-screen bg-inverse-surface text-on-inverse-surface antialiased overflow-x-hidden selection:bg-gray-700 selection:text-white relative">
+        class="min-h-screen bg-surface text-on-surface antialiased overflow-x-hidden selection:bg-gray-700 selection:text-white relative">
         <!-- Global Background Noise -->
         <div class="fixed inset-0 pointer-events-none z-0">
             <svg class="w-full h-full opacity-[0.03] grayscale">
