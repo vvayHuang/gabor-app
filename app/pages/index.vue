@@ -23,14 +23,8 @@
 
             <!-- Input Fields -->
             <div class="w-full space-y-4">
-                <div class="relative w-full">
-                    <input type="email" placeholder="電子信箱"
-                        class="w-full py-3 px-4 bg-transparent border-b border-outline-variant focus:border-primary outline-none text-on-surface placeholder:text-on-surface-variant transition-colors" />
-                </div>
-                <div class="relative w-full">
-                    <input type="password" placeholder="密碼"
-                        class="w-full py-3 px-4 bg-transparent border-b border-outline-variant focus:border-primary outline-none text-on-surface placeholder:text-on-surface-variant transition-colors" />
-                </div>
+                <TextField v-model="email" type="email" placeholder="電子信箱" />
+                <TextField v-model="password" type="password" placeholder="密碼" />
             </div>
 
             <!-- Social Login -->
@@ -39,17 +33,17 @@
                 <div class="w-full space-y-3">
                     <Buttons buttonStyle="bordered" size="large" labelType="symbol" @click="handleLogin">
                         <template #icon>
-                            <img src="/Icons/Apple.svg" alt="Apple" class="w-6 h-6" />
+                            <img src="/icons/apple.svg" alt="Apple" class="w-6 h-6" />
                         </template>
                     </Buttons>
                     <Buttons buttonStyle="bordered" size="large" labelType="symbol" @click="handleLogin">
                         <template #icon>
-                            <img src="/Icons/Google.svg" alt="Google" class="w-6 h-6" />
+                            <img src="/icons/google.svg" alt="Google" class="w-6 h-6" />
                         </template>
                     </Buttons>
                     <Buttons buttonStyle="bordered" size="large" labelType="symbol" @click="handleLogin">
                         <template #icon>
-                            <img src="/Icons/Figma.svg" alt="Figma" class="w-6 h-6" />
+                            <img src="/icons/figma.svg" alt="Figma" class="w-6 h-6" />
                         </template>
                     </Buttons>
                 </div>
@@ -57,7 +51,7 @@
 
             <!-- Footer -->
             <div class="w-full">
-                <p class="body-sm text-on-surface-variant text-center">
+                <p class="body-sm text-on-surface-variant">
                     繼續即表示您同意我們的服務條款和隱私政策。
                 </p>
             </div>
@@ -74,6 +68,9 @@ const router = useRouter()
 const logoContainer = ref<HTMLElement | null>(null)
 const welcomeTextContainer = ref<HTMLElement | null>(null)
 const loginContainer = ref<HTMLElement | null>(null)
+
+const email = ref('')
+const password = ref('')
 
 const handleLogin = () => {
     router.push('/prepare');

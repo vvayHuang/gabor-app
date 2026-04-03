@@ -1,12 +1,12 @@
 <template>
     <div class="flex flex-col min-h-screen space-y-8 px-4 pb-24 text-inverse-on-surface">
-        <AppBars headline="設定" class="mt-[62px]">
+        <ToolbarTop headline="設定" class="mt-[62px]">
             <template #left>
                 <NuxtLink to="/prepare" class="p-2">
                     <Icon name="material-symbols:arrow-back-rounded" size="24" class="text-inverse-on-surface" />
                 </NuxtLink>
             </template>
-        </AppBars>
+        </ToolbarTop>
 
         <!-- System & Environment -->
         <section>

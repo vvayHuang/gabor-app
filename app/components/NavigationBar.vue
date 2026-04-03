@@ -1,11 +1,11 @@
 <script setup lang="ts">
 const mainItems = [
-    { to: '/prepare', icon: 'material-symbols:language', label: '首頁' },
-    { to: '/records', icon: 'material-symbols:schedule-outline', label: '紀錄' },
-    { to: '/settings', icon: 'material-symbols:settings', label: '設定' },
+    { to: '/prepare', icon: 'material-symbols:public', label: '首頁' },
+    { to: '/records', icon: 'material-symbols:schedule-outline-rounded', label: '紀錄' },
+    { to: '/profile', icon: 'material-symbols:contacts-product', label: '個人' },
 ];
 
-const sideItem = { to: '/profile', icon: 'material-symbols:person', label: '個人' };
+const sideItem = { to: '#', icon: 'material-symbols:question-mark', label: '說明' };
 </script>
 
 <template>
