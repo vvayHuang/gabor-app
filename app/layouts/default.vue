@@ -34,14 +34,13 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 
 const showNavigationBar = computed(() => {
-    // 只有在首頁(啟動頁)與遊戲進行中隱藏導覽列
-    const immersivePages = [
-        'index',
-        'task-game-grid',
-        'timer',
-        'completion',
+    // 僅在指定頁面顯示導覽列
+    const visiblePages = [
+        'prepare',
+        'records',
+        'profile',
     ];
 
-    return !immersivePages.includes(route.name as string);
+    return visiblePages.includes(route.name as string);
 });
 </script>

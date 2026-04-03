@@ -1,76 +1,76 @@
 <template>
-    <div class="flex flex-col min-h-screen space-y-8 px-4 pb-24 text-inverse-on-surface">
-        <ToolbarTop headline="設定" class="mt-[62px]">
+    <div class="flex flex-col min-h-screen bg-background text-on-background overflow-y-auto">
+        <!-- New iOS Style Toolbar -->
+        <ToolbarTop headline="設定" class="mt-[62px]" type="navigation">
             <template #left>
-                <NuxtLink to="/prepare" class="p-2">
-                    <Icon name="material-symbols:arrow-back-rounded" size="24" class="text-inverse-on-surface" />
+                <NuxtLink to="/profile"
+                    class="w-11 h-11 flex items-center justify-center rounded-full bg-white mix-blend-multiply transition-colors hover:bg-surface-variant">
+                    <Icon name="material-symbols:arrow-back-ios-new-rounded" size="17"
+                        class="text-[#404040] mix-blend-plus-darker" />
                 </NuxtLink>
             </template>
         </ToolbarTop>
 
-        <!-- System & Environment -->
-        <section>
-            <h2 class="headline-sm font-bold text-white mb-6">系統與環境</h2>
-            <div class="space-y-6">
-                <Switch label="深色模式" v-model="params.isDarkMode" />
-                <Switch label="通知" v-model="params.isNotificationsEnabled" />
+        <div class="flex flex-col">
+            <!-- Preferences Settings Section -->
+            <section class="flex flex-col py-6 px-4 gap-6">
+                <!-- Section Title: 偏好設定 (65px approx) -->
+                <h2 class="title-md-emphasis text-on-surface-variant mix-blend-plus-darker">偏好設定</h2>
 
-                <div class="flex flex-wrap items-center gap-3">
-                    <label class="label-md text-inverse-on-surface pl-1">白噪音</label>
-                    <SelectButton label="海浪" :selected="params.whiteNoiseType === 'waves'"
-                        @click="params.whiteNoiseType = 'waves'" />
-                    <SelectButton label="森林" :selected="params.whiteNoiseType === 'forest'"
-                        @click="params.whiteNoiseType = 'forest'" />
-                    <SelectButton label="雨聲" :selected="params.whiteNoiseType === 'rain'"
-                        @click="params.whiteNoiseType = 'rain'" />
+                <div class="flex flex-col gap-6 px-2">
+                    <!-- Item: 聲音 (33px approx) -->
+                    <div class="flex items-center justify-between w-full h-7 gap-6">
+                        <span class="body-lg text-on-background">聲音</span>
+                        <Switch v-model="params.isDarkMode" />
+                    </div>
+                    <div class="flex items-center justify-between w-full h-7 gap-6">
+                        <span class="body-lg text-on-background">通知</span>
+                        <Switch v-model="params.isDarkMode" />
+                    </div>
+
+                    <!-- Item: 字體大小 (66px approx) -->
+                    <div class="flex items-center justify-between w-full h-[52px] gap-6">
+                        <span class="body-lg text-on-background flex-shrink-0">字體大小</span>
+                        <!-- Slider Area -->
+                        <div class="flex items-center gap-3 flex-1 px-4">
+                            <span class="text-[17px] font-bold text-on-surface-variant">A</span>
+                            <Slider class="flex-1" :min="12" :max="24" v-model="params.fontSize" />
+                            <span class="text-[20px] font-bold text-on-surface-variant">A</span>
+                        </div>
+                    </div>
                 </div>
-                <Slider label="螢幕亮度" :min="0" :max="100" :step="10" v-model="params.screenBrightness" />
-                <Slider label="音量" :min="0" :max="100" :step="10" v-model="params.volume" />            </div>
-        </section>
+            </section>
 
-        <div class="h-px bg-white/10 my-4"></div>
+            <!-- Account Section -->
+            <section class="flex flex-col py-6 px-4 gap-6">
+                <!-- Section Title: 客服 (33px approx) -->
+                <h2 class="title-md-emphasis text-on-surface-variant mix-blend-plus-darker">客服</h2>
 
-        <!-- Visual Comfort -->
-        <section>
-            <h2 class="headline-sm font-bold text-white mb-6">視覺舒適度</h2>
-            <div class="space-y-6">
-                <Slider label="色溫調整" :min="0" :max="100" :step="10" v-model="params.colorTemperature" />
-                                    <Slider label="字體大小" :min="0" :max="100" :step="10" v-model="params.fontSize" />            </div>
-        </section>
+                <div class="flex flex-col gap-6">
+                    <!-- Menu Item: 聯絡我們 -->
+                    <div
+                        class="flex items-center justify-between px-2 h-11 cursor-pointer hover:bg-black/5 transition-colors rounded-lg gap-[4px]">
+                        <span class="body-lg text-on-background mix-blend-plus-darker">聯絡我們</span>
+                        <Icon name="material-symbols:chevron-right-rounded" size="20"
+                            class="text-on-background mix-blend-plus-darker" />
+                    </div>
 
-        <div class="h-px bg-white/10 my-4"></div>
-
-        <!-- Symbol Configuration -->
-        <section>
-            <h2 class="headline-sm font-bold text-white mb-6">蓋博符號配置</h2>
-            <div class="space-y-6">
-                <Slider label="符號對比" :min="0" :max="100" :step="10" v-model="params.symbolContrast" />
-                                    <Slider label="符號大小" :min="10" :max="100" :step="5" v-model="params.symbolSize" />
-                                    <Slider label="線條密度" :min="1" :max="20" :step="1" v-model="params.stripeDensity" />
-                                    <Slider label="漂移速度" :min="0" :max="10" :step="1" v-model="params.driftSpeed" />            </div>
-        </section>
-
-        <div class="mt-8">
-            <h2 class="text-lg font-bold text-white mb-4">預覽</h2>
-            <div class="flex justify-center border border-gray-800 rounded-xl p-4 bg-gray-900">
-                <GaborCanvas :size="200" :params="params" />
-            </div>
+                    <!-- Logout Button -->
+                    <Buttons label="登出" destructive size="large" @click="handleLogout" />
+                </div>
+            </section>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { useGaborMock } from '~/composables/useGaborMock';
-import { watchEffect } from 'vue';
+import { useRouter } from 'vue-router';
 
 const { params } = useGaborMock();
+const router = useRouter();
 
-// Sync slider values to Gabor params for preview
-watchEffect(() => {
-    params.contrast = params.symbolContrast / 100;
-    params.sigma = params.symbolSize;
-    // Map density 1-20 to frequency ~0.01-0.1
-    // Density 10 (default) -> 0.05
-    params.frequency = params.stripeDensity / 200;
-});
+const handleLogout = () => {
+    router.push('/');
+};
 </script>

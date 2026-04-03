@@ -1,28 +1,38 @@
 <template>
-    <div class="flex justify-between space-y-7">
-        <div class="flex justify-between items-center w-[77px]">
-            <label class="label-md text-inverse-on-surface pl-1">{{ label }}</label>
-        </div>
-        <div class="flex justify-between items-center bg-[#5F5B4B] h-4 rounded-full relative select-none cursor-pointer w-full max-w-[267px]"
+    <div class="flex flex-col w-full gap-2">
+        <label v-if="label" class="body-lg text-on-surface-variant">{{ label }}</label>
+        <div class="flex items-center h-10 w-full relative select-none cursor-pointer"
             ref="trackRef" @mousedown="startDrag" @touchstart="startDrag">
-            <!-- Dots -->
-            <div class="absolute inset-0 flex justify-between items-center px-[6px]">
-                <div v-for="tick in ticks" :key="tick" class="w-1.5 h-1.5 rounded-full"
-                    :class="tick <= modelValue ? 'bg-[#EAE1D9]' : 'bg-[#989280]'">
+            
+            <!-- Track Background -->
+            <div class="w-full h-1.5 bg-surface-variant rounded-full relative overflow-hidden">
+                <!-- Active Fill -->
+                <div class="absolute left-0 top-0 h-full bg-primary rounded-full transition-all duration-75"
+                    :style="{ width: `${percentage}%` }">
                 </div>
             </div>
 
-            <!-- Handle -->
-            <div class="absolute top-1/2 -translate-y-1/2 w-1 h-11 bg-[#756F5B] rounded-full shadow-sm transition-all duration-75 ease-out pointer-events-none"
-                :style="{ left: `calc(${percentage}% - 3px)` }">
+            <!-- Ticks (Optional dots) -->
+            <div class="absolute left-0 right-0 h-full flex justify-between items-center px-[2px] pointer-events-none">
+                <div v-for="tick in ticks" :key="tick" 
+                    class="w-1 h-1 rounded-full transition-colors"
+                    :class="tick <= modelValue ? 'bg-surface/40' : 'bg-on-surface-variant/20'">
+                </div>
+            </div>
+
+            <!-- Knob (Handle) -->
+            <div class="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-surface border-2 border-primary rounded-full shadow-lg transition-all duration-75 ease-out pointer-events-none"
+                :style="{ left: `calc(${percentage}% - 12px)` }">
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue';
+
 const props = withDefaults(defineProps<{
-    label: string;
+    label?: string;
     min?: number;
     max?: number;
     step?: number;
@@ -72,7 +82,7 @@ const updateValue = (clientX: number) => {
 };
 
 const startDrag = (event: MouseEvent | TouchEvent) => {
-    event.preventDefault(); // Prevent text selection/scrolling
+    event.preventDefault();
 
     let clientX: number;
     if ('touches' in event) {

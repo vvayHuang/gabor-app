@@ -17,8 +17,9 @@ const mockAchievements = {
 
 <template>
     <div class="flex flex-col min-h-screen space-y-8 pb-6 text-on-background bg-background">
-        <ToolbarTop headline="紀錄" class="mt-[62px]" variant="left-action">
-        </ToolbarTop>
+        <div class="mt-[62px] px-4 h-14 flex items-center">
+            <h1 class="headline-lg-emphasis text-on-background mix-blend-plus-darker">紀錄</h1>
+        </div>
 
         <div class="space-y-4 px-4">
             <div class="flex items-end space-x-4">
@@ -34,19 +35,23 @@ const mockAchievements = {
             <!-- Menu Container -->
             <div class="bg-surface-dim rounded-2xl p-4 flex flex-col gap-[9px] w-full max-w-[370px] mx-auto">
                 <!-- Menu Item: Frequency -->
-                <div class="flex flex-row items-center justify-between px-2 h-11 cursor-pointer hover:bg-black/5 transition-colors rounded-lg">
+                <div
+                    class="flex flex-row items-center justify-between px-2 h-11 cursor-pointer hover:bg-black/5 transition-colors rounded-lg">
                     <div class="flex items-center">
                         <span class="text-base text-on-surface mix-blend-plus-darker">每天</span>
                     </div>
-                    <Icon name="material-symbols:chevron-right-rounded" size="20" class="text-on-surface mix-blend-plus-darker" />
+                    <Icon name="material-symbols:chevron-right-rounded" size="20"
+                        class="text-on-surface mix-blend-plus-darker" />
                 </div>
 
                 <!-- Menu Item: Time -->
-                <div class="flex flex-row items-center justify-between px-2 h-11 cursor-pointer hover:bg-black/5 transition-colors rounded-lg">
+                <div
+                    class="flex flex-row items-center justify-between px-2 h-11 cursor-pointer hover:bg-black/5 transition-colors rounded-lg">
                     <div class="flex items-center">
                         <span class="text-base text-on-surface mix-blend-plus-darker">下午 5:00</span>
                     </div>
-                    <Icon name="material-symbols:chevron-right-rounded" size="20" class="text-on-surface mix-blend-plus-darker" />
+                    <Icon name="material-symbols:chevron-right-rounded" size="20"
+                        class="text-on-surface mix-blend-plus-darker" />
                 </div>
             </div>
         </div>
