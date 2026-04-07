@@ -1,13 +1,12 @@
 <template>
-    <div class="flex items-center space-x-2">
+    <div class="flex items-center">
         <!-- Progress Track -->
-        <div class="relative h-2 bg-on-surface-variant/30 rounded-full overflow-hidden" :style="{ width: width }">
+        <div class="relative h-[6px] bg-surface-dim rounded-full overflow-hidden w-full">
             <!-- Progress Fill -->
-            <div class="absolute top-0 left-0 h-full bg-primary transition-all duration-300 ease-out"
+            <div class="absolute top-0 left-0 h-full bg-primary transition-all duration-300 ease-out rounded-full"
                 :style="{ width: `${percentage}%` }">
             </div>
         </div>
-        <!-- Optional Text Label (if needed later, but design shows just bar usually or implied) -->
     </div>
 </template>
 
@@ -21,11 +20,7 @@ const props = defineProps({
     },
     total: {
         type: Number,
-        default: 5 // Default based on wireframe "SESSION 1/5"
-    },
-    width: {
-        type: String,
-        default: '120px'
+        default: 5
     }
 });
 

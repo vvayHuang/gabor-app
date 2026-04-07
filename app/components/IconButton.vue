@@ -19,8 +19,8 @@ const props = defineProps({
     // base size of the button container
     size: {
         type: String,
-        default: 'medium', // small, medium, large
-        validator: (val: string) => ['small', 'medium', 'large'].includes(val)
+        default: 'medium', // x-small, small, medium, large
+        validator: (val: string) => ['x-small', 'small', 'medium', 'large'].includes(val)
     },
     // icon size string (pixel value usually)
     iconSize: {
@@ -39,6 +39,7 @@ const props = defineProps({
 
 const sizeClasses = computed(() => {
     switch (props.size) {
+        case 'x-small': return 'w-7 h-7 p-1';
         case 'small': return 'w-8 h-8 p-1';
         case 'large': return 'w-14 h-14 p-3';
         default: return 'w-12 h-12 p-2'; // medium

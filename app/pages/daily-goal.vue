@@ -9,55 +9,66 @@
         </div>
 
         <!-- Analysis Report View -->
-        <div ref="analysisView" class="absolute inset-0 overflow-y-auto opacity-0">
-            <div class="min-h-screen flex flex-col items-center justify-start px-4 py-12">
-                <div class="w-full max-w-2xl space-y-6">
-                    <!-- Header -->
-                    <div class="text-center space-y-1">
-                        <h1 class="display-sm-emphasis text-inverse-on-surface">分析報告</h1>
+        <div ref="analysisView" class="absolute inset-0 overflow-y-auto opacity-0 bg-surface">
+            <div class="min-h-screen flex flex-col items-center justify-between px-4 py-16">
+                <!-- Upper Half: Centered Logo and Title -->
+                <div class="flex-1 flex flex-col items-center justify-center w-full max-w-2xl text-center space-y-6">
+                    <img src="~/assets/logo.svg" alt="Gabor Logo" class="w-24 h-auto" />
+                    <div class="space-y-2">
+                        <h1 class="display-sm-emphasis text-on-surface">分析報告</h1>
+                        <p class="headline-lg text-on-surface-variant">你做得很好</p>
                     </div>
+                </div>
 
+                <!-- Lower Half: Metrics and Continue Button -->
+                <div class="w-full max-w-2xl space-y-4">
                     <!-- Metrics Grid -->
-                    <div class="grid grid-cols-1 gap-4">
-                        <!-- Neural Speed -->
-                        <div class="bg-surface-container rounded-2xl p-6">
-                            <p class="label-sm text-on-surface-variant uppercase text-center mb-3">神經速度</p>
-                            <div class="flex items-baseline justify-center gap-2">
-                                <span class="display-sm-emphasis text-on-surface">{{ neuralSpeed }}</span>
-                                <span class="body-md text-on-surface-variant">ms</span>
-                            </div>
-                        </div>
-
+                    <div class="grid grid-cols-3 gap-3">
                         <!-- Success Rate -->
-                        <div class="bg-surface-container rounded-2xl p-6">
-                            <p class="label-sm text-on-surface-variant uppercase text-center mb-3">成功率</p>
-                            <div class="flex items-baseline justify-center gap-2">
-                                <span class="display-sm-emphasis text-on-surface">{{ successRate }}</span>
-                                <span class="body-md text-on-surface-variant">%</span>
+                        <div class="bg-primary-container flex flex-col overflow-hidden p-1 rounded-2xl shadow-sm">
+                            <div class="p-2 flex items-center justify-center space-x-1">
+                                <Icon name="material-symbols:celebration-outline" size="16" class="text-white" />
+                                <span class="text-[10px] font-bold text-white uppercase tracking-wider">成功率</span>
+                            </div>
+                            <div
+                                class="bg-surface flex flex-1 flex-col items-center justify-center min-h-[80px] p-4 rounded-2xl">
+                                <div class="flex items-baseline space-x-1">
+                                    <span class="text-2xl font-bold text-on-surface">{{ successRate }}</span>
+                                    <span class="text-xs text-on-surface-variant">%</span>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Level Attained -->
-                        <div class="bg-surface-container rounded-2xl p-6">
-                            <p class="label-sm text-on-surface-variant uppercase text-center mb-3">達成等級</p>
-                            <div class="flex justify-center">
-                                <span class="display-sm-emphasis text-on-surface">{{ levelAttained }}</span>
+                        <div class="bg-secondary-container flex flex-col overflow-hidden p-1 rounded-2xl shadow-sm">
+                            <div class="p-2 flex items-center justify-center space-x-1">
+                                <Icon name="material-symbols:celebration-outline" size="16"
+                                    class="text-on-secondary-fixed-variant" />
+                                <span
+                                    class="text-[10px] font-bold text-on-secondary-fixed-variant uppercase tracking-wider">達成等級</span>
+                            </div>
+                            <div
+                                class="bg-surface flex flex-1 flex-col items-center justify-center min-h-[80px] p-4 rounded-2xl">
+                                <span class="text-2xl font-bold text-on-surface">{{ levelAttained }}</span>
                             </div>
                         </div>
 
-                        <!-- Sensitivity Index -->
-                        <div class="bg-surface-container rounded-2xl p-6">
-                            <p class="label-sm text-on-surface-variant uppercase text-center mb-3">敏感度指數</p>
-                            <div class="flex justify-center">
-                                <span class="display-sm-emphasis text-on-surface">{{ sensitivityIndex }}</span>
+                        <!-- Time Elapsed -->
+                        <div class="bg-tertiary-container flex flex-col overflow-hidden p-1 rounded-2xl shadow-sm">
+                            <div class="p-2 flex items-center justify-center space-x-1">
+                                <Icon name="material-symbols:celebration-outline" size="16" class="text-white" />
+                                <span class="text-[10px] font-bold text-white uppercase tracking-wider">花費時間</span>
+                            </div>
+                            <div
+                                class="bg-surface flex flex-1 flex-col items-center justify-center min-h-[80px] p-4 rounded-2xl">
+                                <span class="text-2xl font-bold text-on-surface">{{ formattedTime }}</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col gap-4 pb-8">
-                        <Buttons variant="outline" label="重新校準" @click="recalibrate" class="w-full" />
-                        <Buttons variant="primary" label="繼續" to="/streak" class="w-full" />
+                    <!-- Action Button -->
+                    <div class="flex flex-col">
+                        <Buttons buttonStyle="bordered-prominent" label="繼續" to="/streak" class="w-full" />
                     </div>
                 </div>
             </div>
@@ -103,15 +114,15 @@ const elapsedSeconds = computed(() => {
 });
 
 // Derive metrics from actual session data
-const neuralSpeed = computed(() => Math.round(gameState.averageResponseTime.value));
 const successRate = computed(() => Math.round(gameState.accuracy.value));
-const levelAttained = computed(() => gameState.state.session.currentLevel.toString().padStart(2, '0'));
-const sensitivityIndex = ref(3);
+const levelAttained = computed(() => gameState.state.session.currentLevel.toString().padStart(1, '0'));
 
-const recalibrate = () => {
-    // Reset and go back to task grid
-    router.push('/task/game-grid');
-};
+// Format time as M:SS
+const formattedTime = computed(() => {
+    const minutes = Math.floor(elapsedSeconds.value / 60);
+    const seconds = elapsedSeconds.value % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+});
 
 onMounted(() => {
     // End session just in case it wasn't ended properly

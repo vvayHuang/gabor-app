@@ -1,15 +1,24 @@
 <template>
-    <div
-        class="flex flex-col items-center justify-center min-h-screen p-4 space-y-8 relative transition-colors duration-100">
-        <!-- Header -->
-        <div class="fixed top-[62px] left-0 w-full px-4 flex justify-between items-center z-20 gap-12">
-            <!-- Exit Button -->
-            <IconButton icon="material-symbols:close" size="medium"
-                class="hover:bg-white/10 text-inverse-on-surface hover:text-white" @click="handleExit" />
+    <div class="flex flex-col items-center min-h-screen relative transition-colors duration-100">
+        <!-- Header & Title (Hidden during phase transition) -->
+        <template v-if="!showPhaseTransition">
+            <TaskHeader 
+                class="z-20 w-full"
+                :current="currentLevelInPhase" 
+                :total="levelsPerPhase" 
+                @exit="handleExit" 
+            />
 
-            <!-- Progress Bar -->
-            <ProgressIndicators :current="currentLevelInPhase" :total="levelsPerPhase" width="100%" class="flex-1" />
-        </div>
+            <!-- Instruction Title -->
+            <div class="flex items-center space-x-2 px-6 mb-8 w-full max-w-2xl mx-auto">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
+                    <Icon name="material-symbols:question-mark" size="24" class="text-on-primary-fixed" />
+                </div>
+                <h1 class="headline-sm-emphasis text-on-surface">
+                    請在裡面選出不同的符號
+                </h1>
+            </div>
+        </template>
 
         <!-- Exit Confirmation Dialog -->
         <div v-if="showExitConfirmation"
@@ -35,7 +44,7 @@
 
         <!-- Game Grid Container -->
         <div v-if="gameStarted && !showPhaseTransition"
-            class="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-[400px]">
+            class="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-[496px] px-4">
             <!-- Actual Game Grid -->
             <div class="grid w-full items-center justify-items-center transition-opacity duration-300 animate-fade-in-up"
                 :style="{
@@ -79,12 +88,13 @@
         </div>
 
         <!-- Phase Transition Button -->
-        <div v-if="showPhaseTransition" class="fixed inset-0 z-30 flex flex-col items-center justify-center p-6 animate-fade-in-up">
+        <div v-if="showPhaseTransition"
+            class="fixed inset-0 z-30 flex flex-col items-center justify-center p-6 animate-fade-in-up">
             <div class="text-center space-y-2">
-                <h2 class="display-md text-white">第一階段完成</h2>
-                <p class="body-large-emphasis text-white">準備好進入更具挑戰性的第二階段了？</p>
+                <h2 class="display-md text-on-surface">第一階段完成</h2>
+                <p class="body-large-emphasis text-on-surface">準備好進入更具挑戰性的第二階段了？</p>
             </div>
-            
+
             <!-- Bottom Button Container -->
             <div class="fixed bottom-0 left-0 w-full p-6 pb-[68px]">
                 <div class="max-w-md mx-auto w-full">
@@ -265,12 +275,13 @@ const handleInteraction = (index: number) => {
         }
         feedbackState.value = 'SUCCESS';
 
+        // Update progress immediately for better responsiveness
+        currentLevelInPhase.value++;
+        globalLevel.value++;
+
         // Increased timeout slightly for better visual feedback before transition
         setTimeout(() => {
             if (gamePhase.value === 'GAME_OVER') return;
-
-            currentLevelInPhase.value++;
-            globalLevel.value++;
 
             if (currentLevelInPhase.value > levelsPerPhase) {
                 if (gamePhase.value === 'STAGE_1') {
