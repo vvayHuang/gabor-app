@@ -9,8 +9,8 @@
 
         <!-- Bottom Buttons -->
         <div class="flex space-x-6 w-full max-w-md mx-auto py-4">
-            <Buttons variant="outline" to="/records" label="查看今日紀錄" />
-            <Buttons variant="outline" to="/prepare" label="回首頁" />
+            <Buttons variant="outline" size="large" to="/records" label="查看今日紀錄" />
+            <Buttons variant="outline" size="large" to="/prepare" label="回首頁" />
         </div>
     </div>
 </template>
