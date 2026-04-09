@@ -18,7 +18,7 @@
         </div>
         
         <!-- Main Content Area with safe area padding -->
-        <main class="w-full min-h-screen transition-all duration-300">
+        <main class="w-full pt-status-bar transition-all duration-300">
             <slot />
         </main>
 
@@ -39,6 +39,7 @@ const showNavigationBar = computed(() => {
         'prepare',
         'records',
         'profile',
+        'tutorial',
     ];
 
     return visiblePages.includes(route.name as string);

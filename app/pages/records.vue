@@ -16,8 +16,8 @@ const mockAchievements = {
 </script>
 
 <template>
-    <div class="flex flex-col min-h-screen space-y-8 pb-6 text-on-background bg-background">
-        <div class="mt-[62px] px-4 h-14 flex items-center">
+    <div class="flex flex-col min-h-safe-content space-y-8 pb-6 text-on-background bg-background">
+        <div class="p-4 h-14 flex items-center">
             <h1 class="headline-lg-emphasis text-on-background mix-blend-plus-darker">紀錄</h1>
         </div>
 

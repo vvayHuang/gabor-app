@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col min-h-screen px-4 py-12">
+    <div class="flex flex-col min-h-safe-content px-4 py-12">
         <div class="flex-1 flex flex-col items-center justify-center space-y-4">
             <div class="space-y-4 w-full">
                 <h2 class="headline-lg-emphasis text-on-surface-variant">準備好放鬆了嗎？</h2>

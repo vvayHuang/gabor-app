@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col items-center min-h-screen py-6 px-4 text-center relative overflow-hidden isolate">
+    <div class="flex flex-col items-center min-h-safe-content py-6 px-4 text-center relative overflow-hidden isolate">
         <!-- Timer Display (Centered) -->
         <div class="flex-1 flex flex-col items-center justify-center w-full z-10">
             <div class="mb-12 space-y-4 font-light">

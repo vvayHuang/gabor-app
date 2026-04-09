@@ -5,7 +5,7 @@ const mainItems = [
     { to: '/profile', icon: 'material-symbols:contacts-product', label: '個人' },
 ];
 
-const sideItem = { to: '#', icon: 'material-symbols:question-mark', label: '說明' };
+const sideItem = { to: '/tutorial', icon: 'material-symbols:question-mark', label: '說明' };
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col min-h-screen px-4 py-6 text-center">
+    <div class="flex flex-col min-h-safe-content px-4 py-6 text-center">
         <!-- Center Content -->
         <div class="flex-1 flex flex-col items-start justify-center">
             <div class="space-y-6">

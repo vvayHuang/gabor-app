@@ -1,6 +1,6 @@
 <template>
-    <div class="flex flex-col min-h-screen pb-24 text-on-background bg-background">
-        <ToolbarTop headline="個人資料" class="mt-[62px]" type="header">
+    <div class="flex flex-col min-h-safe-content pb-24 text-on-background bg-background">
+        <ToolbarTop headline="個人資料" type="header">
             <template #right>
                 <NuxtLink to="/settings" class="p-2">
                     <Icon name="material-symbols:settings-outline" size="24" class="text-on-background" />

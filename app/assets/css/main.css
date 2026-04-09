@@ -52,6 +52,9 @@
     --color-surface-container-highest: #E0E2EC;
 
     --font-sans: 'Noto Sans TC',ui-ans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    
+    --spacing-status-bar: 62px;
+    --height-safe-content: calc(100vh - 62px);
 }
 
 /* Display */

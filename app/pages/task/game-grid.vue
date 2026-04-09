@@ -1,13 +1,8 @@
 <template>
-    <div class="flex flex-col items-center min-h-screen relative transition-colors duration-100">
+    <div class="flex flex-col items-center min-h-safe-content relative transition-colors duration-100">
         <!-- Header & Title (Hidden during phase transition) -->
         <template v-if="!showPhaseTransition">
-            <TaskHeader 
-                class="z-20 w-full"
-                :current="currentLevelInPhase" 
-                :total="levelsPerPhase" 
-                @exit="handleExit" 
-            />
+            <TaskHeader class="z-20 w-full" :current="currentLevelInPhase" :total="levelsPerPhase" @exit="handleExit" />
 
             <!-- Instruction Title -->
             <div class="flex items-center space-x-2 px-6 mb-8 w-full max-w-2xl mx-auto">
@@ -89,7 +84,7 @@
 
         <!-- Phase Transition Button -->
         <div v-if="showPhaseTransition"
-            class="fixed inset-0 z-30 flex flex-col items-center justify-center p-6 animate-fade-in-up">
+            class="fixed inset-0 z-30 flex flex-col items-center justify-center p-4 animate-fade-in-up">
             <div class="text-center space-y-2">
                 <h2 class="display-md text-on-surface">第一階段完成</h2>
                 <p class="body-large-emphasis text-on-surface">準備好進入更具挑戰性的第二階段了？</p>

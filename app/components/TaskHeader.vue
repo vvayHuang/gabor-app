@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-between p-4 my-8 w-full bg-transparent pt-[env(safe-area-inset-top)] h-auto">
+  <div class="flex items-center justify-between p-4 w-full bg-transparent h-auto">
     <!-- Close Button -->
     <IconButton icon="material-symbols:close" size="x-small" icon-size="20" color-class="text-primary" class="shrink-0"
       @click="$emit('exit')" />

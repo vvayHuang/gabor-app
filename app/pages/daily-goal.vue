@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col min-h-screen relative overflow-hidden">
+    <div class="flex flex-col min-h-safe-content relative overflow-hidden">
         <!-- TimeSphere View -->
         <div ref="progressView" class="absolute inset-0 flex flex-col items-center justify-center">
             <div class="flex flex-col items-center space-y-12">
@@ -10,7 +10,7 @@
 
         <!-- Analysis Report View -->
         <div ref="analysisView" class="absolute inset-0 overflow-y-auto opacity-0 bg-surface">
-            <div class="min-h-screen flex flex-col items-center justify-between px-4 py-16">
+            <div class="min-h-safe-content flex flex-col items-center justify-between px-4 py-16">
                 <!-- Upper Half: Centered Logo and Title -->
                 <div class="flex-1 flex flex-col items-center justify-center w-full max-w-2xl text-center space-y-6">
                     <img src="~/assets/logo.svg" alt="Gabor Logo" class="w-24 h-auto" />
