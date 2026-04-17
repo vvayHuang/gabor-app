@@ -8,7 +8,7 @@
                 </p>
             </div>
             <div class="w-full flex flex-col items-center space-y-4 pb-8">
-                <Buttons buttonStyle="bordered-prominent" size="large" label="開始" @click="startGame" />
+                <Buttons buttonStyle="Bordered - Prominent" size="Large" label="開始" @click="startGame" />
             </div>
         </div>
     </div>

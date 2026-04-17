@@ -93,7 +93,7 @@
             <!-- Bottom Button Container -->
             <div class="fixed bottom-0 left-0 w-full p-6 pb-[68px]">
                 <div class="max-w-md mx-auto w-full">
-                    <Buttons variant="primary" @click="startNextPhase" label="開始" />
+                    <Buttons buttonStyle="Bordered - Prominent" size="Medium" @click="startNextPhase" label="開始" />
                 </div>
             </div>
         </div>

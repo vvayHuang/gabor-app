@@ -31,17 +31,17 @@
             <div class="w-full flex flex-col items-center space-y-4">
                 <p class="title-sm text-on-background">或繼續使用</p>
                 <div class="w-full space-y-3">
-                    <Buttons buttonStyle="bordered" size="large" labelType="symbol" @click="handleLogin">
+                    <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol" @click="handleLogin">
                         <template #icon>
                             <img src="@/assets/icons/apple.svg" alt="Apple" class="w-6 h-6" />
                         </template>
                     </Buttons>
-                    <Buttons buttonStyle="bordered" size="large" labelType="symbol" @click="handleLogin">
+                    <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol" @click="handleLogin">
                         <template #icon>
                             <img src="@/assets/icons/google.svg" alt="Google" class="w-6 h-6" />
                         </template>
                     </Buttons>
-                    <Buttons buttonStyle="bordered" size="large" labelType="symbol" @click="handleLogin">
+                    <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol" @click="handleLogin">
                         <template #icon>
                             <img src="@/assets/icons/figma.svg" alt="Figma" class="w-6 h-6" />
                         </template>

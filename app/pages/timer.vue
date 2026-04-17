@@ -14,12 +14,12 @@
         </div>
 
         <!-- Skip Button (Bottom) -->
-        <div class="relative z-10 mt-auto pb-[135px]">
-            <Buttons variant="ghost" to="/completion" label="略過" />
+        <div class="relative z-10 mt-auto">
+            <Buttons buttonStyle="Borderless" size="Medium" to="/completion" label="略過" />
         </div>
 
         <!-- Wave Animation (Horizontal) -->
-        <div class="absolute bottom-[16px] inset-0 -z-10 pointer-events-none overflow-hidden">
+        <div class="absolute bottom-0 inset-0 -z-10 pointer-events-none overflow-hidden">
             <img ref="wave1" src="~/assets/wav-1.svg" class="absolute w-[200%] bottom-0" />
             <img ref="wave2" src="~/assets/wav-2.svg" class="absolute w-[200%] bottom-0" />
             <img ref="wave3" src="~/assets/wav-3.svg" class="absolute w-[200%] bottom-0" />

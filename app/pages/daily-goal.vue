@@ -68,7 +68,7 @@
 
                     <!-- Action Button -->
                     <div class="flex flex-col">
-                        <Buttons buttonStyle="bordered-prominent" size="large" label="繼續" to="/streak" class="w-full" />
+                        <Buttons buttonStyle="Bordered - Prominent" size="Large" label="繼續" to="/streak" class="w-full" />
                     </div>
                 </div>
             </div>

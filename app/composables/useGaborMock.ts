@@ -15,7 +15,7 @@ export function useGaborMock() {
         // Settings - Display
         symbolContrast: 100, // Maps to contrast 1.0
         colorTemperature: 50,
-        fontSize: 50,
+        fontSize: 18,
         screenBrightness: 50,
         volume: 50,
 

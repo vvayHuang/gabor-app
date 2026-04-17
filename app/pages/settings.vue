@@ -29,15 +29,16 @@
                     </div>
 
                     <!-- Item: 字體大小 (66px approx) -->
-                    <div class="flex items-center justify-between w-full h-[52px] gap-6">
+                    <div class="flex items-center justify-between w-full h-[52px]">
                         <span class="body-lg text-on-background flex-shrink-0">字體大小</span>
                         <!-- Slider Area -->
                         <div class="flex items-center gap-3 flex-1 px-4">
-                            <span class="text-[17px] font-bold text-on-surface-variant">A</span>
-                            <Slider class="flex-1" :min="12" :max="24" v-model="params.fontSize" />
-                            <span class="text-[20px] font-bold text-on-surface-variant">A</span>
+                            <span class="body-sm text-on-surface-variant">小</span>
+                            <Slider class="flex-1" :min="12" :max="24" :step="3" v-model="params.fontSize" />
+                            <span class="body-lg text-on-surface-variant">大</span>
                         </div>
                     </div>
+
                 </div>
             </section>
 
@@ -56,7 +57,8 @@
                     </div>
 
                     <!-- Logout Button -->
-                    <Buttons label="登出" destructive size="large" @click="handleLogout" />
+                    <Buttons buttonStyle="Bordered" label="登出" :destructive="true" size="Large" labelType="Text"
+                        @click="handleLogout" />
                 </div>
             </section>
         </div>
