@@ -1,18 +1,11 @@
 <script setup lang="ts">
-// 模擬成就資料
-const mockAchievements = {
-    '2026-03-01': 'level-5',
-    '2026-03-02': 'level-4',
-    '2026-03-03': 'level-3',
-    '2026-03-04': 'level-2',
-    '2026-03-05': 'level-1',
-    '2026-03-06': 'level-5',
-    '2026-03-07': 'level-5',
-    '2026-03-08': 'level-5',
-    '2026-03-09': 'level-4',
-    '2026-03-10': 'level-3',
-    '2026-03-11': 'level-2',
-};
+import { useGamePersistence } from '~/composables/useGamePersistence';
+
+const persistence = useGamePersistence();
+
+onMounted(() => {
+    persistence.loadStats();
+});
 </script>
 
 <template>
@@ -23,11 +16,11 @@ const mockAchievements = {
 
         <div class="space-y-4 px-4">
             <div class="flex items-end space-x-4">
-                <h3 class="display-lg-emphasis text-primary">99</h3>
+                <h3 class="display-lg-emphasis text-primary">{{ persistence.stats.value.currentStreak }}</h3>
                 <span class="title-lg-emphasis text-primary">連續達成天數</span>
             </div>
-            <!-- 使用 Calendar 元件 -->
-            <Calendar :achievements="mockAchievements" />
+            <!-- 使用實例紀錄數據 -->
+            <Calendar :achievements="persistence.stats.value.achievements" />
         </div>
 
         <div class="space-y-4 px-4">

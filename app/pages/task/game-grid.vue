@@ -291,6 +291,18 @@ const handleInteraction = (index: number) => {
                         persistence.updateHighScore(gameState.state.session.score);
                         persistence.updateConsecutiveDays();
                         persistence.addTrainingTime(gameState.state.session.totalTime);
+                        
+                        // 計算強度等級 (1-5) 基於分數
+                        // 假設每關滿分約 10 分，10 關約 100 分
+                        const score = gameState.state.session.score;
+                        let intensity = 1;
+                        if (score >= 80) intensity = 5;
+                        else if (score >= 60) intensity = 4;
+                        else if (score >= 40) intensity = 3;
+                        else if (score >= 20) intensity = 2;
+                        
+                        persistence.recordAchievement(intensity);
+                        
                         router.push('/daily-goal');
                     });
                     return;

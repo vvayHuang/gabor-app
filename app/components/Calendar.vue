@@ -36,17 +36,24 @@
       <!-- Date Grid -->
       <div class="grid grid-cols-7 w-full">
         <!-- Empty cells for padding start of month -->
-        <div v-for="n in paddingDays" :key="'empty-'+n" class="h-12 w-10 mx-auto"></div>
+        <div v-for="n in paddingDays" :key="'empty-'+n" class="h-12 w-full"></div>
         
         <!-- Actual Days -->
         <div v-for="day in daysInMonth" :key="day" 
-          class="h-12 flex items-center justify-center relative">
-          <!-- Achievement Backgrounds (Heatmap style) -->
+          class="h-12 flex items-center justify-center relative group">
+          
+          <!-- Achievement Background (Capsule Style) -->
+          <div v-if="hasAchievement(day)"
+            class="absolute h-10 bg-primary z-0 transition-all duration-200"
+            :class="getCapsuleClasses(day)"
+          ></div>
+
+          <!-- Day Text -->
           <div 
-            class="w-10 h-10 flex items-center justify-center rounded-full text-base transition-all"
+            class="relative z-10 w-10 h-10 flex items-center justify-center text-base transition-all"
             :class="[
-              getAchievementStatus(day),
-              isToday(day) ? 'border border-primary text-on-surface font-bold' : 'text-on-surface'
+              hasAchievement(day) ? 'text-on-primary' : 'text-on-surface',
+              isToday(day) ? 'font-bold border-2 border-primary rounded-full' : ''
             ]"
           >
             {{ day }}
@@ -95,19 +102,35 @@ const isToday = (day: number) => {
          today.getFullYear() === currentYear.value
 }
 
-// 取得該日期的成就狀態樣式
-const getAchievementStatus = (day: number) => {
+// 輔助函式：判斷某日是否有紀錄
+const hasAchievement = (day: number) => {
+  if (day < 1 || day > daysInMonth.value) return false
   const dateKey = `${currentYear.value}-${String(currentMonth.value + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-  const status = props.achievements?.[dateKey] || ''
+  return !!props.achievements?.[dateKey]
+}
+
+// 取得膠囊樣式的 Class
+const getCapsuleClasses = (day: number) => {
+  const col = (paddingDays.value + day - 1) % 7
   
-  const styles: Record<string, string> = {
-    'level-1': 'bg-[#A8C8FF] text-white',
-    'level-2': 'bg-[#76ACFF] text-white',
-    'level-3': 'bg-[#3491FF] text-white',
-    'level-4': 'bg-[#0076DF] text-white',
-    'level-5': 'bg-[#005BAF] text-white'
+  // 判斷左鄰居：昨天有紀錄且今天不是週日
+  const hasPrev = hasAchievement(day - 1) && col > 0
+  // 判斷右鄰居：明天有紀錄且今天不是週六
+  const hasNext = hasAchievement(day + 1) && col < 6
+
+  const classes = []
+
+  // 決定寬度與水平定位
+  if (hasPrev && hasNext) {
+    classes.push('w-full left-0 right-0') // 中間：全寬
+  } else if (hasPrev) {
+    classes.push('w-[calc(100%-4px)] left-0 rounded-r-full') // 終點：左接，右圓
+  } else if (hasNext) {
+    classes.push('w-[calc(100%-4px)] right-0 rounded-l-full') // 起點：右接，左圓
+  } else {
+    classes.push('w-10 rounded-full') // 獨立：正圓
   }
-  
-  return styles[status] || ''
+
+  return classes.join(' ')
 }
 </script>

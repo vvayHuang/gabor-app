@@ -6,6 +6,7 @@ export interface GameStats {
     totalTimeMinutes: number
     lastPlayedDate: string
     currentStreak: number
+    achievements: Record<string, string> // YYYY-MM-DD -> 'level-1' to 'level-5'
 }
 
 const STORAGE_KEY = 'gabor_game_stats'
@@ -16,7 +17,8 @@ export function useGamePersistence() {
         consecutiveDays: 0,
         totalTimeMinutes: 0,
         lastPlayedDate: '',
-        currentStreak: 0
+        currentStreak: 0,
+        achievements: {}
     })
 
     // Load from localStorage
@@ -26,7 +28,12 @@ export function useGamePersistence() {
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
             try {
-                stats.value = JSON.parse(stored)
+                const parsed = JSON.parse(stored)
+                stats.value = {
+                    ...stats.value,
+                    ...parsed,
+                    achievements: parsed.achievements || {}
+                }
             } catch (e) {
                 console.error('Failed to parse game stats:', e)
             }
@@ -37,6 +44,24 @@ export function useGamePersistence() {
     const saveStats = () => {
         if (typeof window === 'undefined') return
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stats.value))
+    }
+
+    // Record Achievement Level
+    const recordAchievement = (level: number) => {
+        const today = new Date().toISOString().split('T')[0]
+        const levelKey = `level-${Math.min(5, Math.max(1, level))}`
+        
+        // 如果今天已經有紀錄，保留最高等級
+        const existingLevel = stats.value.achievements[today]
+        if (existingLevel) {
+            const existingNum = parseInt(existingLevel.split('-')[1])
+            if (level > existingNum) {
+                stats.value.achievements[today] = levelKey
+            }
+        } else {
+            stats.value.achievements[today] = levelKey
+        }
+        saveStats()
     }
 
     // Update high score
@@ -105,6 +130,7 @@ export function useGamePersistence() {
         stats,
         loadStats,
         saveStats,
+        recordAchievement,
         updateHighScore,
         updateConsecutiveDays,
         addTrainingTime,
