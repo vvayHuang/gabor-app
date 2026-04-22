@@ -2,7 +2,8 @@
     <div class="flex flex-col items-center min-h-safe-content relative transition-colors duration-100">
         <!-- Header & Title (Hidden during phase transition) -->
         <template v-if="!showPhaseTransition">
-            <TaskHeader class="z-20 w-full" :current="currentLevelInPhase" :total="levelsPerPhase" @exit="handleExit" />
+            <TaskHeader class="z-20 w-full" :current="currentLevelInPhase - 1" :total="levelsPerPhase"
+                @exit="handleExit" />
 
             <!-- Instruction Title -->
             <div class="flex items-center space-x-2 px-6 mb-8 w-full max-w-2xl mx-auto">
@@ -41,12 +42,12 @@
         <div v-if="gameStarted && !showPhaseTransition"
             class="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-[496px] px-4">
             <!-- Actual Game Grid -->
-            <div class="grid w-full items-center justify-items-center transition-opacity duration-300 animate-fade-in-up"
-                :style="{
-                    gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
-                    gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
-                    gap: `${gridGap}px`
-                }" :class="[isGridReady ? 'opacity-100' : 'opacity-0']">
+            <div class="grid w-full items-center justify-items-center" :style="{
+                gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
+                gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
+                gap: `${gridGap}px`,
+                opacity: isGridReady ? 1 : 0
+            }">
                 <div v-for="(item, index) in gridItems" :key="`cell-${index}`"
                     :ref="(el) => { if (el) gridItemRefs[index] = el }"
                     class="relative group aspect-square flex items-center justify-center cursor-pointer"
@@ -64,45 +65,29 @@
                     </ClientOnly>
                 </div>
             </div>
-
-            <!-- Skeleton Shimmer Loader (Absolute Overlay) -->
-            <div v-if="!isGridReady"
-                class="absolute inset-0 grid w-full items-center justify-items-center pointer-events-none" :style="{
-                    gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
-                    gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
-                    gap: `${gridGap}px`
-                }">
-                <div v-for="i in (gridCols * gridRows)" :key="`skeleton-${i}`"
-                    class="aspect-square w-full h-full flex items-center justify-center">
-                    <div :style="{ width: canvasSize + 'px', height: canvasSize + 'px' }"
-                        class="rounded-full bg-white/5 overflow-hidden relative">
-                        <div class="absolute inset-0 skeleton-shimmer"></div>
-                    </div>
-                </div>
-            </div>
         </div>
 
-        <!-- Phase Transition Button -->
-        <div v-if="showPhaseTransition"
-            class="fixed inset-0 z-30 flex flex-col items-center justify-center p-4 animate-fade-in-up">
-            <div class="text-center space-y-2">
+        <!-- Phase Transition UI -->
+        <div v-if="showPhaseTransition" class="fixed inset-0 z-30 flex flex-col items-center justify-center p-4">
+            <div ref="transitionText" class="text-center space-y-2 opacity-0">
                 <h2 class="display-md text-on-surface">第一階段完成</h2>
                 <p class="body-large-emphasis text-on-surface">準備好進入更具挑戰性的第二階段了？</p>
             </div>
 
-            <!-- Bottom Button Container -->
-            <div class="fixed bottom-0 left-0 w-full p-6 pb-[68px]">
+            <!-- Bottom Action Area (Consistent with other pages) -->
+            <div ref="transitionButton" class="fixed bottom-0 left-0 w-full p-6 pb-[calc(24px+env(safe-area-inset-bottom))] opacity-0">
                 <div class="max-w-md mx-auto w-full">
-                    <Buttons buttonStyle="Bordered - Prominent" size="Medium" @click="startNextPhase" label="開始" />
+                    <Buttons buttonStyle="Bordered - Prominent" size="Large" @click="startNextPhase" label="開始" />
                 </div>
             </div>
+
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { gsap } from 'gsap';
 import { useGameState } from '~/composables/useGameState';
 import { useGamePersistence } from '~/composables/useGamePersistence';
@@ -134,6 +119,8 @@ const feedbackState = ref<FeedbackState>('IDLE');
 const selectedIndex = ref(-1);
 const canvasRefs = ref<any[]>([]);
 const gridItemRefs = ref<any[]>([]);
+const transitionText = ref<HTMLElement | null>(null);
+const transitionButton = ref<HTMLElement | null>(null);
 const readyCount = ref(0);
 const isGridReady = ref(false);
 const clickStartTime = ref(0);
@@ -155,7 +142,31 @@ const updateAllCanvases = () => {
             canvas.drawGabor();
         }
     });
+
+    const validRefs = gridItemRefs.value.filter(el => el);
+
+    // 1. 在容器顯示前，先強制設定符號為隱藏且縮小狀態
+    if (validRefs.length > 0) {
+        gsap.set(validRefs, {
+            scale: 0.4,
+            opacity: 0
+        });
+    }
+
+    // 2. 顯示容器
     isGridReady.value = true;
+
+    // 3. 執行進場動畫
+    if (validRefs.length > 0) {
+        gsap.to(validRefs, {
+            scale: 1,
+            opacity: 1,
+            duration: 0.5,
+            stagger: 0.04,
+            ease: 'back.out(1.5)',
+            overwrite: true
+        });
+    }
 }
 
 const handleCanvasReady = () => {
@@ -250,7 +261,7 @@ const generateLevel = () => {
         // We give it a short time to finish rendering before hiding skeleton.
         setTimeout(() => {
             updateAllCanvases();
-        }, 300);
+        }, 30); // Reduced delay for smoother transition
     });
 };
 
@@ -264,57 +275,78 @@ const handleInteraction = (index: number) => {
     gameState.recordResponse(isCorrect, responseTime);
 
     if (isCorrect) {
-        const canvas = canvasRefs.value[index];
-        if (canvas && canvas.triggerInvert) {
-            canvas.triggerInvert();
-        }
+        const targetEl = gridItemRefs.value[index];
         feedbackState.value = 'SUCCESS';
 
-        // Update progress immediately for better responsiveness
+        // 1. 立即執行「正確符號消失」動畫
+        if (targetEl) {
+            gsap.to(targetEl, {
+                scale: 0,
+                opacity: 0,
+                duration: 0.3,
+                ease: 'power2.in'
+            });
+        }
+
+        // 2. 立即更新進度，讓進度條跑到 100%
         currentLevelInPhase.value++;
         globalLevel.value++;
 
-        // Increased timeout slightly for better visual feedback before transition
+        // 3. 等待進度條動畫跑完
         setTimeout(() => {
             if (gamePhase.value === 'GAME_OVER') return;
 
+            // 檢查是否為該階段的最後一關
             if (currentLevelInPhase.value > levelsPerPhase) {
-                if (gamePhase.value === 'STAGE_1') {
-                    showPhaseTransition.value = true;
-                    return;
-                } else if (gamePhase.value === 'STAGE_2') {
-                    // Pre-calculate session end logic before navigation
-                    gamePhase.value = 'GAME_OVER';
+                // 4. 階段結束：符號更緩慢地交錯淡出
+                const validRefs = gridItemRefs.value.filter(el => el);
+                gsap.to(validRefs, {
+                    opacity: 0,
+                    scale: 0.6,
+                    duration: 0.8, // 放慢速度
+                    stagger: {
+                        each: 0.06,
+                        from: "center"
+                    },
+                    ease: 'power2.inOut',
+                    onComplete: () => {
+                        if (gamePhase.value === 'STAGE_1') {
+                            showPhaseTransition.value = true;
+                            isGridReady.value = false;
 
-                    nextTick(() => {
-                        gameState.endSession();
-                        persistence.updateHighScore(gameState.state.session.score);
-                        persistence.updateConsecutiveDays();
-                        persistence.addTrainingTime(gameState.state.session.totalTime);
-                        
-                        // 計算強度等級 (1-5) 基於分數
-                        // 假設每關滿分約 10 分，10 關約 100 分
-                        const score = gameState.state.session.score;
-                        let intensity = 1;
-                        if (score >= 80) intensity = 5;
-                        else if (score >= 60) intensity = 4;
-                        else if (score >= 40) intensity = 3;
-                        else if (score >= 20) intensity = 2;
-                        
-                        persistence.recordAchievement(intensity);
-                        
-                        router.push('/daily-goal');
-                    });
-                    return;
-                }
+                            // 5. 過渡 UI 序列動畫
+                            nextTick(() => {
+                                const tl = gsap.timeline();
+                                tl.to(transitionText.value, {
+                                    opacity: 1,
+                                    y: -20,
+                                    duration: 0.8,
+                                    ease: 'power2.out'
+                                })
+                                    .to(transitionButton.value, {
+                                        opacity: 1,
+                                        y: 0,
+                                        duration: 0.6,
+                                        ease: 'power2.out'
+                                    }, "-=0.2");
+                            });
+                        } else if (gamePhase.value === 'STAGE_2') {
+                            handleGameOver();
+                        }
+                    }
+                });
+                return;
             }
+
+            // 6. 若非最後一關，生成下一關
             generateLevel();
-        }, 200);
+        }, 300);
+
     } else {
+        // 錯誤處理 (保持原樣，因為原本就有震動與抖動動畫)
         feedbackState.value = 'ERROR';
         if (navigator.vibrate) navigator.vibrate(100);
 
-        // GSAP shake animation
         const targetEl = gridItemRefs.value[index];
         if (targetEl) {
             gsap.fromTo(targetEl,
@@ -326,19 +358,43 @@ const handleInteraction = (index: number) => {
                     yoyo: true,
                     ease: 'power2.inOut',
                     onComplete: () => {
-                        gsap.set(targetEl, { x: 0 }); // Reset position
+                        gsap.set(targetEl, { x: 0 });
                         feedbackState.value = 'IDLE';
                         selectedIndex.value = -1;
                     }
                 }
             );
-        } else {
-            setTimeout(() => {
-                feedbackState.value = 'IDLE';
-                selectedIndex.value = -1;
-            }, 500);
         }
     }
+};
+
+const handleGameOver = () => {
+    // 遊戲完全結束：頁面淡出後再跳轉
+    const container = document.querySelector('.flex.flex-col.items-center.min-h-safe-content');
+    gsap.to(container, {
+        opacity: 0,
+        duration: 0.6,
+        ease: 'power2.inOut',
+        onComplete: () => {
+            gamePhase.value = 'GAME_OVER';
+            nextTick(() => {
+                gameState.endSession();
+                persistence.updateHighScore(gameState.state.session.score);
+                persistence.updateConsecutiveDays();
+                persistence.addTrainingTime(gameState.state.session.totalTime);
+
+                const score = gameState.state.session.score;
+                let intensity = 1;
+                if (score >= 80) intensity = 5;
+                else if (score >= 60) intensity = 4;
+                else if (score >= 40) intensity = 3;
+                else if (score >= 20) intensity = 2;
+
+                persistence.recordAchievement(intensity);
+                router.push('/daily-goal');
+            });
+        }
+    });
 };
 
 
@@ -373,40 +429,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.animate-fade-in-up {
-    animation: fadeInUp 0.5s ease-out forwards;
-}
-
-.skeleton-shimmer {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg,
-            transparent 0%,
-            rgba(255, 255, 255, 0.05) 50%,
-            transparent 100%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite linear;
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-
-    100% {
-        background-position: 200% 0;
-    }
-}
+/* No additional scoped styles needed */
 </style>

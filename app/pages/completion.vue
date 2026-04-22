@@ -7,10 +7,12 @@
             </div>
         </div>
 
-        <!-- Bottom Buttons -->
-        <div class="flex space-x-6 w-full max-w-md mx-auto py-4">
-            <Buttons buttonStyle="Bordered" size="Large" to="/records" label="查看今日紀錄" />
-            <Buttons buttonStyle="Bordered" size="Large" to="/prepare" label="回首頁" />
+        <!-- Bottom Buttons (Consistent Bottom Area) -->
+        <div class="fixed bottom-0 left-0 w-full p-6 pb-[calc(24px+env(safe-area-inset-bottom))]">
+            <div class="max-w-md mx-auto w-full flex space-x-4">
+                <Buttons buttonStyle="Bordered" size="Large" to="/records" label="紀錄" class="flex-1" />
+                <Buttons buttonStyle="Bordered" size="Large" to="/prepare" label="回首頁" class="flex-1" />
+            </div>
         </div>
     </div>
 </template>

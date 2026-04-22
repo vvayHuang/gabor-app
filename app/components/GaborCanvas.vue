@@ -50,7 +50,10 @@ const loadP5 = () => {
 
 const sketch = (p: p5) => {
     p.setup = () => {
-        p.createCanvas(props.size, props.size);
+        const canvas = p.createCanvas(props.size, props.size);
+        // Set willReadFrequently to true for the 2D context to optimize pixels operations
+        const ctx = (canvas.elt as HTMLCanvasElement).getContext('2d', { willReadFrequently: true });
+        
         p.noLoop();
         p.pixelDensity(1);
         // Don't draw automatically, wait for parent to call it

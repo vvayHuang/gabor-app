@@ -61,9 +61,11 @@
                     </div>
                 </div>
 
-                <!-- Action Button -->
-                <div class="flex flex-col">
-                    <Buttons buttonStyle="Bordered - Prominent" size="Large" label="繼續" to="/streak" class="w-full" />
+                <!-- Action Button (Consistent Bottom Area) -->
+                <div class="fixed bottom-0 left-0 w-full p-6 pb-[calc(24px+env(safe-area-inset-bottom))]">
+                    <div class="max-w-md mx-auto w-full">
+                        <Buttons buttonStyle="Bordered - Prominent" size="Large" label="繼續" to="/streak" />
+                    </div>
                 </div>
             </div>
         </div>

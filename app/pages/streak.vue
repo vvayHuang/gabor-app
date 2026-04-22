@@ -85,10 +85,12 @@ const rollingWindow = computed(() => {
             </div>
         </div>
 
-        <!-- Bottom Button -->
-        <div class="w-full max-w-md mx-auto transition-opacity duration-1000"
+        <!-- Bottom Button (Consistent Bottom Area) -->
+        <div class="fixed bottom-0 left-0 w-full p-6 pb-[calc(24px+env(safe-area-inset-bottom))] transition-opacity duration-1000"
             :class="showButton ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-            <Buttons buttonStyle="Bordered - Prominent" size="Large" to="/timer" label="下一步" />
+            <div class="max-w-md mx-auto w-full">
+                <Buttons buttonStyle="Bordered - Prominent" size="Large" to="/timer" label="下一步" />
+            </div>
         </div>
     </div>
 </template>
