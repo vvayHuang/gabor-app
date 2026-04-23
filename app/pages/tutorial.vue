@@ -1,7 +1,7 @@
 <template>
-    <div class="flex flex-col min-h-safe-content">
+    <div class="flex-1 flex flex-col px-4 space-y-8">
         <!-- Header Section -->
-        <div class="p-4 space-y-4">
+        <div class="space-y-4">
             <h1 class="headline-lg-emphasis text-on-background">如何遊玩</h1>
             <div class="space-y-4">
                 <h2 class="title-md-emphasis text-on-background">科學原理：蓋博符號</h2>
@@ -57,7 +57,4 @@ const getShapePath = (index: number) => {
 
 <style scoped>
 /* Ensure the page stays clean without unwanted scrolling if content fits */
-:deep(body) {
-    background-color: var(--color-surface) !important;
-}
 </style>

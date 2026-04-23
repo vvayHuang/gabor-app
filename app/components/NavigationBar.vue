@@ -9,7 +9,7 @@ const sideItem = { to: '/tutorial', icon: 'material-symbols:question-mark', labe
 </script>
 
 <template>
-    <div class="fixed bottom-8 left-0 right-0 w-full z-50 px-6 flex justify-between items-center pointer-events-none">
+    <div class="fixed bottom-8 left-0 right-0 w-full z-50 px-4 flex justify-between items-center pointer-events-none">
 
         <!-- 左側群組 -->
         <div class="pointer-events-auto h-[58px]">

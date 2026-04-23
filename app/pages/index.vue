@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col items-center justify-center min-h-screen px-4 bg-background overflow-hidden">
+    <div class="flex-1 flex flex-col items-center justify-center px-4 pt-8 space-y-8 bg-background overflow-hidden">
         <!-- Splash Screen Elements -->
         <div class="flex flex-col items-center justify-center absolute inset-0 pointer-events-none">
             <!-- Phase 1: Logo Section -->

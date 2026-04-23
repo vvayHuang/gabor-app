@@ -1,7 +1,7 @@
 <template>
-    <div class="flex flex-col items-center min-h-safe-content py-6 px-4 text-center relative overflow-hidden isolate">
+    <div class="flex-1 flex flex-col items-center px-4 space-y-8 text-center relative overflow-hidden isolate">
         <!-- Timer Display (Centered) -->
-        <div class="flex-1 flex flex-col items-center justify-center w-full z-10">
+        <div class="flex-1 flex flex-col items-center justify-center w-full pt-8 z-10">
             <div class="mb-12 space-y-4 font-light">
                 <div class="display-lg text-inverse-on-surface">
                     {{ remainingSeconds.toString().padStart(2, '0') }}
@@ -13,8 +13,8 @@
             </div>
         </div>
 
-        <!-- Skip Button (Bottom) -->
-        <div class="relative z-10 mt-auto">
+        <!-- Skip Button (Bottom Area) -->
+        <div class="w-full max-w-md mx-auto z-10 px-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
             <Buttons buttonStyle="Borderless" size="Medium" to="/completion" label="略過" />
         </div>
 

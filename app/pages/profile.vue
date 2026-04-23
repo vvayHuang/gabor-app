@@ -1,6 +1,6 @@
 <template>
-    <div class="flex flex-col min-h-safe-content pb-24 text-on-background bg-background">
-        <ToolbarTop headline="個人資料" type="header">
+    <div class="flex-1 flex flex-col px-4 space-y-8 text-on-background">
+        <ToolbarTop headline="個人資料" type="header" class="pt-4">
             <template #right>
                 <NuxtLink to="/settings" class="p-2">
                     <Icon name="material-symbols:settings-outline" size="24" class="text-on-background" />
@@ -9,7 +9,7 @@
         </ToolbarTop>
 
         <!-- User Info Section -->
-        <div class="flex flex-row items-center p-4 gap-6">
+        <div class="flex flex-row items-center gap-6">
             <!-- Avatar -->
             <div
                 class="w-[120px] h-[120px] bg-surface-variant rounded-full overflow-hidden flex-shrink-0 border border-outline-variant">
@@ -27,11 +27,11 @@
             </div>
         </div>
 
-        <div class="space-y-6 p-4">
+        <div class="space-y-6">
             <h3 class="title-md-emphasis text-on-surface-variant">視覺專注力等級</h3>
             <p class="title-lg-emphasis text-on-background">模糊初學者</p>
         </div>
-        <div class="space-y-4 py-4 px-4">
+        <div class="space-y-4">
             <h3 class="title-md-emphasis text-on-surface-variant">光榮時刻</h3>
             <!-- Shapes Container -->
             <div class="flex flex-row flex-wrap items-start content-start gap-4 max-w-[361px]">

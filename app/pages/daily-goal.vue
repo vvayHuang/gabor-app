@@ -1,14 +1,14 @@
 <template>
-    <div class="flex flex-col min-h-safe-content relative overflow-hidden bg-surface">
+    <div class="flex-1 flex flex-col px-4 relative">
         <!-- Analysis Report View (Now Primary View) -->
-        <div ref="analysisView" class="flex-1 flex flex-col items-center justify-between px-4 py-16 opacity-0 translate-y-4">
+        <div ref="analysisView"
+            class="flex-1 flex flex-col items-center justify-between pt-8 space-y-8 opacity-0 translate-y-4">
             <!-- Upper Half: Centered Logo and Title -->
             <div class="flex-1 flex flex-col items-center justify-center w-full max-w-2xl text-center space-y-6">
-                <div class="space-y-4 flex flex-col items-center">
+                <div class="flex flex-col items-center">
                     <img src="~/assets/logo.svg" alt="Gabor Logo" class="w-24 h-auto animate-bounce-slow" />
-                    <span class="label-lg-emphasis text-primary tracking-[0.2em] uppercase">Today's Goal Reached</span>
                 </div>
-                
+
                 <div class="space-y-2">
                     <h1 class="display-sm-emphasis text-on-surface">分析報告</h1>
                     <p class="headline-lg text-on-surface-variant">你做得很好</p>
@@ -16,9 +16,9 @@
             </div>
 
             <!-- Lower Half: Metrics and Continue Button -->
-            <div class="w-full max-w-2xl space-y-4">
+            <div class="w-full max-w-2xl space-y-8">
                 <!-- Metrics Grid -->
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 gap-4">
                     <!-- Success Rate -->
                     <div class="bg-primary-container flex flex-col overflow-hidden p-1 rounded-2xl shadow-sm">
                         <div class="p-2 flex items-center justify-center space-x-1">
@@ -28,7 +28,7 @@
                         <div
                             class="bg-surface flex flex-1 flex-col items-center justify-center min-h-[80px] p-4 rounded-2xl">
                             <div class="flex items-baseline space-x-1">
-                                <span class="text-2xl font-bold text-on-surface">{{ successRate }}</span>
+                                <span class="text-3xl font-bold text-on-surface">{{ successRate }}</span>
                                 <span class="text-xs text-on-surface-variant">%</span>
                             </div>
                         </div>
@@ -44,7 +44,7 @@
                         </div>
                         <div
                             class="bg-surface flex flex-1 flex-col items-center justify-center min-h-[80px] p-4 rounded-2xl">
-                            <span class="text-2xl font-bold text-on-surface">{{ levelAttained }}</span>
+                            <span class="text-3xl font-bold text-on-surface">{{ levelAttained }}</span>
                         </div>
                     </div>
 
@@ -56,28 +56,16 @@
                         </div>
                         <div
                             class="bg-surface flex flex-1 flex-col items-center justify-center min-h-[80px] p-4 rounded-2xl">
-                            <span class="text-2xl font-bold text-on-surface">{{ formattedTime }}</span>
+                            <span class="text-3xl font-bold text-on-surface">{{ formattedTime }}</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Action Button (Consistent Bottom Area) -->
-                <div class="fixed bottom-0 left-0 w-full p-6 pb-[calc(24px+env(safe-area-inset-bottom))]">
-                    <div class="max-w-md mx-auto w-full">
-                        <Buttons buttonStyle="Bordered - Prominent" size="Large" label="繼續" to="/streak" />
-                    </div>
+                <!-- Action Button (Bottom Area) -->
+                <div class="w-full max-w-md mx-auto pb-[calc(16px+env(safe-area-inset-bottom))]">
+                    <Buttons buttonStyle="Bordered - Prominent" size="Large" label="繼續" to="/streak" />
                 </div>
             </div>
-        </div>
-
-        <!-- Background Noise -->
-        <div class="fixed inset-0 -z-10 opacity-[0.02] pointer-events-none">
-            <svg width="100%" height="100%">
-                <filter id="noise">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" />
-                </filter>
-                <rect width="100%" height="100%" filter="url(#noise)" />
-            </svg>
         </div>
     </div>
 </template>
@@ -149,7 +137,14 @@ onMounted(() => {
 }
 
 @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
 }
 </style>

@@ -1,12 +1,12 @@
 <template>
-    <div class="flex flex-col items-center min-h-safe-content relative transition-colors duration-100">
+    <div ref="pageContainer" class="flex-1 flex flex-col px-4 space-y-8 relative transition-colors duration-100">
         <!-- Header & Title (Hidden during phase transition) -->
         <template v-if="!showPhaseTransition">
-            <TaskHeader class="z-20 w-full" :current="currentLevelInPhase - 1" :total="levelsPerPhase"
+            <TaskHeader class="z-20 w-full pt-4" :current="currentLevelInPhase - 1" :total="levelsPerPhase"
                 @exit="handleExit" />
 
             <!-- Instruction Title -->
-            <div class="flex items-center space-x-2 px-6 mb-8 w-full max-w-2xl mx-auto">
+            <div class="flex items-center space-x-2 mb-8 w-full max-w-2xl mx-auto">
                 <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
                     <Icon name="material-symbols:question-mark" size="24" class="text-on-primary-fixed" />
                 </div>
@@ -40,7 +40,7 @@
 
         <!-- Game Grid Container -->
         <div v-if="gameStarted && !showPhaseTransition"
-            class="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-[496px] px-4">
+            class="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-[496px]">
             <!-- Actual Game Grid -->
             <div class="grid w-full items-center justify-items-center" :style="{
                 gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
@@ -75,10 +75,8 @@
             </div>
 
             <!-- Bottom Action Area (Consistent with other pages) -->
-            <div ref="transitionButton" class="fixed bottom-0 left-0 w-full p-6 pb-[calc(24px+env(safe-area-inset-bottom))] opacity-0">
-                <div class="max-w-md mx-auto w-full">
-                    <Buttons buttonStyle="Bordered - Prominent" size="Large" @click="startNextPhase" label="開始" />
-                </div>
+            <div ref="transitionButton" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md px-4 pb-[calc(16px+env(safe-area-inset-bottom))] opacity-0">
+                <Buttons buttonStyle="Bordered - Prominent" size="Large" @click="startNextPhase" label="開始" />
             </div>
 
         </div>
@@ -119,6 +117,7 @@ const feedbackState = ref<FeedbackState>('IDLE');
 const selectedIndex = ref(-1);
 const canvasRefs = ref<any[]>([]);
 const gridItemRefs = ref<any[]>([]);
+const pageContainer = ref<HTMLElement | null>(null);
 const transitionText = ref<HTMLElement | null>(null);
 const transitionButton = ref<HTMLElement | null>(null);
 const readyCount = ref(0);
@@ -370,8 +369,8 @@ const handleInteraction = (index: number) => {
 
 const handleGameOver = () => {
     // 遊戲完全結束：頁面淡出後再跳轉
-    const container = document.querySelector('.flex.flex-col.items-center.min-h-safe-content');
-    gsap.to(container, {
+    if (!pageContainer.value) return;
+    gsap.to(pageContainer.value, {
         opacity: 0,
         duration: 0.6,
         ease: 'power2.inOut',

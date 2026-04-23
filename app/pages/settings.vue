@@ -1,7 +1,7 @@
 <template>
-    <div class="flex flex-col min-h-safe-content bg-background text-on-background overflow-y-auto">
+    <div class="flex-1 flex flex-col px-4 space-y-8 text-on-background overflow-y-auto">
         <!-- New iOS Style Toolbar -->
-        <ToolbarTop headline="設定" type="navigation">
+        <ToolbarTop headline="設定" type="navigation" class="pt-4">
             <template #left>
                 <NuxtLink to="/profile"
                     class="w-11 h-11 flex items-center justify-center rounded-full bg-white mix-blend-multiply transition-colors hover:bg-surface-variant">

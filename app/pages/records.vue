@@ -9,12 +9,12 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="flex flex-col min-h-safe-content space-y-8 pb-6 text-on-background bg-background">
-        <div class="p-4 h-14 flex items-center">
+    <div class="flex-1 flex flex-col px-4 space-y-8 pb-6 text-on-background">
+        <div class="py-4 pt-4 h-14 flex items-center">
             <h1 class="headline-lg-emphasis text-on-background mix-blend-plus-darker">紀錄</h1>
         </div>
 
-        <div class="space-y-4 px-4">
+        <div class="space-y-4">
             <div class="flex items-end space-x-4">
                 <h3 class="display-lg-emphasis text-primary">{{ persistence.stats.value.currentStreak }}</h3>
                 <span class="title-lg-emphasis text-primary">連續達成天數</span>
@@ -23,7 +23,7 @@ onMounted(() => {
             <Calendar :achievements="persistence.stats.value.achievements" />
         </div>
 
-        <div class="space-y-4 px-4">
+        <div class="space-y-4">
             <h3 class="title-md-emphasis text-on-surface-variant">排程</h3>
             <!-- Menu Container -->
             <div class="bg-surface-dim rounded-2xl p-4 flex flex-col gap-[9px] w-full max-w-[370px] mx-auto">

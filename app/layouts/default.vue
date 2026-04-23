@@ -16,7 +16,7 @@
             </div>
             
             <!-- Main Content Area -->
-            <main class="flex-1 w-full pt-status-bar transition-all duration-300 relative z-10 overflow-x-hidden">
+            <main class="flex-1 w-full pt-status-bar transition-all duration-300 relative z-10 overflow-x-hidden flex flex-col">
                 <slot />
             </main>
 
