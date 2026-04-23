@@ -25,6 +25,11 @@
             <div class="w-full space-y-4">
                 <TextField v-model="email" type="email" placeholder="電子信箱" />
                 <TextField v-model="password" type="password" placeholder="密碼" />
+                
+                <!-- Primary Action -->
+                <div class="pt-2">
+                    <Buttons buttonStyle="Bordered - Prominent" size="Large" label="登入" @click="handleLogin" />
+                </div>
             </div>
 
             <!-- Social Login -->

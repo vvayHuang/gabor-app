@@ -10,9 +10,7 @@ onMounted(() => {
 
 <template>
     <div class="flex-1 flex flex-col px-4 space-y-8 pb-6 text-on-background">
-        <div class="py-4 pt-4 h-14 flex items-center">
-            <h1 class="headline-lg-emphasis text-on-background mix-blend-plus-darker">紀錄</h1>
-        </div>
+        <ToolbarTop headline="紀錄" type="title" />
 
         <div class="space-y-4">
             <div class="flex items-end space-x-4">

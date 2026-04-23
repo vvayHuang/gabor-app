@@ -1,6 +1,6 @@
 <template>
     <div class="flex-1 flex flex-col px-4 space-y-8 text-on-background">
-        <ToolbarTop headline="個人資料" type="header" class="pt-4">
+        <ToolbarTop headline="個人資料" type="header">
             <template #right>
                 <NuxtLink to="/settings" class="p-2">
                     <Icon name="material-symbols:settings-outline" size="24" class="text-on-background" />
