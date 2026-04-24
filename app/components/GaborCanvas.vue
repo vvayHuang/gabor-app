@@ -9,7 +9,6 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-// Use type-only import to avoid SSR issues
 import type p5 from 'p5';
 
 const props = withDefaults(defineProps<{
@@ -38,9 +37,8 @@ const isInverted = ref(false);
 const isReady = ref(false);
 
 let p5Instance: p5 | null = null;
-
-// Shared p5 loader promise
 let p5Promise: Promise<any> | null = null;
+
 const loadP5 = () => {
     if (!p5Promise) {
         p5Promise = import('p5').then(m => m.default || m);
@@ -51,12 +49,11 @@ const loadP5 = () => {
 const sketch = (p: p5) => {
     p.setup = () => {
         const canvas = p.createCanvas(props.size, props.size);
-        // Set willReadFrequently to true for the 2D context to optimize pixels operations
-        const ctx = (canvas.elt as HTMLCanvasElement).getContext('2d', { willReadFrequently: true });
+        // 優化：針對 2D context 開啟 willReadFrequently
+        (canvas.elt as HTMLCanvasElement).getContext('2d', { willReadFrequently: true });
         
         p.noLoop();
         p.pixelDensity(1);
-        // Don't draw automatically, wait for parent to call it
         isReady.value = true;
         emit('ready');
     };
@@ -75,79 +72,62 @@ const drawGabor = () => {
     const cx = w / 2;
     const cy = h / 2;
 
-    // Sigma defines the "spread" of the patch
     const s = sigma || props.size / 6.5;
     const twoSqSigma = 2 * s * s;
 
-    // Parse colors
+    // 效能優化：預先提取顏色數值，避免在循環中重複建立物件與呼叫函式
     const c1 = p.color(props.primaryColor);
     const c2 = p.color(props.secondaryColor);
+    const r1 = p.red(c1), g1 = p.green(c1), b1 = p.blue(c1);
+    const r2 = p.red(c2), g2 = p.green(c2), b2 = p.blue(c2);
+    const rd = r2 - r1, gd = g2 - g1, bd = b2 - b1;
+
+    const TWO_PI = p.TWO_PI;
 
     p.clear();
     p.loadPixels();
 
+    // 核心循環優化
     for (let y = 0; y < h; y++) {
+        const yy = y - cy;
+        const rowOffset = y * w;
         for (let x = 0; x < w; x++) {
             const xx = x - cx;
-            const yy = y - cy;
 
-            // Rotate coordinates
+            // 旋轉與波長計算
             const rx = xx * cosTheta + yy * sinTheta;
-
-            // Gaussian envelope calculation
             const distSq = xx * xx + yy * yy;
-            const envelope = p.exp(-(distSq) / twoSqSigma);
-
-            // Sinusoidal carrier
-            const carrier = p.cos(p.TWO_PI * frequency * rx + phase);
-
-            // Real Gabor: Modulate carrier by contrast AND envelope
-            // This ensures the contrast fades towards the edges
+            
+            // 高斯包絡與餘弦載波
+            const envelope = Math.exp(-(distSq) / twoSqSigma);
+            const carrier = Math.cos(TWO_PI * frequency * rx + phase);
             const modulation = carrier * contrast * envelope;
 
-            // Map modulation [-1, 1] to t [0, 1] for color interpolation
-            // 0.5 is the neutral mid-point (gray if c1=white, c2=black)
-            const t = (modulation + 1) / 2;
+            // 手動顏色插值 (避免使用 lerpColor)
+            const t = (modulation + 1) * 0.5;
+            const index = (x + rowOffset) * 4;
 
-            const index = (x + y * w) * 4;
-            const finalColor = p.lerpColor(c1, c2, t);
-            
-            p.pixels[index] = p.red(finalColor);
-            p.pixels[index + 1] = p.green(finalColor);
-            p.pixels[index + 2] = p.blue(finalColor);
-
-            // Use the envelope for alpha to blend with background
-            // Higher power makes the edges cleaner
-            const alpha = p.constrain(envelope * 255, 0, 255);
-            p.pixels[index + 3] = alpha;
+            p.pixels[index] = r1 + rd * t;
+            p.pixels[index + 1] = g1 + gd * t;
+            p.pixels[index + 2] = b1 + bd * t;
+            p.pixels[index + 3] = Math.min(envelope * 255, 255);
         }
     }
 
     p.updatePixels();
 };
 
-// Visual Feedback: Invert effect
 const triggerInvert = () => {
     isInverted.value = true;
-    setTimeout(() => {
-        isInverted.value = false;
-    }, 150);
+    setTimeout(() => { isInverted.value = false; }, 150);
 };
 
-// Visual Feedback: Shake effect
 const triggerShake = () => {
     isShaking.value = true;
-    setTimeout(() => {
-        isShaking.value = false;
-    }, 300);
+    setTimeout(() => { isShaking.value = false; }, 300);
 };
 
-// Expose methods to parent
-defineExpose({
-    triggerInvert,
-    triggerShake,
-    drawGabor
-});
+defineExpose({ triggerInvert, triggerShake, drawGabor });
 
 onMounted(async () => {
     if (canvasContainer.value) {
@@ -170,41 +150,20 @@ onUnmounted(() => {
 });
 
 watch(() => props.params, () => {
-    if (p5Instance) {
-        drawGabor();
-    }
+    if (p5Instance) drawGabor();
 }, { deep: true });
 
 watch([() => props.primaryColor, () => props.secondaryColor], () => {
-    if (p5Instance) {
-        drawGabor();
-    }
+    if (p5Instance) drawGabor();
 });
-
 </script>
 
 <style scoped>
 @keyframes shake {
-
-    0%,
-    100% {
-        transform: translateX(0);
-    }
-
-    25% {
-        transform: translateX(-2px);
-    }
-
-    75% {
-        transform: translateX(2px);
-    }
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
 }
-
-.animate-shake {
-    animation: shake 0.3s ease-in-out;
-}
-
-.invert {
-    filter: invert(1);
-}
+.animate-shake { animation: shake 0.3s ease-in-out; }
+.invert { filter: invert(1); }
 </style>

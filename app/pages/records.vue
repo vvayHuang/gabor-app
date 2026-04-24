@@ -3,6 +3,9 @@ import { useGamePersistence } from '~/composables/useGamePersistence';
 
 const persistence = useGamePersistence();
 
+// 模擬過去 7 天的準確度趨勢
+const trendData = ref([65, 72, 68, 85, 82, 90, 88]);
+
 onMounted(() => {
     persistence.loadStats();
 });
@@ -11,6 +14,8 @@ onMounted(() => {
 <template>
     <div class="flex-1 flex flex-col px-4 space-y-8 pb-6 text-on-background">
         <ToolbarTop headline="紀錄" type="title" />
+
+        <TrendChart :data="trendData" />
 
         <div class="space-y-4">
             <div class="flex items-end space-x-4">

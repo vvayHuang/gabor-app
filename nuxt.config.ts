@@ -6,6 +6,8 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
   app: {
+    pageTransition: false,
+    layoutTransition: false,
     head: {
       title: 'Gabor App',
       meta: [

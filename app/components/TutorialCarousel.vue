@@ -103,7 +103,6 @@ const steps = [
   }
 ];
 
-// For infinite loop: [Clone of S3, S1, S2, S3, Clone of S1]
 const displaySteps = computed(() => [
     steps[2],
     ...steps,
@@ -143,21 +142,16 @@ const handleScroll = (event: Event) => {
     const width = container.clientWidth;
     const scrollLeft = container.scrollLeft;
     
-    // Calculate raw index (0 to 4)
     const rawIndex = Math.round(scrollLeft / width);
     
-    // Update visual activeIndex (mapping 1->0, 2->1, 3->2)
     let visualIdx = rawIndex - 1;
     if (visualIdx < 0) visualIdx = 2;
     if (visualIdx > 2) visualIdx = 0;
     activeIndex.value = visualIdx;
 
-    // Infinite Loop Logic: Boundary Check
     if (scrollLeft <= 0) {
-        // At Clone of S3, jump to real S3
         jumpTo(3);
     } else if (scrollLeft >= width * 4) {
-        // At Clone of S1, jump to real S1
         jumpTo(1);
     }
 };
@@ -175,12 +169,10 @@ const jumpTo = (index: number) => {
 };
 
 onMounted(() => {
-    // Start at Real Step 1 (Index 1)
     if (scrollContainer.value) {
         scrollContainer.value.scrollLeft = scrollContainer.value.clientWidth;
     }
     
-    // Ensure symbols draw
     setTimeout(() => {
         handleReady();
     }, 150);

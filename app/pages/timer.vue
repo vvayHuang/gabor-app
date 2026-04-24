@@ -20,10 +20,11 @@
 
         <!-- Wave Animation (Horizontal) -->
         <div class="absolute bottom-0 inset-0 -z-10 pointer-events-none overflow-hidden">
-            <img ref="wave1" src="~/assets/wav-1.svg" class="absolute w-[200%] bottom-0" />
-            <img ref="wave2" src="~/assets/wav-2.svg" class="absolute w-[200%] bottom-0" />
-            <img ref="wave3" src="~/assets/wav-3.svg" class="absolute w-[200%] bottom-0" />
-            <img ref="wave4" src="~/assets/wav-4.svg" class="absolute w-[200%] bottom-0" />
+            <!-- 調整：確保圖片寬度足夠且初始置中，並稍微放大以提供緩衝 -->
+            <img ref="wave1" src="~/assets/wav-1.svg" class="absolute w-[300%] bottom-0 left-1/2 -translate-x-1/2 scale-110" />
+            <img ref="wave2" src="~/assets/wav-2.svg" class="absolute w-[300%] bottom-0 left-1/2 -translate-x-1/2 scale-110" />
+            <img ref="wave3" src="~/assets/wav-3.svg" class="absolute w-[300%] bottom-0 left-1/2 -translate-x-1/2 scale-110" />
+            <img ref="wave4" src="~/assets/wav-4.svg" class="absolute w-[300%] bottom-0 left-1/2 -translate-x-1/2 scale-110" />
         </div>
     </div>
 </template>
@@ -32,20 +33,23 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import gsap from 'gsap';
+import { useAudio } from '~/composables/useAudio';
 
 
 const router = useRouter();
+const { startSeaWaves, stopAmbient } = useAudio();
+
 const remainingSeconds = ref(30);
 const wave1 = ref(null);
 const wave2 = ref(null);
 const wave3 = ref(null);
 const wave4 = ref(null);
 
-// Countdown timer
 let countdownInterval: NodeJS.Timeout | null = null;
 
 onMounted(() => {
-    // Start countdown
+    startSeaWaves();
+
     countdownInterval = setInterval(() => {
         if (remainingSeconds.value > 0) {
             remainingSeconds.value--;
@@ -55,12 +59,11 @@ onMounted(() => {
         }
     }, 1000);
 
-    // GSAP Wave Animation (Horizontal)
-    // Randomize duration and delay for organic feel
+    // GSAP Wave Animation (使用 xPercent 替代實體 x 以獲得更好的響應式支援)
     if (wave1.value) {
         gsap.to(wave1.value, {
-            x: 100, // Move right
-            duration: 60,
+            xPercent: 10, // 向右微移
+            duration: 40,
             ease: "sine.inOut",
             yoyo: true,
             repeat: -1
@@ -68,8 +71,8 @@ onMounted(() => {
     }
     if (wave2.value) {
         gsap.to(wave2.value, {
-            x: -80, // Move left
-            duration: 100,
+            xPercent: -12, // 向左微移
+            duration: 50,
             delay: 1,
             ease: "sine.inOut",
             yoyo: true,
@@ -78,8 +81,8 @@ onMounted(() => {
     }
     if (wave3.value) {
         gsap.to(wave3.value, {
-            x: 120, // Move right
-            duration: 200,
+            xPercent: 8, // 向右微移
+            duration: 60,
             delay: 2,
             ease: "sine.inOut",
             yoyo: true,
@@ -88,8 +91,8 @@ onMounted(() => {
     }
     if (wave4.value) {
         gsap.to(wave4.value, {
-            x: -100, // Move left
-            duration: 2000,
+            xPercent: -15, // 向左微移
+            duration: 80,
             delay: 0.5,
             ease: "sine.inOut",
             yoyo: true,
@@ -102,5 +105,6 @@ onUnmounted(() => {
     if (countdownInterval) {
         clearInterval(countdownInterval);
     }
+    stopAmbient();
 });
 </script>

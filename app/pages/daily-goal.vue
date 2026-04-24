@@ -1,6 +1,6 @@
 <template>
     <div class="flex-1 flex flex-col px-4 relative">
-        <!-- Analysis Report View (Now Primary View) -->
+        <!-- Analysis Report View -->
         <div ref="analysisView"
             class="flex-1 flex flex-col items-center justify-between pt-8 space-y-8 opacity-0 translate-y-4">
             <!-- Upper Half: Centered Logo and Title -->
@@ -15,54 +15,72 @@
                 </div>
             </div>
 
-            <!-- Lower Half: Metrics and Continue Button -->
-            <div class="w-full max-w-2xl space-y-8">
-                <!-- Metrics Grid -->
-                <div class="grid grid-cols-1 gap-4">
-                    <!-- Success Rate -->
-                    <div class="bg-primary-container flex flex-col overflow-hidden p-1 rounded-2xl shadow-sm">
-                        <div class="p-2 flex items-center justify-center space-x-1">
-                            <Icon name="material-symbols:celebration-outline" size="16" class="text-white" />
-                            <span class="text-[10px] font-bold text-white uppercase tracking-wider">成功率</span>
+            <!-- Lower Half: Unified Metrics Card -->
+            <div class="w-full max-w-2xl space-y-6">
+                
+                <!-- Unified Card Block -->
+                <div class="bg-surface-container-high rounded-[32px] p-6 border border-outline-variant/30 space-y-8 shadow-sm">
+                    
+                    <!-- 1. Primary Section: Level & Rank -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold italic text-lg shadow-lg shadow-primary/20">
+                                    Lv.{{ currentLevel }}
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="title-lg-emphasis text-on-surface">{{ rankName }}</span>
+                                    <span class="label-small text-on-surface-variant uppercase tracking-wider">視覺軍階</span>
+                                </div>
+                            </div>
+                            <Icon name="material-symbols:military-tech-outline" size="32" class="text-primary opacity-40" />
                         </div>
-                        <div
-                            class="bg-surface flex flex-1 flex-col items-center justify-center min-h-[80px] p-4 rounded-2xl">
-                            <div class="flex items-baseline space-x-1">
-                                <span class="text-3xl font-bold text-on-surface">{{ successRate }}</span>
-                                <span class="text-xs text-on-surface-variant">%</span>
+
+                        <!-- XP Progress Bar -->
+                        <div class="space-y-2">
+                            <div class="w-full h-3 bg-surface-container-lowest rounded-full overflow-hidden">
+                                <div 
+                                    class="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
+                                    :style="{ width: `${levelProgress}%` }"
+                                ></div>
+                            </div>
+                            <div class="flex justify-between label-small text-on-surface-variant font-medium px-0.5">
+                                <span>升級進度</span>
+                                <span>{{ Math.round(levelProgress) }}%</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Level Attained -->
-                    <div class="bg-secondary-container flex flex-col overflow-hidden p-1 rounded-2xl shadow-sm">
-                        <div class="p-2 flex items-center justify-center space-x-1">
-                            <Icon name="material-symbols:celebration-outline" size="16"
-                                class="text-on-secondary-fixed-variant" />
-                            <span
-                                class="text-[10px] font-bold text-on-secondary-fixed-variant uppercase tracking-wider">達成等級</span>
-                        </div>
-                        <div
-                            class="bg-surface flex flex-1 flex-col items-center justify-center min-h-[80px] p-4 rounded-2xl">
-                            <span class="text-3xl font-bold text-on-surface">{{ levelAttained }}</span>
-                        </div>
-                    </div>
+                    <!-- Divider -->
+                    <div class="h-px bg-outline-variant/20 w-full"></div>
 
-                    <!-- Time Elapsed -->
-                    <div class="bg-tertiary-container flex flex-col overflow-hidden p-1 rounded-2xl shadow-sm">
-                        <div class="p-2 flex items-center justify-center space-x-1">
-                            <Icon name="material-symbols:celebration-outline" size="16" class="text-white" />
-                            <span class="text-[10px] font-bold text-white uppercase tracking-wider">花費時間</span>
+                    <!-- 2. Secondary Section: Grid Stats -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Success Rate Stat -->
+                        <div class="flex flex-col items-center space-y-1">
+                            <div class="flex items-center space-x-1.5 opacity-60">
+                                <Icon name="material-symbols:target-outline" size="16" class="text-on-surface" />
+                                <span class="label-small font-bold uppercase tracking-widest text-on-surface">成功率</span>
+                            </div>
+                            <div class="flex items-baseline space-x-0.5">
+                                <span class="text-2xl font-bold text-on-surface">{{ successRate }}</span>
+                                <span class="text-[10px] font-bold text-on-surface-variant">%</span>
+                            </div>
                         </div>
-                        <div
-                            class="bg-surface flex flex-1 flex-col items-center justify-center min-h-[80px] p-4 rounded-2xl">
-                            <span class="text-3xl font-bold text-on-surface">{{ formattedTime }}</span>
+
+                        <!-- Time Elapsed Stat -->
+                        <div class="flex flex-col items-center space-y-1 border-l border-outline-variant/20">
+                            <div class="flex items-center space-x-1.5 opacity-60">
+                                <Icon name="material-symbols:schedule-outline" size="16" class="text-on-surface" />
+                                <span class="label-small font-bold uppercase tracking-widest text-on-surface">花費時間</span>
+                            </div>
+                            <span class="text-2xl font-bold text-on-surface">{{ formattedTime }}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Action Button (Bottom Area) -->
-                <div class="w-full max-w-md mx-auto pb-[calc(16px+env(safe-area-inset-bottom))]">
+                <div class="w-full max-w-md mx-auto pb-[calc(16px+env(safe-area-inset-bottom))] pt-4">
                     <Buttons buttonStyle="Bordered - Prominent" size="Large" label="繼續" to="/streak" />
                 </div>
             </div>
@@ -74,40 +92,24 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import gsap from 'gsap';
-
-
 import { useGameState } from '~/composables/useGameState';
+import { useGamePersistence } from '~/composables/useGamePersistence';
 
 const router = useRouter();
 const analysisView = ref<HTMLElement | null>(null);
 
-// Get game state to access session time
 const gameState = useGameState();
+const { currentLevel, levelProgress, rankName, loadStats } = useGamePersistence();
 
-// Convert totalTime from milliseconds to seconds (with safety check)
 const elapsedSeconds = computed(() => {
     const oneDayInMs = 24 * 60 * 60 * 1000;
     const totalTime = gameState.state.session.totalTime;
-
-    if (totalTime <= 0 || totalTime > oneDayInMs) {
-        return 323; // Fallback to demo value if invalid
-    }
+    if (totalTime <= 0 || totalTime > oneDayInMs) return 323;
     return Math.floor(totalTime / 1000);
 });
 
-// Derive metrics from actual session data
 const successRate = computed(() => Math.round(gameState.accuracy.value));
-const levelAttained = computed(() => {
-    // 基於分數估計等級 (與 game-grid 邏輯一致)
-    const score = gameState.state.session.score;
-    if (score >= 80) return '5';
-    if (score >= 60) return '4';
-    if (score >= 40) return '3';
-    if (score >= 20) return '2';
-    return '1';
-});
 
-// Format time as M:SS
 const formattedTime = computed(() => {
     const minutes = Math.floor(elapsedSeconds.value / 60);
     const seconds = elapsedSeconds.value % 60;
@@ -115,12 +117,10 @@ const formattedTime = computed(() => {
 });
 
 onMounted(() => {
-    // End session just in case it wasn't ended properly
+    loadStats();
     if (gameState.state.session.totalTime === 0 && gameState.state.session.startTime > 0) {
         gameState.endSession();
     }
-
-    // Direct entry animation
     gsap.to(analysisView.value, {
         opacity: 1,
         y: 0,
@@ -132,19 +132,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.animate-bounce-slow {
-    animation: bounce 3s infinite;
-}
-
+.animate-bounce-slow { animation: bounce 3s infinite; }
 @keyframes bounce {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 </style>

@@ -17,14 +17,15 @@
                 <h2 class="title-md-emphasis text-on-surface-variant mix-blend-plus-darker">偏好設定</h2>
 
                 <div class="flex flex-col gap-6 px-2">
-                    <!-- Item: 聲音 (33px approx) -->
+                    <!-- Item: 聲音 -->
                     <div class="flex items-center justify-between w-full h-7 gap-6">
                         <span class="body-lg text-on-background">聲音</span>
-                        <Switch v-model="params.isDarkMode" />
+                        <Switch :model-value="isSoundEnabled" @update:model-value="toggleSound" />
                     </div>
+                    <!-- Item: 深色模式 -->
                     <div class="flex items-center justify-between w-full h-7 gap-6">
-                        <span class="body-lg text-on-background">通知</span>
-                        <Switch v-model="params.isDarkMode" />
+                        <span class="body-lg text-on-background">深色模式</span>
+                        <Switch :model-value="isDarkMode" @update:model-value="toggleDarkMode" />
                     </div>
 
                     <!-- Item: 字體大小 (66px approx) -->
@@ -67,9 +68,15 @@
 <script setup lang="ts">
 import { useGaborMock } from '~/composables/useGaborMock';
 import { useRouter } from 'vue-router';
+import { useAppSettings } from '~/composables/useAppSettings';
 
 const { params } = useGaborMock();
 const router = useRouter();
+const { isSoundEnabled, isDarkMode, toggleSound, toggleDarkMode, loadSettings } = useAppSettings();
+
+onMounted(() => {
+    loadSettings();
+});
 
 const handleLogout = () => {
     router.push('/');

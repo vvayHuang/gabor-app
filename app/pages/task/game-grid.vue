@@ -98,6 +98,7 @@ const route = useRoute();
 // --- Game State Management ---
 const gameState = useGameState();
 const persistence = useGamePersistence();
+const { playSound } = useAudio();
 
 type GamePhase = 'STAGE_1' | 'STAGE_2' | 'GAME_OVER';
 type FeedbackState = 'IDLE' | 'SUCCESS' | 'ERROR';
@@ -178,11 +179,28 @@ const handleCanvasReady = () => {
 
 const startNewGame = () => {
     gameState.startSession();
+    persistence.loadStats();
+    
+    // --- 動態難度計算 (基於等級) ---
+    const lv = persistence.currentLevel.value;
+    
+    // 1. 決定網格大小
+    if (lv < 15) {
+        gridCols.value = 3;
+        gridRows.value = 4;
+        canvasSize.value = 100;
+    } else if (lv < 40) {
+        gridCols.value = 4;
+        gridRows.value = 5;
+        canvasSize.value = 80;
+    } else {
+        gridCols.value = 5;
+        gridRows.value = 6;
+        canvasSize.value = 65;
+    }
+
     gamePhase.value = 'STAGE_1';
-    gridCols.value = 3;
-    gridRows.value = 4;
     gridGap.value = 16;
-    canvasSize.value = 100;
     currentLevelInPhase.value = 1;
     globalLevel.value = 1;
     gameStarted.value = true;
@@ -197,18 +215,16 @@ const startNewGame = () => {
 
 const startNextPhase = () => {
     showPhaseTransition.value = false;
-    isGridReady.value = false; // Reset ready state immediately
+    isGridReady.value = false; 
 
-    // Update grid dimensions immediately to avoid count mismatch
+    // 第二階段自動增加一行網格
+    gridRows.value++;
+    canvasSize.value = Math.max(60, canvasSize.value - 10);
+    
     gamePhase.value = 'STAGE_2';
-    gridCols.value = 3;
-    gridRows.value = 5;
-    gridGap.value = 16;
-    canvasSize.value = 90;
     currentLevelInPhase.value = 1;
     gameStarted.value = true;
 
-    // Clear old data to ensure fresh start
     gridItems.value = [];
     canvasRefs.value = [];
     gridItemRefs.value = [];
@@ -222,8 +238,6 @@ const generateLevel = () => {
     feedbackState.value = 'IDLE';
     selectedIndex.value = -1;
     readyCount.value = 0;
-
-    // Always show skeleton between levels for consistent feedback
     isGridReady.value = false;
 
     nextTick(() => {
@@ -231,9 +245,15 @@ const generateLevel = () => {
         const count = gridCols.value * gridRows.value;
         targetIndex.value = Math.floor(Math.random() * count);
 
-        const { contrast } = gameState.state.difficulty;
+        // --- 核心難度參數演算法 ---
+        const lv = persistence.currentLevel.value;
+        
+        // 對比度隨等級下降 (從 1.0 降至最低 0.2)
+        const baseContrast = Math.max(0.2, 1.0 - (lv * 0.015));
+        
+        // 角度差異隨等級與關卡縮小 (最小差異 3 度)
         const minOffset = 3;
-        const difficultyOffset = Math.max(minOffset, 30 - Math.floor(globalLevel.value / 2) * 4);
+        const difficultyOffset = Math.max(minOffset, (40 - lv) - Math.floor(globalLevel.value / 2) * 4);
 
         const baseAngle = Math.random() * 360;
         const targetAngle = (baseAngle + difficultyOffset) % 360;
@@ -250,17 +270,15 @@ const generateLevel = () => {
             return {
                 orientation: orientation,
                 frequency: randomFreq,
-                contrast: contrast,
+                contrast: baseContrast,
                 sigma: sigma,
                 phase: phase,
             };
         });
 
-        // If components are already mounted (reused), p5 will update via 'watch'.
-        // We give it a short time to finish rendering before hiding skeleton.
         setTimeout(() => {
             updateAllCanvases();
-        }, 30); // Reduced delay for smoother transition
+        }, 30); 
     });
 };
 
@@ -274,6 +292,7 @@ const handleInteraction = (index: number) => {
     gameState.recordResponse(isCorrect, responseTime);
 
     if (isCorrect) {
+        playSound('success');
         const targetEl = gridItemRefs.value[index];
         feedbackState.value = 'SUCCESS';
 
@@ -343,6 +362,7 @@ const handleInteraction = (index: number) => {
 
     } else {
         // 錯誤處理 (保持原樣，因為原本就有震動與抖動動畫)
+        playSound('error');
         feedbackState.value = 'ERROR';
         if (navigator.vibrate) navigator.vibrate(100);
 

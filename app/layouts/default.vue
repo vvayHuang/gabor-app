@@ -5,23 +5,14 @@
         <!-- App Container (Constrained Width on Desktop, Unified Style) -->
         <div class="w-full max-w-[440px] min-h-screen text-on-surface antialiased relative flex flex-col">
             
-            <!-- Global Background Noise (Inside Container) -->
-            <div class="absolute inset-0 pointer-events-none z-0">
-                <svg class="w-full h-full opacity-[0.03] grayscale">
-                    <filter id="noiseFilter">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch" />
-                    </filter>
-                    <rect width="100%" height="100%" filter="url(#noiseFilter)" />
-                </svg>
-            </div>
-            
             <!-- Main Content Area -->
-            <main class="flex-1 w-full pt-status-bar transition-all duration-300 relative z-10 overflow-x-hidden flex flex-col">
+            <main class="flex-1 w-full relative z-10 overflow-x-hidden flex flex-col"
+                :class="{ 'pt-status-bar': shouldShowStatusBar }">
                 <slot />
             </main>
 
             <!-- Bottom Navigation -->
-            <NavigationBar v-if="showNavigationBar" class="sticky bottom-0 z-50" />
+            <NavigationBar v-if="showNavigationBar" />
         </div>
     </div>
 </template>
@@ -31,6 +22,11 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
+
+// 判斷是否需要頂部狀態列間距 (排除啟動頁、登入頁與準備頁)
+const shouldShowStatusBar = computed(() => {
+    return !['index', 'login', 'prepare'].includes(route.name as string);
+});
 
 const showNavigationBar = computed(() => {
     // 僅在指定頁面顯示導覽列
