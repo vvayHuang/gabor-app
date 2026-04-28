@@ -8,7 +8,7 @@ const ambientGain = ref<GainNode | null>(null);
 const audioCtx = ref<AudioContext | null>(null);
 
 export const useAudio = () => {
-  const { isSoundEnabled: settingsSoundEnabled } = useAppSettings();
+  const { isSoundEnabled: settingsSoundEnabled, noiseVolume } = useAppSettings();
 
   const initCtx = () => {
     if (!audioCtx.value && process.client) {
@@ -55,6 +55,8 @@ export const useAudio = () => {
     const ctx = initCtx();
     if (!ctx) return;
 
+    const volMultiplier = noiseVolume.value / 100;
+
     // 建立 5 秒的粉紅噪音 Buffer
     const bufferSize = ctx.sampleRate * 5;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
@@ -93,14 +95,17 @@ export const useAudio = () => {
 
     // 模擬海浪起伏 (LFO)
     const now = ctx.currentTime;
-    gain.gain.linearRampToValueAtTime(0.2, now + 2); // 漸入
+    const maxVol = 0.3 * volMultiplier;
+    const minVol = 0.05 * volMultiplier;
+
+    gain.gain.linearRampToValueAtTime(maxVol * 0.7, now + 2); // 漸入
     
     // 手動模擬起伏循環
     const breathe = () => {
-      if (!gain) return;
+      if (!gain || !ambientSource.value) return;
       const t = ctx.currentTime;
-      gain.gain.exponentialRampToValueAtTime(0.3, t + 4); // 浪湧
-      gain.gain.exponentialRampToValueAtTime(0.05, t + 8); // 浪退
+      gain.gain.exponentialRampToValueAtTime(maxVol, t + 4); // 浪湧
+      gain.gain.exponentialRampToValueAtTime(minVol, t + 8); // 浪退
       setTimeout(breathe, 8000);
     };
     breathe();

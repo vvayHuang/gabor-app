@@ -20,12 +20,15 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import gsap from 'gsap'
+import { useAppSettings } from '~/composables/useAppSettings';
 
 const router = useRouter()
+const settings = useAppSettings()
 const logoContainer = ref<HTMLElement | null>(null)
 const welcomeTextContainer = ref<HTMLElement | null>(null)
 
 onMounted(() => {
+    settings.loadSettings();
     if (logoContainer.value && welcomeTextContainer.value) {
         const tl = gsap.timeline({
             onComplete: () => {

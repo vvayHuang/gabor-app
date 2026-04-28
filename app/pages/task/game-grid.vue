@@ -10,8 +10,8 @@
                 <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
                     <Icon name="material-symbols:question-mark" size="24" class="text-on-primary-fixed" />
                 </div>
-                <h1 class="headline-sm-emphasis text-on-surface">
-                    請在裡面選出不同的符號
+                <h1 class="headline-sm-emphasis text-on-surface text-balance">
+                    請選出角度不同的符號
                 </h1>
             </div>
         </template>
@@ -71,14 +71,13 @@
         <div v-if="showPhaseTransition" class="fixed inset-0 z-30 flex flex-col items-center justify-center p-4">
             <div ref="transitionText" class="text-center space-y-2 opacity-0">
                 <h2 class="display-md text-on-surface">第一階段完成</h2>
-                <p class="body-large-emphasis text-on-surface">準備好進入更具挑戰性的第二階段了？</p>
+                <p class="body-large-emphasis text-on-surface text-balance">準備好進入更具挑戰性的第二階段了？</p>
             </div>
 
-            <!-- Bottom Action Area (Consistent with other pages) -->
+            <!-- Bottom Action Area -->
             <div ref="transitionButton" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md px-4 pb-[calc(16px+env(safe-area-inset-bottom))] opacity-0">
                 <Buttons buttonStyle="Bordered - Prominent" size="Large" @click="startNextPhase" label="開始" />
             </div>
-
         </div>
     </div>
 </template>
@@ -89,28 +88,29 @@ import { ref, onMounted, nextTick } from 'vue';
 import { gsap } from 'gsap';
 import { useGameState } from '~/composables/useGameState';
 import { useGamePersistence } from '~/composables/useGamePersistence';
-
-
+import { useAppSettings } from '~/composables/useAppSettings';
+import { useAudio } from '~/composables/useAudio';
 
 const router = useRouter();
 const route = useRoute();
 
-// --- Game State Management ---
+// --- Composables ---
 const gameState = useGameState();
 const persistence = useGamePersistence();
+const settings = useAppSettings();
 const { playSound } = useAudio();
 
+// --- Local State ---
 type GamePhase = 'STAGE_1' | 'STAGE_2' | 'GAME_OVER';
 type FeedbackState = 'IDLE' | 'SUCCESS' | 'ERROR';
 
 const gamePhase = ref<GamePhase>('STAGE_1');
 const currentLevelInPhase = ref(1);
-const globalLevel = ref(1);
-const levelsPerPhase = 5; // Each stage has 5 levels
+const levelsPerPhase = 5; 
 const gridCols = ref(3);
 const gridRows = ref(4);
 const gridGap = ref(16);
-const canvasSize = ref(100);
+const canvasSize = ref(80);
 const gameStarted = ref(false);
 const showPhaseTransition = ref(false);
 
@@ -125,39 +125,25 @@ const readyCount = ref(0);
 const isGridReady = ref(false);
 const clickStartTime = ref(0);
 
-// --- Gabor Colors ---
+// --- Colors ---
 const primaryColor = ref('#FFFFFF');
 const secondaryColor = ref('#000000');
 
-// --- Gabor Generation State ---
+// --- Level Data ---
 const gridItems = ref<any[]>([]);
 const targetIndex = ref(0);
-const baseSigma = 32;
 
-// --- Methods ---
+// --- Core Logic ---
 
 const updateAllCanvases = () => {
     canvasRefs.value.forEach(canvas => {
-        if (canvas && canvas.drawGabor) {
-            canvas.drawGabor();
-        }
+        if (canvas && canvas.drawGabor) canvas.drawGabor();
     });
 
     const validRefs = gridItemRefs.value.filter(el => el);
-
-    // 1. 在容器顯示前，先強制設定符號為隱藏且縮小狀態
     if (validRefs.length > 0) {
-        gsap.set(validRefs, {
-            scale: 0.4,
-            opacity: 0
-        });
-    }
-
-    // 2. 顯示容器
-    isGridReady.value = true;
-
-    // 3. 執行進場動畫
-    if (validRefs.length > 0) {
+        gsap.set(validRefs, { scale: 0.4, opacity: 0 });
+        isGridReady.value = true;
         gsap.to(validRefs, {
             scale: 1,
             opacity: 1,
@@ -172,7 +158,6 @@ const updateAllCanvases = () => {
 const handleCanvasReady = () => {
     readyCount.value++;
     if (readyCount.value >= gridItems.value.length) {
-        // All p5 instances are ready, draw them all at once
         updateAllCanvases();
     }
 };
@@ -181,32 +166,17 @@ const startNewGame = () => {
     gameState.startSession();
     persistence.loadStats();
     
-    // --- 動態難度計算 (基於等級) ---
-    const lv = persistence.currentLevel.value;
-    
-    // 1. 決定網格大小
-    if (lv < 15) {
-        gridCols.value = 3;
-        gridRows.value = 4;
-        canvasSize.value = 100;
-    } else if (lv < 40) {
-        gridCols.value = 4;
-        gridRows.value = 5;
-        canvasSize.value = 80;
-    } else {
-        gridCols.value = 5;
-        gridRows.value = 6;
-        canvasSize.value = 65;
-    }
+    // 從難度引擎獲取初始參數
+    const params = gameState.getDifficultyParams(persistence.currentLevel.value);
+    gridCols.value = params.grid.cols;
+    gridRows.value = params.grid.rows;
+    canvasSize.value = gridCols.value > 4 ? 65 : (gridCols.value > 3 ? 80 : 100);
 
     gamePhase.value = 'STAGE_1';
-    gridGap.value = 16;
     currentLevelInPhase.value = 1;
-    globalLevel.value = 1;
     gameStarted.value = true;
     showPhaseTransition.value = false;
 
-    // Clear refs when changing grid size
     canvasRefs.value = [];
     gridItemRefs.value = [];
 
@@ -217,9 +187,13 @@ const startNextPhase = () => {
     showPhaseTransition.value = false;
     isGridReady.value = false; 
 
-    // 第二階段自動增加一行網格
-    gridRows.value++;
-    canvasSize.value = Math.max(60, canvasSize.value - 10);
+    // 第二階段難度微調：模擬提升一級後的難度
+    const nextLevelSim = persistence.currentLevel.value + 5;
+    const params = gameState.getDifficultyParams(nextLevelSim);
+    
+    gridCols.value = params.grid.cols;
+    gridRows.value = params.grid.rows;
+    canvasSize.value = gridCols.value > 4 ? 65 : (gridCols.value > 3 ? 80 : 100);
     
     gamePhase.value = 'STAGE_2';
     currentLevelInPhase.value = 1;
@@ -229,9 +203,7 @@ const startNextPhase = () => {
     canvasRefs.value = [];
     gridItemRefs.value = [];
 
-    nextTick(() => {
-        generateLevel();
-    });
+    nextTick(() => generateLevel());
 };
 
 const generateLevel = () => {
@@ -245,40 +217,40 @@ const generateLevel = () => {
         const count = gridCols.value * gridRows.value;
         targetIndex.value = Math.floor(Math.random() * count);
 
-        // --- 核心難度參數演算法 ---
+        // --- 呼叫難度引擎 ---
         const lv = persistence.currentLevel.value;
-        
-        // 對比度隨等級下降 (從 1.0 降至最低 0.2)
-        const baseContrast = Math.max(0.2, 1.0 - (lv * 0.015));
-        
-        // 角度差異隨等級與關卡縮小 (最小差異 3 度)
-        const minOffset = 3;
-        const difficultyOffset = Math.max(minOffset, (40 - lv) - Math.floor(globalLevel.value / 2) * 4);
+        const phaseBonus = gamePhase.value === 'STAGE_2' ? 5 : 0;
+        const diff = gameState.getDifficultyParams(lv + phaseBonus);
 
         const baseAngle = Math.random() * 360;
-        const targetAngle = (baseAngle + difficultyOffset) % 360;
+        // 角度差隨等級變小
+        const targetAngle = (baseAngle + diff.angleOffset) % 360;
 
         gridItems.value = Array.from({ length: count }, (_, i) => {
             const isTarget = i === targetIndex.value;
             const phase = Math.random() * Math.PI;
-            const baseFrequency = 5 / canvasSize.value;
-            const randomFreq = baseFrequency + (Math.random() - 0.5) * (baseFrequency * 0.9);
-            const sigma = canvasSize.value / (4.5 + (Math.random() - 0.5) * 1.5);
-            const fillerVariation = (Math.random() * 6 - 3);
+            
+            // 物理頻率計算
+            const baseFrequency = diff.cyclesPerMm / settings.pxPerMm.value;
+            const randomFreq = baseFrequency + (Math.random() - 0.5) * (baseFrequency * 0.1);
+            
+            // Sigma 基於物理尺寸
+            const sigma = 4 * settings.pxPerMm.value;
+            
+            // 干擾項的角度微差
+            const fillerVariation = (Math.random() * 2 - 1);
             const orientation = isTarget ? targetAngle : (baseAngle + fillerVariation) % 360;
 
             return {
-                orientation: orientation,
+                orientation,
                 frequency: randomFreq,
-                contrast: baseContrast,
-                sigma: sigma,
-                phase: phase,
+                contrast: diff.contrast,
+                sigma,
+                phase,
             };
         });
 
-        setTimeout(() => {
-            updateAllCanvases();
-        }, 30); 
+        setTimeout(() => updateAllCanvases(), 30); 
     });
 };
 
@@ -296,157 +268,87 @@ const handleInteraction = (index: number) => {
         const targetEl = gridItemRefs.value[index];
         feedbackState.value = 'SUCCESS';
 
-        // 1. 立即執行「正確符號消失」動畫
         if (targetEl) {
-            gsap.to(targetEl, {
-                scale: 0,
-                opacity: 0,
-                duration: 0.3,
-                ease: 'power2.in'
-            });
+            gsap.to(targetEl, { scale: 0, opacity: 0, duration: 0.3, ease: 'power2.in' });
         }
 
-        // 2. 立即更新進度，讓進度條跑到 100%
         currentLevelInPhase.value++;
-        globalLevel.value++;
 
-        // 3. 等待進度條動畫跑完
         setTimeout(() => {
             if (gamePhase.value === 'GAME_OVER') return;
 
-            // 檢查是否為該階段的最後一關
             if (currentLevelInPhase.value > levelsPerPhase) {
-                // 4. 階段結束：符號更緩慢地交錯淡出
                 const validRefs = gridItemRefs.value.filter(el => el);
                 gsap.to(validRefs, {
                     opacity: 0,
                     scale: 0.6,
-                    duration: 0.8, // 放慢速度
-                    stagger: {
-                        each: 0.06,
-                        from: "center"
-                    },
+                    duration: 0.8,
+                    stagger: { each: 0.06, from: "center" },
                     ease: 'power2.inOut',
                     onComplete: () => {
                         if (gamePhase.value === 'STAGE_1') {
                             showPhaseTransition.value = true;
                             isGridReady.value = false;
-
-                            // 5. 過渡 UI 序列動畫
                             nextTick(() => {
                                 const tl = gsap.timeline();
-                                tl.to(transitionText.value, {
-                                    opacity: 1,
-                                    y: -20,
-                                    duration: 0.8,
-                                    ease: 'power2.out'
-                                })
-                                    .to(transitionButton.value, {
-                                        opacity: 1,
-                                        y: 0,
-                                        duration: 0.6,
-                                        ease: 'power2.out'
-                                    }, "-=0.2");
+                                tl.to(transitionText.value, { opacity: 1, y: -20, duration: 0.8, ease: 'power2.out' })
+                                  .to(transitionButton.value, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, "-=0.2");
                             });
-                        } else if (gamePhase.value === 'STAGE_2') {
+                        } else {
                             handleGameOver();
                         }
                     }
                 });
                 return;
             }
-
-            // 6. 若非最後一關，生成下一關
             generateLevel();
         }, 300);
 
     } else {
-        // 錯誤處理 (保持原樣，因為原本就有震動與抖動動畫)
         playSound('error');
         feedbackState.value = 'ERROR';
         if (navigator.vibrate) navigator.vibrate(100);
 
         const targetEl = gridItemRefs.value[index];
         if (targetEl) {
-            gsap.fromTo(targetEl,
-                { x: 0 },
-                {
-                    x: 6,
-                    duration: 0.07,
-                    repeat: 5,
-                    yoyo: true,
-                    ease: 'power2.inOut',
-                    onComplete: () => {
-                        gsap.set(targetEl, { x: 0 });
-                        feedbackState.value = 'IDLE';
-                        selectedIndex.value = -1;
-                    }
+            gsap.fromTo(targetEl, { x: 0 }, {
+                x: 6, duration: 0.07, repeat: 5, yoyo: true, ease: 'power2.inOut',
+                onComplete: () => {
+                    gsap.set(targetEl, { x: 0 });
+                    feedbackState.value = 'IDLE';
+                    selectedIndex.value = -1;
                 }
-            );
+            });
         }
     }
 };
 
 const handleGameOver = () => {
-    // 遊戲完全結束：頁面淡出後再跳轉
     if (!pageContainer.value) return;
     gsap.to(pageContainer.value, {
-        opacity: 0,
-        duration: 0.6,
-        ease: 'power2.inOut',
+        opacity: 0, duration: 0.6, ease: 'power2.inOut',
         onComplete: () => {
             gamePhase.value = 'GAME_OVER';
             nextTick(() => {
+                const score = gameState.state.session.score;
                 gameState.endSession();
-                persistence.updateHighScore(gameState.state.session.score);
+                persistence.updateHighScore(score);
                 persistence.updateConsecutiveDays();
                 persistence.addTrainingTime(gameState.state.session.totalTime);
-
-                const score = gameState.state.session.score;
-                let intensity = 1;
-                if (score >= 80) intensity = 5;
-                else if (score >= 60) intensity = 4;
-                else if (score >= 40) intensity = 3;
-                else if (score >= 20) intensity = 2;
-
-                persistence.recordAchievement(intensity);
+                persistence.recordAchievement(Math.floor(score / 500) + 1);
                 router.push('/daily-goal');
             });
         }
     });
 };
 
-
-// --- Exit Confirmation Logic ---
 const showExitConfirmation = ref(false);
+const handleExit = () => showExitConfirmation.value = true;
+const cancelExit = () => showExitConfirmation.value = false;
+const confirmExit = () => router.push('/prepare');
 
-const handleExit = () => {
-    showExitConfirmation.value = true;
-};
-
-const cancelExit = () => {
-    showExitConfirmation.value = false;
-};
-
-const confirmExit = () => {
-    router.push('/prepare'); // Go back to prepare page
-};
-
-// --- Lifecycle ---
 onMounted(() => {
     gridItemRefs.value = []
-    // Always start fresh from 2x2 if coming here directly, or check query logic if needed
-    // But per request: 2x2 -> button -> 3x3.
-    // Let's stick to the standard flow primarily.
-    if (route.query.phase === '3x3') {
-        startNextPhase();
-    } else {
-        startNewGame();
-    }
+    startNewGame();
 });
-
 </script>
-
-<style scoped>
-/* No additional scoped styles needed */
-</style>

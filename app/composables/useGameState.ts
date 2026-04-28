@@ -16,11 +16,6 @@ export interface GameSession {
 const state = reactive<{
     gameState: GameState
     session: GameSession
-    difficulty: {
-        frequency: number
-        contrast: number
-        gridSize: number
-    }
 }>({
     gameState: 'START',
     session: {
@@ -32,34 +27,37 @@ const state = reactive<{
         responseTimes: [],
         startTime: 0,
         totalTime: 0
-    },
-    difficulty: {
-        frequency: 0.04, // 初始值：確保線條清晰 (0.025 -> 0.04)
-        contrast: 1.0,
-        gridSize: 4 // 2x2 grid
     }
 })
 
 export function useGameState() {
 
-    // Adaptive Difficulty Logic
-    const adjustDifficulty = (responseTime: number, isCorrect: boolean) => {
-        if (isCorrect) {
-            state.session.consecutiveCorrect++
+    // --- 科學難度引擎 (基於等級) ---
+    // 透過等級 (1-100) 計算出當前的任務參數
+    const getDifficultyParams = (level: number) => {
+        // 1. 對比度 (Contrast): 隨等級指數衰減
+        // Lv 1: 1.0 -> Lv 100: 0.05
+        const contrast = Math.max(0.05, Math.pow(0.96, level - 1))
+        
+        // 2. 角度差 (Angle Offset): 隨等級縮小
+        // Lv 1: 45度 -> Lv 100: 3度
+        const angleOffset = Math.max(3, 45 * Math.pow(0.97, level - 1))
+        
+        // 3. 空間頻率 (Spatial Frequency): 隨等級增加細節
+        // 單位：cycles/mm (需配合 pxPerMm 使用)
+        const cyclesPerMm = 0.35 + (level * 0.003)
+        
+        // 4. 網格大小
+        let cols = 3, rows = 4
+        if (level >= 15) { cols = 4; rows = 5 }
+        if (level >= 40) { cols = 5; rows = 6 }
+        if (level >= 70) { cols = 6; rows = 8 }
 
-            // 連對且反應快 -> 降低對比度 (更難)
-            if (state.session.consecutiveCorrect >= 3 && responseTime < 1500) {
-                state.difficulty.contrast = Math.max(0.3, state.difficulty.contrast - 0.1)
-                state.difficulty.frequency = Math.min(0.08, state.difficulty.frequency + 0.005)
-            }
-        } else {
-            state.session.consecutiveCorrect = 0
-
-            // 反應慢或錯誤 -> 加粗條紋、提高對比度 (更容易)
-            if (responseTime > 3000 || !isCorrect) {
-                state.difficulty.contrast = Math.min(1.0, state.difficulty.contrast + 0.1)
-                state.difficulty.frequency = Math.max(0.02, state.difficulty.frequency - 0.005)
-            }
+        return {
+            contrast,
+            angleOffset,
+            cyclesPerMm,
+            grid: { cols, rows }
         }
     }
 
@@ -68,12 +66,14 @@ export function useGameState() {
 
         if (isCorrect) {
             state.session.correctCount++
-            state.session.score += Math.floor(1000 / responseTime) // 反應越快分數越高
+            state.session.consecutiveCorrect++
+            // 分數計算：基礎 100 分 + 反應時間獎勵 (最高 400 分)
+            const speedBonus = Math.max(0, 400 - (responseTime / 10))
+            state.session.score += Math.floor(100 + speedBonus)
         } else {
             state.session.incorrectCount++
+            state.session.consecutiveCorrect = 0
         }
-
-        adjustDifficulty(responseTime, isCorrect)
     }
 
     const startSession = () => {
@@ -93,8 +93,6 @@ export function useGameState() {
 
     const resetGame = () => {
         state.gameState = 'START'
-        state.difficulty.frequency = 0.025
-        state.difficulty.contrast = 1.0
     }
 
     const averageResponseTime = computed(() => {
@@ -110,6 +108,7 @@ export function useGameState() {
 
     return {
         state,
+        getDifficultyParams,
         startSession,
         endSession,
         resetGame,

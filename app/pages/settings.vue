@@ -69,6 +69,7 @@
 import { useGaborMock } from '~/composables/useGaborMock';
 import { useRouter } from 'vue-router';
 import { useAppSettings } from '~/composables/useAppSettings';
+import { onMounted } from 'vue';
 
 const { params } = useGaborMock();
 const router = useRouter();

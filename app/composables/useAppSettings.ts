@@ -4,6 +4,9 @@ import { ref } from 'vue';
 const isSoundEnabled = ref(true);
 const isDarkMode = ref(false);
 const brightnessLevel = ref(80);
+const pxPerMm = ref(6.3);
+const noiseVolume = ref(50);
+const gaborTheme = ref('standard');
 const isLoaded = ref(false);
 
 export const useAppSettings = () => {
@@ -11,10 +14,17 @@ export const useAppSettings = () => {
     if (!process.client || isLoaded.value) return;
     const saved = localStorage.getItem('gabor_settings');
     if (saved) {
-      const parsed = JSON.parse(saved);
-      isSoundEnabled.value = parsed.isSoundEnabled ?? true;
-      isDarkMode.value = parsed.isDarkMode ?? false;
-      brightnessLevel.value = parsed.brightnessLevel ?? 80;
+      try {
+        const parsed = JSON.parse(saved);
+        isSoundEnabled.value = parsed.isSoundEnabled ?? true;
+        isDarkMode.value = parsed.isDarkMode ?? false;
+        brightnessLevel.value = parsed.brightnessLevel ?? 80;
+        pxPerMm.value = parsed.pxPerMm ?? 6.3;
+        noiseVolume.value = parsed.noiseVolume ?? 50;
+        gaborTheme.value = parsed.gaborTheme ?? 'standard';
+      } catch (e) {
+        console.error('Failed to parse settings:', e);
+      }
     }
     applyTheme();
     isLoaded.value = true;
@@ -26,6 +36,9 @@ export const useAppSettings = () => {
       isSoundEnabled: isSoundEnabled.value,
       isDarkMode: isDarkMode.value,
       brightnessLevel: brightnessLevel.value,
+      pxPerMm: pxPerMm.value,
+      noiseVolume: noiseVolume.value,
+      gaborTheme: gaborTheme.value,
     }));
   };
 
@@ -53,8 +66,16 @@ export const useAppSettings = () => {
     isSoundEnabled,
     isDarkMode,
     brightnessLevel,
+    pxPerMm,
+    noiseVolume,
+    gaborTheme,
     loadSettings,
     toggleSound,
     toggleDarkMode,
+    updateSettings: () => saveSettings(),
+    updateCalibration: (val: number) => {
+      pxPerMm.value = val;
+      saveSettings();
+    }
   };
 };

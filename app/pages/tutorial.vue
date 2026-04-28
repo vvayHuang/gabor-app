@@ -1,10 +1,10 @@
 <template>
-    <div class="flex-1 flex flex-col bg-background min-h-screen">
+    <div class="flex-1 flex flex-col px-4 space-y-8 text-on-background">
         <!-- Header Section -->
         <ToolbarTop headline="如何遊玩" type="title" />
-        
+
         <div class="flex-1 flex flex-col">
-            <div class="px-4 py-4 space-y-4">
+            <div class="space-y-4">
                 <div class="space-y-2">
                     <h2 class="title-md-emphasis text-on-background">科學原理：蓋博符號</h2>
                     <p class="body-md text-on-surface-variant">
@@ -18,7 +18,7 @@
         </div>
 
         <!-- Bottom Action Area -->
-        <div class="px-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
+        <div class="pb-[calc(16px+env(safe-area-inset-bottom))]">
             <Buttons buttonStyle="Bordered - Prominent" size="Large" label="我準備好了" to="/prepare" />
         </div>
     </div>
