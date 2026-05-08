@@ -5,8 +5,8 @@ import { useGamePersistence } from '~/composables/useGamePersistence';
 const persistence = useGamePersistence();
 const showButton = ref(false);
 
-onMounted(() => {
-    persistence.loadStats();
+onMounted(async () => {
+    await persistence.loadStats();
     setTimeout(() => {
         showButton.value = true;
     }, 2000); // 稍微縮短等待時間

@@ -116,8 +116,8 @@ const formattedTime = computed(() => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 });
 
-onMounted(() => {
-    loadStats();
+onMounted(async () => {
+    await loadStats();
     if (gameState.state.session.totalTime === 0 && gameState.state.session.startTime > 0) {
         gameState.endSession();
     }

@@ -73,13 +73,21 @@ import { onMounted } from 'vue';
 
 const { params } = useGaborMock();
 const router = useRouter();
+const supabase = useSupabaseClient();
+const persistence = useGamePersistence();
 const { isSoundEnabled, isDarkMode, toggleSound, toggleDarkMode, loadSettings } = useAppSettings();
 
 onMounted(() => {
     loadSettings();
 });
 
-const handleLogout = () => {
-    router.push('/');
+const handleLogout = async () => {
+    try {
+        await supabase.auth.signOut();
+        persistence.resetStats(); // 清空本地快取
+        router.push('/');
+    } catch (e) {
+        console.error('Logout failed:', e);
+    }
 };
 </script>

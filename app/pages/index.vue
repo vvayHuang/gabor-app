@@ -24,6 +24,7 @@ import { useAppSettings } from '~/composables/useAppSettings';
 
 const router = useRouter()
 const settings = useAppSettings()
+const user = useSupabaseUser()
 const logoContainer = ref<HTMLElement | null>(null)
 const welcomeTextContainer = ref<HTMLElement | null>(null)
 
@@ -32,8 +33,12 @@ onMounted(() => {
     if (logoContainer.value && welcomeTextContainer.value) {
         const tl = gsap.timeline({
             onComplete: () => {
-                // 動畫結束後跳轉至登入頁面
-                router.push('/login');
+                // 動畫結束後檢查登入狀態
+                if (user.value) {
+                    router.push('/prepare');
+                } else {
+                    router.push('/login');
+                }
             }
         });
 

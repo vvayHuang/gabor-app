@@ -13,7 +13,7 @@
             <!-- Avatar with Level Ring -->
             <div class="relative">
                 <div class="w-[100px] h-[100px] bg-surface-variant rounded-full overflow-hidden flex-shrink-0 border-4 border-primary/20 p-1">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky" alt="Avatar"
+                    <img :src="user?.user_metadata?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky'" alt="Avatar"
                         class="w-full h-full object-cover rounded-full">
                 </div>
                 <!-- Level Badge -->
@@ -24,7 +24,7 @@
 
             <!-- User Text Info -->
             <div class="flex flex-col items-start gap-1">
-                <h2 class="title-lg-emphasis text-on-background">視覺觀察員</h2>
+                <h2 class="title-lg-emphasis text-on-background">{{ user?.user_metadata?.full_name || '視覺觀察員' }}</h2>
                 <div class="flex flex-col items-start">
                     <span class="title-sm text-on-surface-variant">Lv.{{ persistence.currentLevel.value }} {{ persistence.rankName.value }}</span>
                     <span class="text-[11px] text-on-surface-variant/60 font-medium uppercase tracking-wider mt-1">
@@ -97,9 +97,10 @@ import { onMounted, computed } from 'vue';
 import { useGamePersistence } from '~/composables/useGamePersistence';
 
 const persistence = useGamePersistence();
+const user = useSupabaseUser();
 
-onMounted(() => {
-    persistence.loadStats();
+onMounted(async () => {
+    await persistence.loadStats();
 });
 
 // 定義成就邏輯

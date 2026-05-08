@@ -26,10 +26,14 @@ const stats = ref<GameStats>({
 const isLoaded = ref(false)
 
 export function useGamePersistence() {
-    // Load from localStorage
-    const loadStats = () => {
+    const supabase = useSupabaseClient()
+    const user = useSupabaseUser()
+
+    // Load from localStorage or Supabase
+    const loadStats = async () => {
         if (typeof window === 'undefined' || isLoaded.value) return
 
+        // 1. 先從 LocalStorage 讀取（作為快取）
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
             try {
@@ -44,13 +48,80 @@ export function useGamePersistence() {
                 console.error('Failed to parse game stats:', e)
             }
         }
+
+        // 2. 如果已登入，從 Supabase 同步最新資料
+        if (user.value) {
+            await fetchFromCloud()
+        }
+
         isLoaded.value = true
     }
 
-    // Save to localStorage
-    const saveStats = () => {
+    const fetchFromCloud = async () => {
+        if (!user.value) return
+
+        try {
+            const { data, error } = await supabase
+                .from('game_stats')
+                .select(`
+                    *,
+                    profiles (
+                        full_name,
+                        avatar_url,
+                        settings
+                    )
+                `)
+                .eq('user_id', user.value.id)
+                .single()
+
+            if (error && error.code !== 'PGRST116') throw error // PGRST116 is "no rows found"
+
+            if (data) {
+                // 如果雲端有資料，則以雲端為主（或實作衝突解決邏輯）
+                stats.value = {
+                    highScore: data.high_score,
+                    consecutiveDays: data.consecutive_days,
+                    totalTimeMinutes: data.total_time_minutes,
+                    totalXP: data.total_xp,
+                    lastPlayedDate: data.last_played_date || '',
+                    currentStreak: data.current_streak,
+                    achievements: data.achievements || {}
+                }
+                // 更新本地快取
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(stats.value))
+            }
+        } catch (e) {
+            console.error('Error fetching stats from cloud:', e)
+        }
+    }
+
+    // Save to localStorage & Supabase
+    const saveStats = async () => {
         if (typeof window === 'undefined') return
+
+        // 1. 先存本地
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stats.value))
+
+        // 2. 如果已登入，同步到雲端
+        if (user.value) {
+            try {
+                const { error } = await supabase
+                    .from('game_stats')
+                    .upsert({
+                        user_id: user.value.id,
+                        high_score: stats.value.highScore,
+                        consecutive_days: stats.value.consecutiveDays,
+                        total_time_minutes: stats.value.totalTimeMinutes,
+                        total_xp: stats.value.totalXP,
+                        current_streak: stats.value.currentStreak,
+                        achievements: stats.value.achievements,
+                        updated_at: new Date().toISOString()
+                    })
+                if (error) throw error
+            } catch (e) {
+                console.error('Error saving stats to cloud:', e)
+            }
+        }
     }
 
     // --- 等級運算 (Duolingo Style) ---

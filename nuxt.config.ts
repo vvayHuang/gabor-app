@@ -19,7 +19,10 @@ export default defineNuxtConfig({
       link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
     },
   },
-  modules: ['@nuxt/icon', '@nuxt/fonts'],
+  modules: ['@nuxt/icon', '@nuxt/fonts', '@nuxtjs/supabase'],
+  supabase: {
+    redirect: false
+  },
   fonts: {
     families: [
       { name: 'Noto Sans TC', provider: 'google', weights: ['100', '200', '300', '400', '500', '600', '700', '800', '900'] }

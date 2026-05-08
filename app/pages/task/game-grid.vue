@@ -162,9 +162,9 @@ const handleCanvasReady = () => {
     }
 };
 
-const startNewGame = () => {
+const startNewGame = async () => {
     gameState.startSession();
-    persistence.loadStats();
+    await persistence.loadStats();
     
     // 從難度引擎獲取初始參數
     const params = gameState.getDifficultyParams(persistence.currentLevel.value);
@@ -347,8 +347,8 @@ const handleExit = () => showExitConfirmation.value = true;
 const cancelExit = () => showExitConfirmation.value = false;
 const confirmExit = () => router.push('/prepare');
 
-onMounted(() => {
+onMounted(async () => {
     gridItemRefs.value = []
-    startNewGame();
+    await startNewGame();
 });
 </script>

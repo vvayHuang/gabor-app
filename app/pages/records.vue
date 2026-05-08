@@ -6,8 +6,8 @@ const persistence = useGamePersistence();
 // 模擬過去 7 天的準確度趨勢
 const trendData = ref([65, 72, 68, 85, 82, 90, 88]);
 
-onMounted(() => {
-    persistence.loadStats();
+onMounted(async () => {
+    await persistence.loadStats();
 });
 </script>
 
