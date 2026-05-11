@@ -79,22 +79,6 @@ const handleGoogleLogin = async () => {
     }
 }
 
-const handleAppleLogin = async () => {
-    loading.value = true
-    try {
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'apple',
-            options: {
-                redirectTo: `${window.location.origin}/prepare`
-            }
-        })
-        if (error) throw error
-    } catch (error: any) {
-        errorMessage.value = error.message || 'Apple 登入失敗'
-        loading.value = false
-    }
-}
-
 onMounted(() => {
     if (loginContainer.value) {
         gsap.to(loginContainer.value, {
@@ -138,7 +122,7 @@ onMounted(() => {
             <div class="w-full flex flex-col items-center space-y-4">
                 <p class="title-sm text-on-background">或繼續使用</p>
                 <div class="w-full space-y-3">
-                    <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol" :enabled="!loading" @click="handleAppleLogin">
+                    <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol" :enabled="!loading" @click="() => errorMessage = '目前尚未支援 Apple 登入'">
                         <template #icon>
                             <img src="@/assets/icons/apple.svg" alt="Apple" class="w-6 h-6" />
                         </template>

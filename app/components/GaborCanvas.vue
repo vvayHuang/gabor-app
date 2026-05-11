@@ -50,7 +50,7 @@ const sketch = (p: p5) => {
     p.setup = () => {
         const canvas = p.createCanvas(props.size, props.size);
         // 優化：針對 2D context 開啟 willReadFrequently
-        (canvas.elt as HTMLCanvasElement).getContext('2d', { willReadFrequently: true });
+        const ctx = (canvas.elt as HTMLCanvasElement).getContext('2d', { willReadFrequently: true });
         
         p.noLoop();
         p.pixelDensity(1);

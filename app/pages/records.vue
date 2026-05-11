@@ -3,8 +3,41 @@ import { useGamePersistence } from '~/composables/useGamePersistence';
 
 const persistence = useGamePersistence();
 
-// 模擬過去 7 天的準確度趨勢
-const trendData = ref([65, 72, 68, 85, 82, 90, 88]);
+// 將近期紀錄轉換為「每日平均正確率」趨勢圖 (顯示過去 7 天)
+const trendData = computed(() => {
+    const sessions = persistence.stats.value.recentSessions || [];
+    if (sessions.length === 0) return [0, 0, 0, 0, 0, 0, 0];
+
+    // 1. 按日期分組計算總和與次數
+    const dailyMap = new Map<string, { total: number, count: number }>();
+    
+    sessions.forEach(s => {
+        if (!s.created_at) return;
+        const dateKey = new Date(s.created_at).toLocaleDateString('zh-TW');
+        const current = dailyMap.get(dateKey) || { total: 0, count: 0 };
+        dailyMap.set(dateKey, {
+            total: current.total + s.accuracy,
+            count: current.count + 1
+        });
+    });
+
+    // 2. 產出過去 7 天的數列
+    const result = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateKey = d.toLocaleDateString('zh-TW');
+        const data = dailyMap.get(dateKey);
+        
+        if (data) {
+            result.push(Math.round(data.total / data.count));
+        } else {
+            result.push(0); // 當天無紀錄則為 0
+        }
+    }
+    
+    return result;
+});
 
 onMounted(async () => {
     await persistence.loadStats();

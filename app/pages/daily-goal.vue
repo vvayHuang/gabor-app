@@ -59,7 +59,7 @@
                         <!-- Success Rate Stat -->
                         <div class="flex flex-col items-center space-y-1">
                             <div class="flex items-center space-x-1.5 opacity-60">
-                                <Icon name="material-symbols:target-outline" size="16" class="text-on-surface" />
+                                <Icon name="material-symbols:ads-click" size="16" class="text-on-surface" />
                                 <span class="label-small font-bold uppercase tracking-widest text-on-surface">成功率</span>
                             </div>
                             <div class="flex items-baseline space-x-0.5">

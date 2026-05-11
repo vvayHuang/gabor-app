@@ -327,17 +327,33 @@ const handleGameOver = () => {
     if (!pageContainer.value) return;
     gsap.to(pageContainer.value, {
         opacity: 0, duration: 0.6, ease: 'power2.inOut',
-        onComplete: () => {
+        onComplete: async () => {
             gamePhase.value = 'GAME_OVER';
-            nextTick(() => {
-                const score = gameState.state.session.score;
-                gameState.endSession();
-                persistence.updateHighScore(score);
-                persistence.updateConsecutiveDays();
-                persistence.addTrainingTime(gameState.state.session.totalTime);
-                persistence.recordAchievement(Math.floor(score / 500) + 1);
-                router.push('/daily-goal');
+            const session = gameState.state.session;
+            const score = session.score;
+            const accuracy = gameState.accuracy.value;
+            const totalTime = Date.now() - session.startTime;
+
+            // 1. 結束 Session 並計算最終數據
+            gameState.endSession();
+
+            // 2. 紀錄單次會話 (新增)
+            await persistence.recordSession({
+                score,
+                accuracy,
+                correct_count: session.correct_count,
+                incorrect_count: session.incorrect_count,
+                avg_response_time: gameState.averageResponseTime.value,
+                total_time_ms: totalTime
             });
+
+            // 3. 更新總結性數據 (改為 await)
+            await persistence.updateHighScore(score);
+            await persistence.updateConsecutiveDays();
+            await persistence.addTrainingTime(totalTime);
+            await persistence.recordAchievement(Math.floor(score / 500) + 1);
+
+            router.push('/daily-goal');
         }
     });
 };

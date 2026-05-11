@@ -1,18 +1,30 @@
 import { ref, watch, computed } from 'vue'
 
+export interface GameSessionData {
+    id?: string
+    score: number
+    accuracy: number
+    correct_count: number
+    incorrect_count: number
+    avg_response_time: number
+    total_time_ms: number
+    created_at?: string
+}
+
 export interface GameStats {
     highScore: number
     consecutiveDays: number
     totalTimeMinutes: number
-    totalXP: number // 新增：總經驗值
+    totalXP: number
     lastPlayedDate: string
     currentStreak: number
     achievements: Record<string, string> // YYYY-MM-DD -> 'level-1' to 'level-5'
+    recentSessions: GameSessionData[]
 }
 
 const STORAGE_KEY = 'gabor_game_stats'
 
-// Singleton State: 確保所有頁面共用同一份數據
+// Singleton State
 const stats = ref<GameStats>({
     highScore: 0,
     consecutiveDays: 0,
@@ -20,7 +32,8 @@ const stats = ref<GameStats>({
     totalXP: 0,
     lastPlayedDate: '',
     currentStreak: 0,
-    achievements: {}
+    achievements: {},
+    recentSessions: []
 })
 
 const isLoaded = ref(false)
@@ -29,11 +42,9 @@ export function useGamePersistence() {
     const supabase = useSupabaseClient()
     const user = useSupabaseUser()
 
-    // Load from localStorage or Supabase
     const loadStats = async () => {
         if (typeof window === 'undefined' || isLoaded.value) return
 
-        // 1. 先從 LocalStorage 讀取（作為快取）
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
             try {
@@ -42,52 +53,46 @@ export function useGamePersistence() {
                     ...stats.value,
                     ...parsed,
                     totalXP: parsed.totalXP || 0,
-                    achievements: parsed.achievements || {}
+                    achievements: parsed.achievements || {},
+                    recentSessions: parsed.recentSessions || []
                 }
             } catch (e) {
                 console.error('Failed to parse game stats:', e)
             }
         }
 
-        // 2. 如果已登入，從 Supabase 同步最新資料
-        if (user.value) {
-            await fetchFromCloud()
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        if (currentUser) {
+            await Promise.all([
+                fetchFromCloud(currentUser.id),
+                fetchSessionHistory(currentUser.id)
+            ])
         }
 
         isLoaded.value = true
     }
 
-    const fetchFromCloud = async () => {
-        if (!user.value) return
-
+    const fetchFromCloud = async (userId: string) => {
         try {
             const { data, error } = await supabase
                 .from('game_stats')
-                .select(`
-                    *,
-                    profiles (
-                        full_name,
-                        avatar_url,
-                        settings
-                    )
-                `)
-                .eq('user_id', user.value.id)
+                .select(`*`)
+                .eq('user_id', userId)
                 .single()
 
-            if (error && error.code !== 'PGRST116') throw error // PGRST116 is "no rows found"
+            if (error && error.code !== 'PGRST116') throw error
 
             if (data) {
-                // 如果雲端有資料，則以雲端為主（或實作衝突解決邏輯）
                 stats.value = {
-                    highScore: data.high_score,
-                    consecutiveDays: data.consecutive_days,
-                    totalTimeMinutes: data.total_time_minutes,
-                    totalXP: data.total_xp,
+                    ...stats.value,
+                    highScore: data.high_score || 0,
+                    consecutiveDays: data.consecutive_days || 0,
+                    totalTimeMinutes: data.total_time_minutes || 0,
+                    totalXP: data.total_xp || 0,
                     lastPlayedDate: data.last_played_date || '',
-                    currentStreak: data.current_streak,
+                    currentStreak: data.current_streak || 0,
                     achievements: data.achievements || {}
                 }
-                // 更新本地快取
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(stats.value))
             }
         } catch (e) {
@@ -95,28 +100,89 @@ export function useGamePersistence() {
         }
     }
 
-    // Save to localStorage & Supabase
+    const fetchSessionHistory = async (userId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('game_sessions')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(50) // 增加抓取量以利趨勢計算
+
+            if (error) throw error
+
+            if (data) {
+                stats.value.recentSessions = data.map(s => ({
+                    id: s.id,
+                    score: s.score,
+                    accuracy: s.accuracy,
+                    correct_count: s.correct_count,
+                    incorrect_count: s.incorrect_count,
+                    avg_response_time: s.avg_response_time,
+                    total_time_ms: s.total_time_ms,
+                    created_at: s.created_at
+                }))
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(stats.value))
+            }
+        } catch (e) {
+            console.error('Error fetching session history:', e)
+        }
+    }
+
+    const recordSession = async (sessionData: GameSessionData) => {
+        // 先更新本地狀態（樂觀更新）
+        const tempSession = { ...sessionData, created_at: new Date().toISOString() }
+        stats.value.recentSessions = [tempSession, ...stats.value.recentSessions].slice(0, 50)
+        
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        
+        if (currentUser) {
+            try {
+                const { error } = await supabase
+                    .from('game_sessions')
+                    .insert({
+                        user_id: currentUser.id,
+                        score: sessionData.score,
+                        accuracy: sessionData.accuracy,
+                        correct_count: sessionData.correct_count,
+                        incorrect_count: sessionData.incorrect_count,
+                        avg_response_time: sessionData.avg_response_time,
+                        total_time_ms: sessionData.total_time_ms
+                    })
+                if (error) throw error
+            } catch (e) {
+                console.error('Error recording session to cloud:', e)
+            }
+        }
+        
+        return saveStats()
+    }
+
     const saveStats = async () => {
         if (typeof window === 'undefined') return
 
-        // 1. 先存本地
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stats.value))
 
-        // 2. 如果已登入，同步到雲端
-        if (user.value) {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+
+        if (currentUser) {
             try {
+                const payload = {
+                    user_id: currentUser.id,
+                    high_score: stats.value.highScore,
+                    consecutive_days: stats.value.consecutiveDays,
+                    total_time_minutes: stats.value.totalTimeMinutes,
+                    total_xp: stats.value.totalXP,
+                    current_streak: stats.value.currentStreak,
+                    achievements: stats.value.achievements,
+                    last_played_date: stats.value.lastPlayedDate,
+                    updated_at: new Date().toISOString()
+                }
+                
                 const { error } = await supabase
                     .from('game_stats')
-                    .upsert({
-                        user_id: user.value.id,
-                        high_score: stats.value.highScore,
-                        consecutive_days: stats.value.consecutiveDays,
-                        total_time_minutes: stats.value.totalTimeMinutes,
-                        total_xp: stats.value.totalXP,
-                        current_streak: stats.value.currentStreak,
-                        achievements: stats.value.achievements,
-                        updated_at: new Date().toISOString()
-                    })
+                    .upsert(payload, { onConflict: 'user_id' })
+                
                 if (error) throw error
             } catch (e) {
                 console.error('Error saving stats to cloud:', e)
@@ -124,13 +190,8 @@ export function useGamePersistence() {
         }
     }
 
-    // --- 等級運算 (Duolingo Style) ---
-    
-    // 等級公式：Level = floor(sqrt(XP / 100)) + 1
-    // 這代表等級越高，下一級所需的 XP 越多
     const currentLevel = computed(() => Math.floor(Math.sqrt(stats.value.totalXP / 100)) + 1)
 
-    // 計算當前等級的進度百分比 (用於進度條)
     const levelProgress = computed(() => {
         const lvl = currentLevel.value
         const xpForCurrent = Math.pow(lvl - 1, 2) * 100
@@ -140,7 +201,6 @@ export function useGamePersistence() {
         return Math.min(100, Math.max(0, (progress / range) * 100))
     })
 
-    // 軍階名稱對照
     const rankName = computed(() => {
         const lvl = currentLevel.value
         if (lvl >= 60) return '視覺大師'
@@ -149,15 +209,12 @@ export function useGamePersistence() {
         return '觀察者'
     })
 
-    // --- 數據更新 ---
-
-    // 增加 XP (基於表現)
-    const addXP = (amount: number) => {
+    const addXP = async (amount: number) => {
         stats.value.totalXP += Math.round(amount)
-        saveStats()
+        return saveStats()
     }
 
-    const recordAchievement = (level: number) => {
+    const recordAchievement = async (level: number) => {
         const today = new Date().toISOString().split('T')[0]
         const levelKey = `level-${Math.min(5, Math.max(1, level))}`
         
@@ -171,31 +228,33 @@ export function useGamePersistence() {
             stats.value.achievements[today] = levelKey
         }
         
-        // 每次完成訓練，依據達成等級給予 XP 獎勵
-        addXP(level * 20) 
-        saveStats()
+        // 降低成就 XP：每個級別 10 XP
+        await addXP(level * 10) 
+        return saveStats()
     }
 
-    const updateHighScore = (score: number) => {
+    const updateHighScore = async (score: number) => {
         if (score > stats.value.highScore) {
             stats.value.highScore = score
-            saveStats()
         }
-        // 分數也轉換為少量 XP
-        addXP(score * 0.5)
+        // 大幅降低分數轉換 XP：從 0.5 降至 0.05
+        // 例如 2000 分只給 100 XP，比較合理
+        await addXP(score * 0.05)
+        return saveStats()
     }
 
-    const updateConsecutiveDays = () => {
+    const updateConsecutiveDays = async () => {
         const today = new Date().toISOString().split('T')[0]
         const lastPlayed = stats.value.lastPlayedDate
 
         if (!lastPlayed) {
             stats.value.consecutiveDays = 1
             stats.value.currentStreak = 1
-            addXP(50) // 首次獎勵
+            await addXP(50)
         } else {
             const lastDate = new Date(lastPlayed)
             const todayDate = new Date(today)
+            
             const diffTime = todayDate.getTime() - lastDate.getTime()
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
@@ -204,25 +263,24 @@ export function useGamePersistence() {
             if (diffDays === 1) {
                 stats.value.consecutiveDays++
                 stats.value.currentStreak++
-                addXP(30) // 連續登入獎勵
+                await addXP(30)
             } else {
                 stats.value.currentStreak = 1
             }
         }
 
         stats.value.lastPlayedDate = today
-        saveStats()
+        return saveStats()
     }
 
-    const addTrainingTime = (milliseconds: number) => {
-        const minutes = Math.floor(milliseconds / 60000)
+    const addTrainingTime = async (milliseconds: number) => {
+        const minutes = Math.max(1, Math.floor(milliseconds / 60000))
         stats.value.totalTimeMinutes += minutes
-        // 每訓練一分鐘給 10 XP
-        addXP(minutes * 10)
-        saveStats()
+        await addXP(minutes * 10)
+        return saveStats()
     }
 
-    const resetStats = () => {
+    const resetStats = async () => {
         stats.value = {
             highScore: 0,
             consecutiveDays: 0,
@@ -230,9 +288,10 @@ export function useGamePersistence() {
             totalXP: 0,
             lastPlayedDate: '',
             currentStreak: 0,
-            achievements: {}
+            achievements: {},
+            recentSessions: []
         }
-        saveStats()
+        return saveStats()
     }
 
     return {
@@ -242,6 +301,7 @@ export function useGamePersistence() {
         rankName,
         loadStats,
         saveStats,
+        recordSession,
         recordAchievement,
         updateHighScore,
         updateConsecutiveDays,
