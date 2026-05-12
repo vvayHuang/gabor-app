@@ -16,6 +16,7 @@ export interface GameStats {
     consecutiveDays: number
     totalTimeMinutes: number
     totalXP: number
+    totalSessions: number
     lastPlayedDate: string
     currentStreak: number
     achievements: Record<string, string> // YYYY-MM-DD -> 'level-1' to 'level-5'
@@ -30,6 +31,7 @@ const stats = ref<GameStats>({
     consecutiveDays: 0,
     totalTimeMinutes: 0,
     totalXP: 0,
+    totalSessions: 0,
     lastPlayedDate: '',
     currentStreak: 0,
     achievements: {},
@@ -89,6 +91,7 @@ export function useGamePersistence() {
                     consecutiveDays: data.consecutive_days || 0,
                     totalTimeMinutes: data.total_time_minutes || 0,
                     totalXP: data.total_xp || 0,
+                    totalSessions: data.total_sessions || 0,
                     lastPlayedDate: data.last_played_date || '',
                     currentStreak: data.current_streak || 0,
                     achievements: data.achievements || {}
@@ -133,6 +136,7 @@ export function useGamePersistence() {
         // 先更新本地狀態（樂觀更新）
         const tempSession = { ...sessionData, created_at: new Date().toISOString() }
         stats.value.recentSessions = [tempSession, ...stats.value.recentSessions].slice(0, 50)
+        stats.value.totalSessions++
         
         const { data: { user: currentUser } } = await supabase.auth.getUser()
         
@@ -173,6 +177,8 @@ export function useGamePersistence() {
                     consecutive_days: stats.value.consecutiveDays,
                     total_time_minutes: stats.value.totalTimeMinutes,
                     total_xp: stats.value.totalXP,
+                    total_sessions: stats.value.totalSessions,
+                    current_level: currentLevel.value,
                     current_streak: stats.value.currentStreak,
                     achievements: stats.value.achievements,
                     last_played_date: stats.value.lastPlayedDate,
@@ -286,6 +292,7 @@ export function useGamePersistence() {
             consecutiveDays: 0,
             totalTimeMinutes: 0,
             totalXP: 0,
+            totalSessions: 0,
             lastPlayedDate: '',
             currentStreak: 0,
             achievements: {},

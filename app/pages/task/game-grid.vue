@@ -341,8 +341,8 @@ const handleGameOver = () => {
             await persistence.recordSession({
                 score,
                 accuracy,
-                correct_count: session.correct_count,
-                incorrect_count: session.incorrect_count,
+                correct_count: session.correctCount,
+                incorrect_count: session.incorrectCount,
                 avg_response_time: gameState.averageResponseTime.value,
                 total_time_ms: totalTime
             });

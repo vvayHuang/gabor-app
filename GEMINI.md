@@ -11,30 +11,53 @@
 *   **動畫:** GSAP 用于過渡與視覺特效。
 *   **音效:** Web Audio API 即時合成 (互動回饋與海浪白噪音)。
 *   **圖形:** p5.js (已優化像素級渲染) 用於 Gabor 斑塊。
-*   **數據:** LocalStorage 持久化，具備 XP 經驗值與等級系統。
+*   **數據:** Supabase (PostgreSQL) + LocalStorage 雙重同步持久化。
 
-### 架構與流程
+## 科學遊戲機制
 
-*   **使用者流程:** 
-    1. `index.vue` (Splash) -> `login.vue` (Auth)
-    2. `prepare.vue` (首頁/校準) -> `task/game-grid.vue` (核心遊戲)
-    3. `daily-goal.vue` (分析總結/等級成長) -> `streak.vue` (連續天數)
-    4. `timer.vue` (放鬆計時/海浪音效) -> `completion.vue` (結束)
+### 1. 動態難度引擎 (`useGameState.ts`)
+系統根據使用者等級 (Lv.1 - 100) 自動計算任務參數：
+*   **對比度 (Contrast)**: `Math.pow(0.96, level - 1)` (Lv.100 時降至 ~0.05)。
+*   **角度差 (Angle Offset)**: `45 * Math.pow(0.97, level - 1)` (Lv.100 時縮小至 ~3度)。
+*   **空間頻率 (Spatial Frequency)**: `0.35 + (level * 0.003)` cycles/mm。
+*   **網格規模 (Grid Size)**:
+    *   Lv.1+: 3x4
+    *   Lv.15+: 4x5
+    *   Lv.40+: 5x6
+    *   Lv.70+: 6x8
 
-*   **關鍵 Composables:**
-    *   `useGameState.ts`: 管理單次遊戲狀態與正確率。
-    *   `useGamePersistence.ts`: 管理全域 XP、等級、軍階與歷史紀錄 (Singleton)。
-    *   `useAudio.ts`: 處理合成音效與沉浸式環境音。
-    *   `useAppSettings.ts`: 管理音效開關與深色模式。
+### 2. 等級與計分系統
+*   **角色等級 (Player Level)**: 基於總 XP 計算，公式為 `floor(sqrt(XP / 100)) + 1`。
+*   **成就評等 (Achievement Level)**: 單次遊戲表現評分 (1-5 星)，公式為 `floor(分數 / 500) + 1`。
+*   **速度獎金**: `max(0, 400 - (反應時間 / 10))`。
 
-*   **遊戲化機制 (Duolingo Style):**
-    *   **XP 公式:** 基於訓練時長、分數與每日登入獎勵。
-    *   **等級與軍階:** 平方根等級曲線，自動對應「觀察者」到「視覺大師」。
-    *   **動態難度:** 遊戲難度（網格大小、對比度、角度差）會隨等級自動調整。
+## 數據架構 (Supabase)
 
-## 開發慣例
+### `public.game_stats` (長期統計)
+*   `user_id`: UUID (Primary Key)
+*   `total_xp`: 累積經驗值
+*   `current_level`: 目前角色等級
+*   `high_score`: 歷史最高分
+*   `total_sessions`: 總訓練次數
+*   `current_streak`: 目前連續天數
+*   `achievements`: JSONB (紀錄每日最高成就評等)
 
-*   **效能優化:** `GaborCanvas.vue` 採用手動像素操作以提升渲染效能。
-*   **視覺風格:** 嚴格遵循 8px 網格與 MD3 圓角規範。
-*   **狀態管理:** 優先使用具備持久化能力的 Singleton Composables。
-*   **環境適配:** 提供頂部狀態列間距的條件式過濾 (除 Splash/Login/Prepare 外)。
+### `public.game_sessions` (單次紀錄)
+*   紀錄每場遊戲的 `score`, `accuracy`, `avg_response_time`, `correct_count`, `incorrect_count` 等詳細數據。
+
+## UI/UX 開發慣例
+
+### 1. 設計系統與樣式
+*   **MD3 規範**: 嚴格遵循 Material Design 3 Tokens，使用 `rounded-3xl` (XL 容器) 或 `rounded-2xl`。
+*   **去卡片化 (Minimalism)**: 個人資料頁面優先採用「純文字 + 標題區塊」佈局，避免過多嵌套卡片。
+*   **指標佈局**: 
+    *   **分析報告**: 統一使用三欄式 (Grid-cols-3) 展示成功率、時間、反應速度。
+    *   **個人資料**: 數據概覽採用二欄式文字清單，並將進度條整合進網格末端。
+
+### 2. 效能與資源
+*   **圖形渲染**: `GaborCanvas.vue` 必須使用手動像素操作以維持 60 FPS。
+*   **資源路徑**: 所有靜態 SVG 勳章必須存放在 `public/shape/` 下，透過根路徑 `/shape/` 載入，以避免 SSR 路徑權限錯誤 (file:///)。
+
+### 3. 環境適配
+*   **狀態列避讓**: 提供頂部狀態列間距的條件式過濾 (除 Splash/Login/Prepare 外)。
+*   **對比度要求**: 文字顏色優先使用 `text-on-surface` 或 `text-on-surface-variant` (不建議加透明度)，確保符合 WCAG 2.1 標準。

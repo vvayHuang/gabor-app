@@ -1,5 +1,5 @@
 <template>
-    <div class="flex-1 flex flex-col px-4 pb-20 space-y-8 text-on-background overflow-y-auto">
+    <div class="flex-1 flex flex-col px-4 pb-20 space-y-10 text-on-background overflow-y-auto">
         <ToolbarTop headline="個人資料" type="header">
             <template #right>
                 <NuxtLink to="/settings" class="p-2">
@@ -10,68 +10,78 @@
 
         <!-- User Info Section -->
         <div class="flex flex-row items-center gap-6">
-            <!-- Avatar with Level Ring -->
+            <!-- Simple Avatar -->
             <div class="relative">
-                <div class="w-[100px] h-[100px] bg-surface-variant rounded-full overflow-hidden flex-shrink-0 border-4 border-primary/20 p-1">
+                <div class="w-[88px] h-[88px] bg-surface-variant rounded-full overflow-hidden flex-shrink-0 border-2 border-on-surface/[0.05] p-1">
                     <img :src="user?.user_metadata?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky'" alt="Avatar"
                         class="w-full h-full object-cover rounded-full">
                 </div>
-                <!-- Level Badge -->
-                <div class="absolute -bottom-1 -right-1 bg-primary text-on-primary text-[12px] font-bold w-8 h-8 rounded-full flex items-center justify-center border-2 border-background shadow-sm">
-                    {{ persistence.currentLevel.value }}
-                </div>
             </div>
 
-            <!-- User Text Info -->
+            <!-- User Name & Status -->
             <div class="flex flex-col items-start gap-1">
-                <h2 class="title-lg-emphasis text-on-background">{{ user?.user_metadata?.full_name || '視覺觀察員' }}</h2>
-                <div class="flex flex-col items-start">
-                    <span class="title-sm text-on-surface-variant">Lv.{{ persistence.currentLevel.value }} {{ persistence.rankName.value }}</span>
-                    <span class="text-[11px] text-on-surface-variant/60 font-medium uppercase tracking-wider mt-1">
-                        已累積 {{ persistence.stats.value.totalXP }} XP
-                    </span>
+                <h2 class="title-lg-emphasis text-on-background">{{ user?.user_metadata?.full_name || '使用者' }}</h2>
+                <span class="label-sm text-on-surface-variant font-medium">{{ joinedDate }} 加入</span>
+            </div>
+        </div>
+
+        <!-- Unified Overview Section -->
+        <div class="space-y-6">
+            <div class="flex items-center px-1">
+                <h3 class="title-md-emphasis text-on-surface-variant">數據概覽</h3>
+            </div>
+
+            <div class="space-y-6 px-1">
+                <!-- Data List (No Cards, Pure Text Layout) -->
+                <div class="grid grid-cols-2 gap-y-6 gap-x-8">
+                    <!-- Current Level -->
+                    <div class="flex flex-col">
+                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">目前等級</span>
+                        <span class="title-lg-emphasis text-on-surface">Lv.{{ persistence.currentLevel.value }}</span>
+                    </div>
+                    <!-- Total XP -->
+                    <div class="flex flex-col border-l border-outline-variant/30 pl-6">
+                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">累積經驗</span>
+                        <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.totalXP }} <span class="label-sm">XP</span></span>
+                    </div>
+                    <!-- Current Streak -->
+                    <div class="flex flex-col">
+                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">連續天數</span>
+                        <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.currentStreak }} <span class="label-sm">天</span></span>
+                    </div>
+                    <!-- Total Sessions -->
+                    <div class="flex flex-col border-l border-outline-variant/30 pl-6">
+                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">總訓練次數</span>
+                        <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.totalSessions }} <span class="label-sm">次</span></span>
+                    </div>
+                    <!-- High Score -->
+                    <div class="flex flex-col">
+                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">歷史最高分</span>
+                        <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.highScore }} <span class="label-sm">分</span></span>
+                    </div>
+                    <!-- Integrated Progress -->
+                    <div class="flex flex-col border-l border-outline-variant/30 pl-6">
+                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-2.5">升級進度</span>
+                        <div class="flex items-center space-x-2">
+                            <div class="flex-1 h-1.5 bg-on-surface/[0.08] rounded-full overflow-hidden">
+                                <div 
+                                    class="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
+                                    :style="{ width: persistence.levelProgress.value + '%' }"
+                                ></div>
+                            </div>
+                            <span class="label-sm text-on-surface font-bold">{{ Math.round(persistence.levelProgress.value) }}%</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Progress Bar Section -->
-        <div class="bg-surface-container-low p-5 rounded-3xl space-y-3 border border-on-surface/[0.05]">
-            <div class="flex justify-between items-end">
-                <span class="label-md text-on-surface-variant">等級進度</span>
-                <span class="label-sm text-on-surface-variant/70">{{ Math.round(persistence.levelProgress.value) }}%</span>
-            </div>
-            <div class="w-full h-3 bg-on-surface/[0.08] rounded-full overflow-hidden">
-                <div 
-                    class="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
-                    :style="{ width: persistence.levelProgress.value + '%' }"
-                ></div>
-            </div>
-        </div>
-
-        <!-- Training Stats Grid -->
-        <div class="grid grid-cols-3 gap-3">
-            <div class="bg-surface-container p-4 rounded-2xl flex flex-col items-center justify-center space-y-1 text-center">
-                <span class="text-[20px] font-bold text-primary">{{ persistence.stats.value.currentStreak }}</span>
-                <span class="text-[10px] text-on-surface-variant/70 font-medium uppercase">目前連續</span>
-            </div>
-            <div class="bg-surface-container p-4 rounded-2xl flex flex-col items-center justify-center space-y-1 text-center">
-                <span class="text-[20px] font-bold text-primary">{{ persistence.stats.value.totalTimeMinutes }}</span>
-                <span class="text-[10px] text-on-surface-variant/70 font-medium uppercase">總訓練(分)</span>
-            </div>
-            <div class="bg-surface-container p-4 rounded-2xl flex flex-col items-center justify-center space-y-1 text-center">
-                <span class="text-[20px] font-bold text-primary">{{ persistence.stats.value.highScore }}</span>
-                <span class="text-[10px] text-on-surface-variant/70 font-medium uppercase">最高分</span>
             </div>
         </div>
 
         <!-- Honor Moments (Achievements) -->
-        <div class="space-y-4">
-            <div class="flex justify-between items-center">
+        <div class="space-y-4 pb-8">
+            <div class="flex items-center px-1">
                 <h3 class="title-md-emphasis text-on-surface-variant">成就紀錄</h3>
-                <span class="text-[12px] text-primary font-medium">{{ unlockedCount }} / {{ achievements.length }}</span>
             </div>
             
-            <!-- Achievements Container -->
             <div class="grid grid-cols-4 gap-4">
                 <div v-for="ach in achievements" :key="ach.id" 
                     class="flex flex-col items-center space-y-2 group cursor-help"
@@ -83,7 +93,7 @@
                             <Icon name="material-symbols:lock-outline" size="16" class="text-on-surface/50" />
                         </div>
                     </div>
-                    <span class="text-[10px] text-center leading-tight font-medium" :class="isUnlocked(ach) ? 'text-on-surface' : 'text-on-surface-variant/40'">
+                    <span class="label-sm text-center leading-tight font-medium" :class="isUnlocked(ach) ? 'text-on-surface' : 'text-on-surface-variant'">
                         {{ ach.name }}
                     </span>
                 </div>
@@ -93,14 +103,23 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useGamePersistence } from '~/composables/useGamePersistence';
 
 const persistence = useGamePersistence();
 const user = useSupabaseUser();
+const supabase = useSupabaseClient();
+const manualDate = ref<string | null>(null);
 
-onMounted(async () => {
-    await persistence.loadStats();
+const joinedDate = computed(() => {
+    // 優先順序：手動再次獲取的日期 > 系統 user 對象日期
+    const rawDate = manualDate.value || user.value?.created_at;
+    if (!rawDate) return '--年--月';
+    
+    const date = new Date(rawDate);
+    if (isNaN(date.getTime())) return '--年--月';
+    
+    return `${date.getFullYear()}年${date.getMonth() + 1}月`;
 });
 
 // 定義成就邏輯
@@ -109,7 +128,7 @@ const achievements = [
     { id: 'streak_3', name: '毅力初現', shapeIndex: 2, description: '連續訓練 3 天', check: (stats: any) => stats.consecutiveDays >= 3 },
     { id: 'level_10', name: '中級觀察員', shapeIndex: 3, description: '等級達到 10 級', check: (stats: any) => Math.floor(Math.sqrt(stats.totalXP / 100)) + 1 >= 10 },
     { id: 'pro_trainer', name: '訓練狂人', shapeIndex: 4, description: '累計訓練超過 60 分鐘', check: (stats: any) => stats.totalTimeMinutes >= 60 },
-    { id: 'high_scorer', name: '神準之眼', shapeIndex: 5, description: '最高分超過 90 分', check: (stats: any) => stats.highScore >= 90 },
+    { id: 'high_scorer', name: '神準之眼', shapeIndex: 5, description: '歷史最高分超過 5000', check: (stats: any) => stats.highScore >= 5000 },
 ];
 
 const isUnlocked = (ach: any) => {
@@ -119,20 +138,23 @@ const isUnlocked = (ach: any) => {
 const unlockedCount = computed(() => {
     return achievements.filter(isUnlocked).length;
 });
+
+onMounted(async () => {
+    // 1. 載入統計數據
+    await persistence.loadStats();
+    
+    // 2. 主動從 Auth 獲取最新資訊以確保 created_at 出現
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (currentUser?.created_at) {
+        manualDate.value = currentUser.created_at;
+    }
+});
 </script>
 
 <style scoped>
-.animate-in {
-    animation-fill-mode: forwards;
-}
 @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-@keyframes slide-in-from-bottom {
-    from { transform: translateY(1rem); }
-    to { transform: translateY(0); }
-}
 .fade-in { animation: fade-in 0.5s ease-out; }
-.slide-in-from-bottom-2 { animation: slide-in-from-bottom 0.5s ease-out; }
 </style>
