@@ -53,7 +53,7 @@
                     class="relative group aspect-square flex items-center justify-center cursor-pointer"
                     @click="handleInteraction(index)" :class="{ 'pointer-events-none': feedbackState !== 'IDLE' }">
                     <div
-                        class="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-white/20 transition-colors pointer-events-none z-10">
+                        class="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-white/10 transition-colors pointer-events-none z-10">
                     </div>
                     <div class="absolute inset-0 rounded-full bg-white mix-blend-difference pointer-events-none z-30 transition-opacity duration-75"
                         :class="(feedbackState === 'SUCCESS' && selectedIndex === index) ? 'opacity-100' : 'opacity-0'">
@@ -125,9 +125,10 @@ const readyCount = ref(0);
 const isGridReady = ref(false);
 const clickStartTime = ref(0);
 
-// --- Colors ---
-const primaryColor = ref('#FFFFFF');
-const secondaryColor = ref('#000000');
+// --- Colors (Deeper Scientific Palette) ---
+// 使用背景色與深色調，讓條紋對比更為鮮明紮實
+const primaryColor = ref('#F9F9FF'); // 背景色
+const secondaryColor = ref('#181C23'); // 深灰色 (On Surface)
 
 // --- Level Data ---
 const gridItems = ref<any[]>([]);
@@ -187,7 +188,7 @@ const startNextPhase = () => {
     showPhaseTransition.value = false;
     isGridReady.value = false; 
 
-    // 第二階段難度微調：模擬提升一級後的難度
+    // 第二階段難度微調
     const nextLevelSim = persistence.currentLevel.value + 5;
     const params = gameState.getDifficultyParams(nextLevelSim);
     
@@ -223,28 +224,36 @@ const generateLevel = () => {
         const diff = gameState.getDifficultyParams(lv + phaseBonus);
 
         const baseAngle = Math.random() * 360;
-        // 角度差隨等級變小
         const targetAngle = (baseAngle + diff.angleOffset) % 360;
 
         gridItems.value = Array.from({ length: count }, (_, i) => {
             const isTarget = i === targetIndex.value;
-            const phase = Math.random() * Math.PI;
             
-            // 物理頻率計算
-            const baseFrequency = diff.cyclesPerMm / settings.pxPerMm.value;
-            const randomFreq = baseFrequency + (Math.random() - 0.5) * (baseFrequency * 0.1);
+            // --- 強化視覺噪聲 (Enhanced Jitter) ---
             
-            // Sigma 基於物理尺寸
-            const sigma = 4 * settings.pxPerMm.value;
+            // 1. 全隨機相位
+            const phase = Math.random() * Math.PI * 2;
             
-            // 干擾項的角度微差
-            const fillerVariation = (Math.random() * 2 - 1);
-            const orientation = isTarget ? targetAngle : (baseAngle + fillerVariation) % 360;
+            // 2. 劇烈頻率變化：粗細波動擴大至 +/- 40%
+            const baseSF = diff.cyclesPerMm / settings.pxPerMm.value;
+            const freqJitter = 0.6 + Math.random() * 0.8; 
+            const finalFrequency = baseSF * freqJitter;
+            
+            // 3. 深度對比度波動：讓某些符號幾乎透明，某些很深
+            const contrastJitter = 0.4 + Math.random() * 0.9;
+            const finalContrast = Math.min(1.0, diff.contrast * contrastJitter);
+            
+            // 4. 角度隨機化 (干擾項偏移 +/- 10度)
+            const angleJitter = (Math.random() * 20 - 10);
+            const orientation = isTarget ? targetAngle : (baseAngle + angleJitter) % 360;
+
+            // 5. 尺寸波動擴大 (+/- 20%)
+            const sigma = (4 * settings.pxPerMm.value) * (0.8 + Math.random() * 0.4);
 
             return {
                 orientation,
-                frequency: randomFreq,
-                contrast: diff.contrast,
+                frequency: finalFrequency,
+                contrast: finalContrast,
                 sigma,
                 phase,
             };
@@ -334,10 +343,8 @@ const handleGameOver = () => {
             const accuracy = gameState.accuracy.value;
             const totalTime = Date.now() - session.startTime;
 
-            // 1. 結束 Session 並計算最終數據
             gameState.endSession();
 
-            // 2. 紀錄單次會話 (新增)
             await persistence.recordSession({
                 score,
                 accuracy,
@@ -347,7 +354,6 @@ const handleGameOver = () => {
                 total_time_ms: totalTime
             });
 
-            // 3. 更新總結性數據 (改為 await)
             await persistence.updateHighScore(score);
             await persistence.updateConsecutiveDays();
             await persistence.addTrainingTime(totalTime);
