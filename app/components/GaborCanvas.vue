@@ -1,15 +1,15 @@
 <template>
-    <div ref="canvasContainer"
-        class="relative flex items-center justify-center [&>canvas]:rounded-full transition-transform duration-150"
+    <canvas 
+        ref="canvasRef"
+        :width="size"
+        :height="size"
+        class="rounded-full transition-transform duration-150"
         :class="{ 'animate-shake': isShaking, 'invert': isInverted }"
-        :style="{ width: size + 'px', height: size + 'px' }">
-        <!-- p5 canvas will be injected here -->
-    </div>
+    ></canvas>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue';
-import type p5 from 'p5';
+import { onMounted, ref, watch } from 'vue';
 
 const props = withDefaults(defineProps<{
     size?: number;
@@ -31,90 +31,80 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits(['ready']);
 
-const canvasContainer = ref<HTMLElement | null>(null);
+const canvasRef = ref<HTMLCanvasElement | null>(null);
 const isShaking = ref(false);
 const isInverted = ref(false);
-const isReady = ref(false);
 
-let p5Instance: p5 | null = null;
-let p5Promise: Promise<any> | null = null;
-
-const loadP5 = () => {
-    if (!p5Promise) {
-        p5Promise = import('p5').then(m => m.default || m);
-    }
-    return p5Promise;
-};
-
-const sketch = (p: p5) => {
-    p.setup = () => {
-        const canvas = p.createCanvas(props.size, props.size);
-        // 優化：針對 2D context 開啟 willReadFrequently
-        const ctx = (canvas.elt as HTMLCanvasElement).getContext('2d', { willReadFrequently: true });
-        
-        p.noLoop();
-        p.pixelDensity(1);
-        isReady.value = true;
-        emit('ready');
-    };
+// 解析 Hex 顏色
+const hexToRgb = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return { r, g, b };
 };
 
 const drawGabor = () => {
-    if (!p5Instance) return;
-    const p = p5Instance;
+    const canvas = canvasRef.value;
+    if (!canvas) return;
+
+    // 使用 willReadFrequently: true 雖然我們主要使用 putImageData，
+    // 但這能確保瀏覽器優化記憶體配置。
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return;
 
     const { orientation, frequency, contrast, sigma, phase } = props.params;
-    const theta = p.radians(orientation);
-    const cosTheta = p.cos(theta);
-    const sinTheta = p.sin(theta);
-    const w = p.width;
-    const h = p.height;
+    const w = props.size;
+    const h = props.size;
     const cx = w / 2;
     const cy = h / 2;
 
-    const s = sigma || props.size / 6.5;
+    const s = sigma || w / 6.5;
     const twoSqSigma = 2 * s * s;
+    const theta = (orientation * Math.PI) / 180;
+    const cosTheta = Math.cos(theta);
+    const sinTheta = Math.sin(theta);
 
-    // 效能優化：預先提取顏色數值，避免在循環中重複建立物件與呼叫函式
-    const c1 = p.color(props.primaryColor);
-    const c2 = p.color(props.secondaryColor);
-    const r1 = p.red(c1), g1 = p.green(c1), b1 = p.blue(c1);
-    const r2 = p.red(c2), g2 = p.green(c2), b2 = p.blue(c2);
-    const rd = r2 - r1, gd = g2 - g1, bd = b2 - b1;
+    const bg = hexToRgb(props.primaryColor);
+    const fg = hexToRgb(props.secondaryColor);
+    const rd = fg.r - bg.r;
+    const gd = fg.g - bg.g;
+    const bd = fg.b - bg.b;
 
-    const TWO_PI = p.TWO_PI;
+    // 直接建立新的 ImageData，避免 readback
+    const imageData = ctx.createImageData(w, h);
+    const data = imageData.data;
 
-    p.clear();
-    p.loadPixels();
+    const TWO_PI = Math.PI * 2;
 
-    // 核心循環優化
     for (let y = 0; y < h; y++) {
         const yy = y - cy;
         const rowOffset = y * w;
         for (let x = 0; x < w; x++) {
             const xx = x - cx;
 
-            // 旋轉與波長計算
+            // 旋轉與座標計算
             const rx = xx * cosTheta + yy * sinTheta;
             const distSq = xx * xx + yy * yy;
             
-            // 高斯包絡與餘弦載波
-            const envelope = Math.exp(-(distSq) / twoSqSigma);
+            // 蓋博數學模型
+            const distNormalized = distSq / twoSqSigma;
+            const envelope = Math.exp(-distNormalized);
             const carrier = Math.cos(TWO_PI * frequency * rx + phase);
-            const modulation = carrier * contrast * envelope;
+            
+            // 非線性顏色與透明度處理 (對齊參考圖)
+            const t = ((1.0 - carrier) * 0.5) * contrast;
+            const finalT = Math.pow(t * envelope, 0.65);
 
-            // 手動顏色插值 (避免使用 lerpColor)
-            const t = (modulation + 1) * 0.5;
-            const index = (x + rowOffset) * 4;
+            const index = (rowOffset + x) * 4;
 
-            p.pixels[index] = r1 + rd * t;
-            p.pixels[index + 1] = g1 + gd * t;
-            p.pixels[index + 2] = b1 + bd * t;
-            p.pixels[index + 3] = Math.min(envelope * 255, 255);
+            data[index]     = bg.r + rd * finalT;
+            data[index + 1] = bg.g + gd * finalT;
+            data[index + 2] = bg.b + bd * finalT;
+            data[index + 3] = envelope * 255;
         }
     }
 
-    p.updatePixels();
+    ctx.putImageData(imageData, 0, 0);
 };
 
 const triggerInvert = () => {
@@ -129,33 +119,13 @@ const triggerShake = () => {
 
 defineExpose({ triggerInvert, triggerShake, drawGabor });
 
-onMounted(async () => {
-    if (canvasContainer.value) {
-        try {
-            const p5Constructor = await loadP5();
-            if (p5Constructor) {
-                p5Instance = new p5Constructor(sketch, canvasContainer.value);
-            }
-        } catch (e) {
-            console.error('Failed to load p5.js', e);
-        }
-    }
+onMounted(() => {
+    drawGabor();
+    emit('ready');
 });
 
-onUnmounted(() => {
-    if (p5Instance) {
-        p5Instance.remove();
-        p5Instance = null;
-    }
-});
-
-watch(() => props.params, () => {
-    if (p5Instance) drawGabor();
-}, { deep: true });
-
-watch([() => props.primaryColor, () => props.secondaryColor], () => {
-    if (p5Instance) drawGabor();
-});
+watch(() => props.params, drawGabor, { deep: true });
+watch([() => props.primaryColor, () => props.secondaryColor], drawGabor);
 </script>
 
 <style scoped>

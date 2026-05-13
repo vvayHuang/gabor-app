@@ -52,9 +52,6 @@
                     :ref="(el) => { if (el) gridItemRefs[index] = el }"
                     class="relative group aspect-square flex items-center justify-center cursor-pointer"
                     @click="handleInteraction(index)" :class="{ 'pointer-events-none': feedbackState !== 'IDLE' }">
-                    <div
-                        class="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-white/10 transition-colors pointer-events-none z-10">
-                    </div>
                     <div class="absolute inset-0 rounded-full bg-white mix-blend-difference pointer-events-none z-30 transition-opacity duration-75"
                         :class="(feedbackState === 'SUCCESS' && selectedIndex === index) ? 'opacity-100' : 'opacity-0'">
                     </div>
@@ -126,9 +123,9 @@ const isGridReady = ref(false);
 const clickStartTime = ref(0);
 
 // --- Colors (Deeper Scientific Palette) ---
-// 使用背景色與深色調，讓條紋對比更為鮮明紮實
-const primaryColor = ref('#F9F9FF'); // 背景色
-const secondaryColor = ref('#181C23'); // 深灰色 (On Surface)
+// 使用純黑純白對齊專業參考圖，確保最大對比度
+const primaryColor = ref('#FFFFFF'); // 純白背景
+const secondaryColor = ref('#000000'); // 純黑條紋
 
 // --- Level Data ---
 const gridItems = ref<any[]>([]);
@@ -239,16 +236,16 @@ const generateLevel = () => {
             const freqJitter = 0.6 + Math.random() * 0.8; 
             const finalFrequency = baseSF * freqJitter;
             
-            // 3. 深度對比度波動：讓某些符號幾乎透明，某些很深
-            const contrastJitter = 0.4 + Math.random() * 0.9;
+            // 3. 深度對比度波動：確保符號具備足夠濃度
+            const contrastJitter = 0.7 + Math.random() * 0.3;
             const finalContrast = Math.min(1.0, diff.contrast * contrastJitter);
             
-            // 4. 角度隨機化 (干擾項偏移 +/- 10度)
-            const angleJitter = (Math.random() * 20 - 10);
-            const orientation = isTarget ? targetAngle : (baseAngle + angleJitter) % 360;
+            // 4. 角度修正：確保「只有目標項不一樣」
+            // 移除非目標項的角度抖動 (angleJitter)，對齊使用者要求
+            const orientation = isTarget ? targetAngle : baseAngle;
 
-            // 5. 尺寸波動擴大 (+/- 20%)
-            const sigma = (4 * settings.pxPerMm.value) * (0.8 + Math.random() * 0.4);
+            // 5. 尺寸波動微調 (+/- 10%)，讓視覺呈現更穩定
+            const sigma = (4 * settings.pxPerMm.value) * (0.9 + Math.random() * 0.2);
 
             return {
                 orientation,

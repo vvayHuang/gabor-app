@@ -18,20 +18,18 @@
             <!-- Step 1 & 2 logic (Observe / Find) -->
             <div v-if="step.type === 'gabor'" class="grid grid-cols-3 gap-4 w-full max-w-[320px]">
                 <div v-for="i in 6" :key="`g-${idx}-${i}`" class="aspect-square flex items-center justify-center relative">
-                    <div class="w-20 h-20 rounded-full bg-surface-container-high/50 border border-outline-variant/30 flex-shrink-0"></div>
                     <div class="absolute inset-0 flex items-center justify-center z-10">
                         <ClientOnly>
-                            <GaborCanvas 
+                            <GaborCanvas
                                 ref="gaborRefs"
-                                :size="80" 
-                                :params="getGaborParams(step.id, i)" 
-                                primary-color="#FFFFFF" 
+                                :size="80"
+                                :params="getGaborParams(step.id, i)"
+                                primary-color="#FFFFFF"
                                 secondary-color="#000000"
                                 @ready="handleReady"
                             />
                         </ClientOnly>
-                    </div>
-                    <!-- Success Feedback (Only for Step 2) -->
+                    </div>                    <!-- Success Feedback (Only for Step 2) -->
                     <div v-if="step.id === 1 && i === 5" 
                          class="absolute inset-0 rounded-full border-[6px] border-primary bg-primary/30 shadow-[0_0_30px_rgba(var(--primary-rgb),0.6)] z-30 animate-pulse">
                     </div>

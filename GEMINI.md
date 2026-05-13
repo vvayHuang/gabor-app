@@ -63,9 +63,10 @@
     *   **分析報告**: 統一使用三欄式 (Grid-cols-3) 展示成功率、時間、反應速度。
     *   **個人資料**: 數據概覽採用二欄式文字清單，並將進度條整合進網格末端。
 
-### 2. 效能與資源
-*   **圖形渲染**: `GaborCanvas.vue` 必須使用手動像素操作以維持 60 FPS。
-*   **資源路徑**: 所有靜態 SVG 勳章必須存放在 `public/shape/` 下，透過根路徑 `/shape/` 載入，以避免 SSR 路徑權限錯誤 (file:///)。
+### 2. 效能與圖形架構 (Hybrid Rendering)
+*   **核心訓練 (Gabor)**: `GaborCanvas.vue` **必須使用原生 Canvas ImageData 操作**。嚴禁使用 p5.js 或任何會觸發 `willReadFrequently` 警告的庫進行核心渲染。目標是 60 FPS 與醫學級精確度。
+*   **視覺裝飾 (Generative Art)**: 使用 **p5.js** 處理背景、過場動畫與成就視覺化。利用其強大的噪聲 (Perlin Noise) 與數學函式庫實現生成式藝術。
+*   **資源路徑**: 所有靜態 SVG 勳章必須存放在 `public/shape/` 下。
 
 ### 3. 環境適配
 *   **狀態列避讓**: 提供頂部狀態列間距的條件式過濾 (除 Splash/Login/Prepare 外)。

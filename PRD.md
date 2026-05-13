@@ -24,7 +24,8 @@
 7.  **紀錄與設定 (Records & Settings)**：追蹤歷史數據與自訂 App 表現。
 
 ### 3.2 關鍵功能模組
-*   **Gabor 渲染引擎**：使用 `p5.js` 即時生成可調整頻率、角度與對比度的 Gabor 斑塊。
+*   **Gabor 渲染引擎**：使用**原生 Canvas API (ImageData)** 實現高性能、醫學級精確度的 Gabor 斑塊生成。
+*   **生成式視覺系統**：使用 `p5.js` 打造動態生成式背景與藝術回饋，提升 App 藝術質感。
 *   **進度追蹤系統**：視覺化的進度條與環形指示器，讓使用者即時掌握任務狀態。
 *   **動態狀態管理**：透過 Composable (`useGameState`) 管理訓練中的狀態切換與數據持久化。
 
@@ -33,7 +34,8 @@
 *   **前端框架**：Nuxt 3 (Nuxt 4.2.2) + Vue 3 (Composition API)。
 *   **樣式處理**：Tailwind CSS (遵循 Material Design 3 Tokens 命名)。
 *   **動畫庫**：GSAP (GreenSock Animation Platform)。
-*   **圖形渲染**：p5.js (Client-only 渲染以優化 SSR)。
+*   **核心渲染**：原生 Canvas API (用於 Gabor 斑塊)。
+*   **藝術渲染**：p5.js (用於生成式藝術與動態背景)。
 *   **圖示系統**：Nuxt Icon (統一使用 SVG 元件)。
 *   **字體方案**：Google Fonts - Noto Sans TC (確保繁體中文呈現品質)。
 
