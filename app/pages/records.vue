@@ -23,71 +23,46 @@ onMounted(async () => {
 
         <!-- 2. Activity Calendar -->
         <div class="space-y-4">
-            <h3 class="title-md-emphasis text-on-surface-variant">活動日曆</h3>
             <Calendar :achievements="persistence.stats.value.achievements" />
         </div>
 
         <!-- 3. Training Stats Overview (Including Progress Bar) -->
         <div class="space-y-6">
             <h3 class="title-md-emphasis text-on-surface-variant">訓練統計</h3>
-            
+
             <div class="grid grid-cols-2 gap-y-6 gap-x-8">
                 <!-- Total Sessions -->
                 <div class="flex flex-col">
                     <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">總訓練次數</span>
-                    <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.totalSessions }} <span class="label-sm">次</span></span>
+                    <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.totalSessions }} <span
+                            class="label-sm">次</span></span>
                 </div>
                 <!-- High Score -->
                 <div class="flex flex-col border-l border-outline-variant/30 pl-6">
                     <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">歷史最高分</span>
-                    <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.highScore }} <span class="label-sm">分</span></span>
+                    <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.highScore }} <span
+                            class="label-sm">分</span></span>
                 </div>
                 <!-- Total Training Time -->
                 <div class="flex flex-col">
                     <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">累計時長</span>
-                    <span class="title-lg-emphasis text-on-surface">{{ Math.round(persistence.stats.value.totalTimeMinutes || 0) }} <span class="label-sm">分鐘</span></span>
+                    <span class="title-lg-emphasis text-on-surface">{{
+                        Math.round(persistence.stats.value.totalTimeMinutes || 0) }} <span
+                            class="label-sm">分鐘</span></span>
                 </div>
-                <!-- Placeholder/Empty for layout symmetry if needed, or just leave as is -->
 
-                <!-- Integrated Progress Bar (Moved from Profile) -->
+                <!-- Integrated Progress Bar -->
                 <div class="col-span-2 flex flex-col pt-2">
-                    <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-2.5">升級進度</span>
+                    <span
+                        class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-2.5">升級進度</span>
                     <div class="flex items-center space-x-4">
                         <div class="flex-1 h-2 bg-on-surface/[0.08] rounded-full overflow-hidden">
-                            <div 
-                                class="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
-                                :style="{ width: persistence.levelProgress.value + '%' }"
-                            ></div>
+                            <div class="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
+                                :style="{ width: persistence.levelProgress.value + '%' }"></div>
                         </div>
-                        <span class="label-md text-on-surface font-bold">{{ Math.round(persistence.levelProgress.value) }}%</span>
+                        <span class="label-md text-on-surface font-bold">{{ Math.round(persistence.levelProgress.value)
+                            }}%</span>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. Schedule -->
-        <div class="space-y-4 pb-8">
-            <h3 class="title-md-emphasis text-on-surface-variant">排程</h3>
-            <!-- Menu Container -->
-            <div class="bg-surface-dim rounded-2xl p-4 flex flex-col gap-[9px] w-full max-w-[370px] mx-auto">
-                <!-- Menu Item: Frequency -->
-                <div
-                    class="flex flex-row items-center justify-between px-2 h-11 cursor-pointer hover:bg-black/5 transition-colors rounded-lg">
-                    <div class="flex items-center">
-                        <span class="text-base text-on-surface mix-blend-plus-darker">每天</span>
-                    </div>
-                    <Icon name="material-symbols:chevron-right-rounded" size="20"
-                        class="text-on-surface mix-blend-plus-darker" />
-                </div>
-
-                <!-- Menu Item: Time -->
-                <div
-                    class="flex flex-row items-center justify-between px-2 h-11 cursor-pointer hover:bg-black/5 transition-colors rounded-lg">
-                    <div class="flex items-center">
-                        <span class="text-base text-on-surface mix-blend-plus-darker">下午 5:00</span>
-                    </div>
-                    <Icon name="material-symbols:chevron-right-rounded" size="20"
-                        class="text-on-surface mix-blend-plus-darker" />
                 </div>
             </div>
         </div>

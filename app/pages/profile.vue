@@ -22,7 +22,10 @@
             <!-- User Name & Status -->
             <div class="flex flex-col items-start gap-1">
                 <h2 class="title-lg-emphasis text-on-background">{{ user?.user_metadata?.full_name || '使用者' }}</h2>
-                <span class="label-sm text-on-surface-variant font-medium">{{ joinedDate }} 加入</span>
+                <span class="label-sm text-on-surface-variant font-medium">
+                    <template v-if="joinedDate">{{ joinedDate }} 加入</template>
+                    <template v-else>&nbsp;</template>
+                </span>
             </div>
         </div>
 
@@ -84,12 +87,11 @@ const supabase = useSupabaseClient();
 const manualDate = ref<string | null>(null);
 
 const joinedDate = computed(() => {
-    // 優先順序：手動再次獲取的日期 > 系統 user 對象日期
     const rawDate = manualDate.value || user.value?.created_at;
-    if (!rawDate) return '--年--月';
+    if (!rawDate) return null;
 
     const date = new Date(rawDate);
-    if (isNaN(date.getTime())) return '--年--月';
+    if (isNaN(date.getTime())) return null;
 
     return `${date.getFullYear()}年${date.getMonth() + 1}月`;
 });
@@ -111,30 +113,18 @@ const unlockedCount = computed(() => {
     return achievements.filter(isUnlocked).length;
 });
 
-onMounted(async () => {
-    // 1. 載入統計數據
-    await persistence.loadStats();
-
-    // 2. 主動從 Auth 獲取最新資訊以確保 created_at 出現
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (currentUser?.created_at) {
-        manualDate.value = currentUser.created_at;
-    }
+onMounted(() => {
+    // 使用並行執行 (Parallel)，確保統計數據與使用者資訊同時開始抓取
+    Promise.all([
+        persistence.loadStats(),
+        supabase.auth.getUser().then(({ data }) => {
+            if (data.user?.created_at) {
+                manualDate.value = data.user.created_at;
+            }
+        })
+    ]).catch(e => console.error('Data loading failed:', e));
 });
 </script>
 
 <style scoped>
-@keyframes fade-in {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-.fade-in {
-    animation: fade-in 0.5s ease-out;
-}
 </style>
