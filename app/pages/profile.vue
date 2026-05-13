@@ -1,5 +1,5 @@
 <template>
-    <div class="flex-1 flex flex-col px-4 pb-20 space-y-10 text-on-background overflow-y-auto">
+    <div class="flex-1 flex flex-col px-4 pb-32 space-y-10 text-on-background overflow-y-auto">
         <ToolbarTop headline="個人資料" type="header">
             <template #right>
                 <NuxtLink to="/settings" class="p-2">
@@ -12,9 +12,10 @@
         <div class="flex flex-row items-center gap-6">
             <!-- Simple Avatar -->
             <div class="relative">
-                <div class="w-[88px] h-[88px] bg-surface-variant rounded-full overflow-hidden flex-shrink-0 border-2 border-on-surface/[0.05] p-1">
-                    <img :src="user?.user_metadata?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky'" alt="Avatar"
-                        class="w-full h-full object-cover rounded-full">
+                <div
+                    class="w-[88px] h-[88px] bg-surface-variant rounded-full overflow-hidden flex-shrink-0 border-2 border-on-surface/[0.05] p-1">
+                    <img :src="user?.user_metadata?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky'"
+                        alt="Avatar" class="w-full h-full object-cover rounded-full">
                 </div>
             </div>
 
@@ -27,50 +28,23 @@
 
         <!-- Unified Overview Section -->
         <div class="space-y-6">
-            <div class="flex items-center px-1">
-                <h3 class="title-md-emphasis text-on-surface-variant">數據概覽</h3>
-            </div>
+            <h3 class="title-md-emphasis text-on-surface-variant">概覽</h3>
 
-            <div class="space-y-6 px-1">
-                <!-- Data List (No Cards, Pure Text Layout) -->
+            <div class="space-y-6">
+                <!-- Data List (Simplified: Level & XP only) -->
                 <div class="grid grid-cols-2 gap-y-6 gap-x-8">
                     <!-- Current Level -->
                     <div class="flex flex-col">
-                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">目前等級</span>
+                        <span
+                            class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">目前等級</span>
                         <span class="title-lg-emphasis text-on-surface">Lv.{{ persistence.currentLevel.value }}</span>
                     </div>
                     <!-- Total XP -->
                     <div class="flex flex-col border-l border-outline-variant/30 pl-6">
-                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">累積經驗</span>
-                        <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.totalXP }} <span class="label-sm">XP</span></span>
-                    </div>
-                    <!-- Current Streak -->
-                    <div class="flex flex-col">
-                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">連續天數</span>
-                        <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.currentStreak }} <span class="label-sm">天</span></span>
-                    </div>
-                    <!-- Total Sessions -->
-                    <div class="flex flex-col border-l border-outline-variant/30 pl-6">
-                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">總訓練次數</span>
-                        <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.totalSessions }} <span class="label-sm">次</span></span>
-                    </div>
-                    <!-- High Score -->
-                    <div class="flex flex-col">
-                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">歷史最高分</span>
-                        <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.highScore }} <span class="label-sm">分</span></span>
-                    </div>
-                    <!-- Integrated Progress -->
-                    <div class="flex flex-col border-l border-outline-variant/30 pl-6">
-                        <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-2.5">升級進度</span>
-                        <div class="flex items-center space-x-2">
-                            <div class="flex-1 h-1.5 bg-on-surface/[0.08] rounded-full overflow-hidden">
-                                <div 
-                                    class="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
-                                    :style="{ width: persistence.levelProgress.value + '%' }"
-                                ></div>
-                            </div>
-                            <span class="label-sm text-on-surface font-bold">{{ Math.round(persistence.levelProgress.value) }}%</span>
-                        </div>
+                        <span
+                            class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">累積經驗</span>
+                        <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.totalXP }} <span
+                                class="label-sm">XP</span></span>
                     </div>
                 </div>
             </div>
@@ -78,22 +52,20 @@
 
         <!-- Honor Moments (Achievements) -->
         <div class="space-y-4 pb-8">
-            <div class="flex items-center px-1">
-                <h3 class="title-md-emphasis text-on-surface-variant">成就紀錄</h3>
-            </div>
-            
+            <h3 class="title-md-emphasis text-on-surface-variant">成就紀錄</h3>
+
+
             <div class="grid grid-cols-4 gap-4">
-                <div v-for="ach in achievements" :key="ach.id" 
-                    class="flex flex-col items-center space-y-2 group cursor-help"
-                    :title="ach.description"
-                >
+                <div v-for="ach in achievements" :key="ach.id"
+                    class="flex flex-col items-center space-y-2 group cursor-help" :title="ach.description">
                     <div class="relative transition-transform duration-300 group-hover:scale-110">
                         <HonorShape :index="ach.shapeIndex" :class="isUnlocked(ach) ? '' : 'grayscale opacity-30'" />
                         <div v-if="!isUnlocked(ach)" class="absolute inset-0 flex items-center justify-center">
                             <Icon name="material-symbols:lock-outline" size="16" class="text-on-surface/50" />
                         </div>
                     </div>
-                    <span class="label-sm text-center leading-tight font-medium" :class="isUnlocked(ach) ? 'text-on-surface' : 'text-on-surface-variant'">
+                    <span class="label-sm text-center leading-tight font-medium"
+                        :class="isUnlocked(ach) ? 'text-on-surface' : 'text-on-surface-variant'">
                         {{ ach.name }}
                     </span>
                 </div>
@@ -115,10 +87,10 @@ const joinedDate = computed(() => {
     // 優先順序：手動再次獲取的日期 > 系統 user 對象日期
     const rawDate = manualDate.value || user.value?.created_at;
     if (!rawDate) return '--年--月';
-    
+
     const date = new Date(rawDate);
     if (isNaN(date.getTime())) return '--年--月';
-    
+
     return `${date.getFullYear()}年${date.getMonth() + 1}月`;
 });
 
@@ -142,7 +114,7 @@ const unlockedCount = computed(() => {
 onMounted(async () => {
     // 1. 載入統計數據
     await persistence.loadStats();
-    
+
     // 2. 主動從 Auth 獲取最新資訊以確保 created_at 出現
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     if (currentUser?.created_at) {
@@ -153,8 +125,16 @@ onMounted(async () => {
 
 <style scoped>
 @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
-.fade-in { animation: fade-in 0.5s ease-out; }
+
+.fade-in {
+    animation: fade-in 0.5s ease-out;
+}
 </style>

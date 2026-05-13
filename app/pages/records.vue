@@ -1,43 +1,8 @@
 <script setup lang="ts">
 import { useGamePersistence } from '~/composables/useGamePersistence';
+import { onMounted } from 'vue';
 
 const persistence = useGamePersistence();
-
-// 將近期紀錄轉換為「每日平均正確率」趨勢圖 (顯示過去 7 天)
-const trendData = computed(() => {
-    const sessions = persistence.stats.value.recentSessions || [];
-    if (sessions.length === 0) return [0, 0, 0, 0, 0, 0, 0];
-
-    // 1. 按日期分組計算總和與次數
-    const dailyMap = new Map<string, { total: number, count: number }>();
-    
-    sessions.forEach(s => {
-        if (!s.created_at) return;
-        const dateKey = new Date(s.created_at).toLocaleDateString('zh-TW');
-        const current = dailyMap.get(dateKey) || { total: 0, count: 0 };
-        dailyMap.set(dateKey, {
-            total: current.total + s.accuracy,
-            count: current.count + 1
-        });
-    });
-
-    // 2. 產出過去 7 天的數列
-    const result = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const dateKey = d.toLocaleDateString('zh-TW');
-        const data = dailyMap.get(dateKey);
-        
-        if (data) {
-            result.push(Math.round(data.total / data.count));
-        } else {
-            result.push(0); // 當天無紀錄則為 0
-        }
-    }
-    
-    return result;
-});
 
 onMounted(async () => {
     await persistence.loadStats();
@@ -45,21 +10,63 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="flex-1 flex flex-col px-4 space-y-8 pb-6 text-on-background">
+    <div class="flex-1 flex flex-col px-4 space-y-10 pb-32 text-on-background overflow-y-auto">
         <ToolbarTop headline="紀錄" type="title" />
 
-        <TrendChart :data="trendData" />
-
-        <div class="space-y-4">
+        <!-- 1. Current Streak (Large Text) -->
+        <div class="space-y-2">
             <div class="flex items-end space-x-4">
                 <h3 class="display-lg-emphasis text-primary">{{ persistence.stats.value.currentStreak }}</h3>
                 <span class="title-lg-emphasis text-primary">連續達成天數</span>
             </div>
-            <!-- 使用實例紀錄數據 -->
+        </div>
+
+        <!-- 2. Activity Calendar -->
+        <div class="space-y-4">
+            <h3 class="title-md-emphasis text-on-surface-variant">活動日曆</h3>
             <Calendar :achievements="persistence.stats.value.achievements" />
         </div>
 
-        <div class="space-y-4">
+        <!-- 3. Training Stats Overview (Including Progress Bar) -->
+        <div class="space-y-6">
+            <h3 class="title-md-emphasis text-on-surface-variant">訓練統計</h3>
+            
+            <div class="grid grid-cols-2 gap-y-6 gap-x-8">
+                <!-- Total Sessions -->
+                <div class="flex flex-col">
+                    <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">總訓練次數</span>
+                    <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.totalSessions }} <span class="label-sm">次</span></span>
+                </div>
+                <!-- High Score -->
+                <div class="flex flex-col border-l border-outline-variant/30 pl-6">
+                    <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">歷史最高分</span>
+                    <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.highScore }} <span class="label-sm">分</span></span>
+                </div>
+                <!-- Total Training Time -->
+                <div class="flex flex-col">
+                    <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">累計時長</span>
+                    <span class="title-lg-emphasis text-on-surface">{{ Math.round(persistence.stats.value.totalTimeMinutes || 0) }} <span class="label-sm">分鐘</span></span>
+                </div>
+                <!-- Placeholder/Empty for layout symmetry if needed, or just leave as is -->
+
+                <!-- Integrated Progress Bar (Moved from Profile) -->
+                <div class="col-span-2 flex flex-col pt-2">
+                    <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-2.5">升級進度</span>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-1 h-2 bg-on-surface/[0.08] rounded-full overflow-hidden">
+                            <div 
+                                class="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
+                                :style="{ width: persistence.levelProgress.value + '%' }"
+                            ></div>
+                        </div>
+                        <span class="label-md text-on-surface font-bold">{{ Math.round(persistence.levelProgress.value) }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Schedule -->
+        <div class="space-y-4 pb-8">
             <h3 class="title-md-emphasis text-on-surface-variant">排程</h3>
             <!-- Menu Container -->
             <div class="bg-surface-dim rounded-2xl p-4 flex flex-col gap-[9px] w-full max-w-[370px] mx-auto">
