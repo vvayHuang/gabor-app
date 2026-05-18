@@ -10,8 +10,12 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@capacitor/cli": "^8.0.1",
-    "@capacitor/core": "^8.0.1",
+    "@capacitor/app": "8.1.0",
+    "@capacitor/core": "8.3.4",
+    "@capacitor/haptics": "8.0.2",
+    "@capacitor/ios": "8.3.4",
+    "@capacitor/keyboard": "8.0.3",
+    "@capacitor/status-bar": "8.0.2",
     "@supabase/supabase-js": "^2.105.3",
     "@tailwindcss/postcss": "^4.1.18",
     "gsap": "^3.14.2",
@@ -21,6 +25,7 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@capacitor/cli": "8.3.4",
     "@nuxt/fonts": "^0.12.1",
     "@nuxt/icon": "^2.2.0",
     "@nuxtjs/supabase": "^2.0.6",

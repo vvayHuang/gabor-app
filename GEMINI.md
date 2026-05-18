@@ -71,3 +71,18 @@
 ### 3. 環境適配
 *   **狀態列避讓**: 提供頂部狀態列間距的條件式過濾 (除 Splash/Login/Prepare 外)。
 *   **對比度要求**: 文字顏色優先使用 `text-on-surface` 或 `text-on-surface-variant` (不建議加透明度)，確保符合 WCAG 2.1 標準。
+
+## 行動裝置環境適配 (Mobile / Capacitor)
+
+### 1. 認證系統與 Deep Link (iOS)
+為解決原生 Webview 環境下 OAuth 跳轉狀態遺失的問題，實施了以下架構：
+*   **URL Scheme**: `gaborapp://` (Xcode Info.plist 已註冊)。
+*   **Redirect URL**: `gaborapp://login-callback` (已同步至 Supabase Auth 設定)。
+*   **OAuth 流程**: 強制使用 **隱式流程 (Implicit Flow)** 與 `flowType: 'implicit'`，以規避 PKCE 流程在模擬器環境下遺失 `code_verifier` 的報錯。
+*   **身分持久化備援**: 
+    *   在 `login.vue` 接收到 Token 後，手動寫入 `sb-ickdtelqtjifjkledtjw-auth-token` 格式之 Cookie。
+    *   使用 `window.location.href` 執行硬跳轉，強迫 Webview 重新載入以觸發 Supabase 的 Cookie 偵測邏輯。
+
+### 2. 開發調試與已知限制
+*   **模擬器 Storage 隔離**: 目前 iOS 模擬器在硬跳轉後有時仍會丟失 Session，建議優先使用實體機測試，或未來引入 `@capacitor/preferences` 進行人工 Session 管理。
+*   **同步指令**: 務必確保在程式碼變更後執行 `npm run generate && npx cap sync ios`。

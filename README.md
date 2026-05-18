@@ -13,11 +13,13 @@
     *   海浪白噪音：在放鬆計時頁面使用 Web Audio API 合成的沉浸式背景音。
 *   **數據視覺化**: 具備週準確度趨勢圖表與連續達成天數 (Streak) 追蹤。
 *   **個人化偏好**: 支援深色模式切換與音效全域開關，具備 LocalStorage 持久化儲存。
-*   **現代化的 UI/UX**: 嚴格遵循 Material Design 3 規範，並使用 GSAP 打造流暢的動態體驗。
+*   **動畫**: GSAP (GreenSock)打造流暢的動態體驗。
+*   **行動端支援**: 透過 Capacitor 整合，支援 iOS 原生封裝與 Deep Link 登入。
 
 ## 🛠 技術棧
 
 *   **框架**: Nuxt 4, Vue 3 (Composition API)
+*   **跨平台**: Capacitor (iOS)
 *   **樣式**: Tailwind CSS
 *   **核心渲染**: 原生 Canvas API
 *   **藝術渲染**: p5.js
@@ -26,22 +28,23 @@
 
 ## 專案設定與執行
 
+### Web 版本
 請確保已安裝所有依賴套件：
-
 ```bash
 npm install
 ```
 
 啟動開發伺服器：
-
 ```bash
 npm run dev
 ```
 
-建置生產版本：
+### iOS 版本
+1. **生成靜態檔案**: `npm run generate`
+2. **同步至 iOS**: `npx cap sync ios`
+3. **開啟 Xcode**: `npx cap open ios`
+4. **執行**: 在 Xcode 中選取模擬器後按下 Run。
 
-```bash
-npm run build
-```
+*注意：目前 Google 登入使用 `gaborapp://` 自定義 Scheme 進行跳轉。*
 
 更多詳細資訊請參考 [PRD.md](./PRD.md) 與 [GEMINI.md](./GEMINI.md)。

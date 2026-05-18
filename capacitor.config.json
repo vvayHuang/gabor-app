@@ -1,0 +1,5 @@
+{
+  "appId": "gabor.app",
+  "appName": "gabor-app",
+  "webDir": ".output/public"
+}

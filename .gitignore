@@ -22,4 +22,9 @@ logs
 # Local env files
 .env
 .env.*
-!.env.example
+# iOS
+ios/
+App.xcresult
+DerivedData/
+Pods/
+.swiftpm/
