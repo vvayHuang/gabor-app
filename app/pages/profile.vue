@@ -1,76 +1,82 @@
 <template>
-    <div class="flex-1 flex flex-col px-4 pb-32 space-y-10 text-on-background overflow-y-auto">
-        <ToolbarTop headline="個人資料" type="header">
-            <template #right>
-                <NuxtLink to="/settings" class="p-2">
-                    <Icon name="material-symbols:settings-outline" size="24" class="text-on-background" />
-                </NuxtLink>
-            </template>
-        </ToolbarTop>
+    <div class="flex-1 flex flex-col px-4 pb-32 text-on-background overflow-y-auto">
+        <div class="max-w-screen-xl mx-auto w-full">
+            <ToolbarTop headline="個人資料" type="header">
+                <template #right>
+                    <NuxtLink to="/settings" class="p-2">
+                        <Icon name="material-symbols:settings-outline" size="24" class="text-on-background" />
+                    </NuxtLink>
+                </template>
+            </ToolbarTop>
 
-        <!-- User Info Section -->
-        <div class="flex flex-row items-center gap-6">
-            <!-- Simple Avatar -->
-            <div class="relative">
-                <div
-                    class="w-[88px] h-[88px] bg-surface-variant rounded-full overflow-hidden flex-shrink-0 border-2 border-on-surface/[0.05] p-1">
-                    <img :src="user?.user_metadata?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky'"
-                        alt="Avatar" class="w-full h-full object-cover rounded-full">
-                </div>
-            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-12 gap-y-10">
+                <!-- Left Column: User Info & Overview -->
+                <div class="space-y-10">
+                    <!-- User Info Section -->
+                    <div class="flex flex-row items-center gap-6">
+                        <!-- Simple Avatar -->
+                        <div class="relative">
+                            <div
+                                class="w-[88px] h-[88px] bg-surface-variant rounded-full overflow-hidden flex-shrink-0 border-2 border-on-surface/[0.05] p-1">
+                                <img :src="user?.user_metadata?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky'"
+                                    alt="Avatar" class="w-full h-full object-cover rounded-full">
+                            </div>
+                        </div>
 
-            <!-- User Name & Status -->
-            <div class="flex flex-col items-start gap-1">
-                <h2 class="title-lg-emphasis text-on-background">{{ user?.user_metadata?.full_name || '使用者' }}</h2>
-                <span class="label-sm text-on-surface-variant font-medium">
-                    <template v-if="joinedDate">{{ joinedDate }} 加入</template>
-                    <template v-else>&nbsp;</template>
-                </span>
-            </div>
-        </div>
-
-        <!-- Unified Overview Section -->
-        <div class="space-y-6">
-            <h3 class="title-md-emphasis text-on-surface-variant">概覽</h3>
-
-            <div class="space-y-6">
-                <!-- Data List (Simplified: Level & XP only) -->
-                <div class="grid grid-cols-2 gap-y-6 gap-x-8">
-                    <!-- Current Level -->
-                    <div class="flex flex-col">
-                        <span
-                            class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">目前等級</span>
-                        <span class="title-lg-emphasis text-on-surface">Lv.{{ persistence.currentLevel.value }}</span>
-                    </div>
-                    <!-- Total XP -->
-                    <div class="flex flex-col border-l border-outline-variant/30 pl-6">
-                        <span
-                            class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">累積經驗</span>
-                        <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.totalXP }} <span
-                                class="label-sm">XP</span></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Honor Moments (Achievements) -->
-        <div class="space-y-4 pb-8">
-            <h3 class="title-md-emphasis text-on-surface-variant">成就紀錄</h3>
-
-
-            <div class="grid grid-cols-4 gap-4">
-                <div v-for="ach in achievements" :key="ach.id"
-                    class="flex flex-col items-center space-y-2 group cursor-help" :title="ach.description">
-                    <div class="relative transition-transform duration-300 group-hover:scale-110">
-                        <HonorShape :index="ach.shapeIndex" :class="isUnlocked(ach) ? '' : 'grayscale opacity-30'" />
-                        <div v-if="!isUnlocked(ach)" class="absolute inset-0 flex items-center justify-center">
-                            <Icon name="material-symbols:lock-outline" size="16" class="text-on-surface/50" />
+                        <!-- User Name & Status -->
+                        <div class="flex flex-col items-start gap-1">
+                            <h2 class="title-lg-emphasis text-on-background">{{ user?.user_metadata?.full_name || '使用者' }}</h2>
+                            <span class="label-sm text-on-surface-variant font-medium">
+                                <template v-if="joinedDate">{{ joinedDate }} 加入</template>
+                                <template v-else>&nbsp;</template>
+                            </span>
                         </div>
                     </div>
-                    <span class="label-sm text-center leading-tight font-medium"
-                        :class="isUnlocked(ach) ? 'text-on-surface' : 'text-on-surface-variant'">
-                        {{ ach.name }}
-                    </span>
+
+                    <!-- Unified Overview Section -->
+                    <div class="space-y-6">
+                        <h3 class="title-md-emphasis text-on-surface-variant">概覽</h3>
+
+                        <div class="grid grid-cols-2 gap-y-6 gap-x-8">
+                            <!-- Current Level -->
+                            <div class="flex flex-col">
+                                <span
+                                    class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">目前等級</span>
+                                <span class="title-lg-emphasis text-on-surface">Lv.{{ persistence.currentLevel.value }}</span>
+                            </div>
+                            <!-- Total XP -->
+                            <div class="flex flex-col border-l border-outline-variant/30 pl-6">
+                                <span
+                                    class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">累積經驗</span>
+                                <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.totalXP }} <span
+                                        class="label-sm">XP</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Achievements -->
+                <div class="space-y-6">
+                    <!-- Honor Moments (Achievements) -->
+                    <div class="space-y-4 pb-8">
+                        <h3 class="title-md-emphasis text-on-surface-variant">成就紀錄</h3>
+
+                        <div class="grid grid-cols-4 lg:grid-cols-3 gap-6">
+                            <div v-for="ach in achievements" :key="ach.id"
+                                class="flex flex-col items-center space-y-2 group cursor-help" :title="ach.description">
+                                <div class="relative transition-transform duration-300 group-hover:scale-110">
+                                    <HonorShape :index="ach.shapeIndex" :class="isUnlocked(ach) ? '' : 'grayscale opacity-30'" />
+                                    <div v-if="!isUnlocked(ach)" class="absolute inset-0 flex items-center justify-center">
+                                        <Icon name="material-symbols:lock-outline" size="16" class="text-on-surface/50" />
+                                    </div>
+                                </div>
+                                <span class="label-sm text-center leading-tight font-medium"
+                                    :class="isUnlocked(ach) ? 'text-on-surface' : 'text-on-surface-variant'">
+                                    {{ ach.name }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

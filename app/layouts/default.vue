@@ -2,8 +2,12 @@
     <!-- Screen Background (Uniform Color) -->
     <div class="min-h-screen bg-surface flex justify-center selection:bg-gray-700 selection:text-white">
         
-        <!-- App Container (Constrained Width on Desktop, Unified Style) -->
-        <div class="w-full max-w-[440px] min-h-screen text-on-surface antialiased relative flex flex-col">
+        <!-- Desktop Navigation Rail (Fixed on the left) -->
+        <NavigationRail v-if="showNavigationBar" />
+
+        <!-- App Container (Full Width on Desktop) -->
+        <!-- lg:pl-48 用於避讓左側固定導覽列 -->
+        <div class="w-full max-w-[440px] lg:max-w-none lg:pl-48 min-h-screen text-on-surface antialiased relative flex flex-col">
             
             <!-- Main Content Area -->
             <main class="flex-1 w-full relative z-10 overflow-x-hidden flex flex-col"
@@ -11,8 +15,8 @@
                 <slot />
             </main>
 
-            <!-- Bottom Navigation -->
-            <NavigationBar v-if="showNavigationBar" />
+            <!-- Bottom Navigation (Mobile Only) -->
+            <NavigationBar v-if="showNavigationBar" class="lg:hidden" />
         </div>
     </div>
 </template>
