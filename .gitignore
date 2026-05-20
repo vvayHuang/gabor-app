@@ -28,3 +28,9 @@ App.xcresult
 DerivedData/
 Pods/
 .swiftpm/
+
+# Gemini & Antigravity CLI Local Data
+.gemini/
+.antigravity/
+.antigravitycli/
+.antigravity-cli/

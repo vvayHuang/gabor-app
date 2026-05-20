@@ -1,13 +1,19 @@
 <template>
     <!-- Screen Background (Uniform Color) -->
-    <div class="min-h-screen bg-surface flex justify-center selection:bg-gray-700 selection:text-white">
+    <div class="min-h-screen bg-surface flex justify-center selection:bg-gray-700 selection:text-white relative overflow-hidden">
+        
+        <!-- p5.js 生成式幾何流場背景 (僅在支援的客戶端渲染) -->
+        <ClientOnly>
+            <GaborFlowField />
+        </ClientOnly>
         
         <!-- Desktop Navigation Rail (Fixed on the left) -->
         <NavigationRail v-if="showNavigationBar" />
 
         <!-- App Container (Full Width on Desktop) -->
-        <!-- lg:pl-48 用於避讓左側固定導覽列 -->
-        <div class="w-full max-w-[440px] lg:max-w-none lg:pl-48 min-h-screen text-on-surface antialiased relative flex flex-col">
+        <!-- 僅在顯示導覽列時套用 lg:pl-[288px] 避讓左側欄，啟動頁、登入頁與遊戲頁則保持置中 (lg:pl-0) -->
+        <div class="w-full max-w-[440px] lg:max-w-none min-h-screen text-on-surface antialiased relative flex flex-col transition-all duration-300"
+            :class="[showNavigationBar ? 'lg:pl-[288px]' : 'lg:pl-0']">
             
             <!-- Main Content Area -->
             <main class="flex-1 w-full relative z-10 overflow-x-hidden flex flex-col"

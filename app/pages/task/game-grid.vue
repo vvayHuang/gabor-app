@@ -81,7 +81,7 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { gsap } from 'gsap';
 import { useGameState } from '~/composables/useGameState';
 import { useGamePersistence } from '~/composables/useGamePersistence';
@@ -107,7 +107,23 @@ const levelsPerPhase = 5;
 const gridCols = ref(3);
 const gridRows = ref(4);
 const gridGap = ref(16);
+// 響應式計算斑塊尺寸，大螢幕 (lg breakpoint >= 1024px) 下顯著放大，確保桌面端條紋特徵大而清晰
+const getResponsiveSize = (cols: number) => {
+    if (typeof window === 'undefined') return cols > 4 ? 65 : (cols > 3 ? 80 : 100);
+    const isDesktop = window.innerWidth >= 1024;
+    if (isDesktop) {
+        // 桌面端放大尺寸
+        return cols > 5 ? 85 : (cols > 4 ? 100 : (cols > 3 ? 120 : 155));
+    }
+    // 行動端原本尺寸
+    return cols > 4 ? 65 : (cols > 3 ? 80 : 100);
+};
+
 const canvasSize = ref(80);
+
+const updateResponsiveSize = () => {
+    canvasSize.value = getResponsiveSize(gridCols.value);
+};
 const gameStarted = ref(false);
 const showPhaseTransition = ref(false);
 
@@ -168,7 +184,7 @@ const startNewGame = async () => {
     const params = gameState.getDifficultyParams(persistence.currentLevel.value);
     gridCols.value = params.grid.cols;
     gridRows.value = params.grid.rows;
-    canvasSize.value = gridCols.value > 4 ? 65 : (gridCols.value > 3 ? 80 : 100);
+    canvasSize.value = getResponsiveSize(gridCols.value);
 
     gamePhase.value = 'STAGE_1';
     currentLevelInPhase.value = 1;
@@ -191,7 +207,7 @@ const startNextPhase = () => {
     
     gridCols.value = params.grid.cols;
     gridRows.value = params.grid.rows;
-    canvasSize.value = gridCols.value > 4 ? 65 : (gridCols.value > 3 ? 80 : 100);
+    canvasSize.value = getResponsiveSize(gridCols.value);
     
     gamePhase.value = 'STAGE_2';
     currentLevelInPhase.value = 1;
@@ -366,8 +382,29 @@ const handleExit = () => showExitConfirmation.value = true;
 const cancelExit = () => showExitConfirmation.value = false;
 const confirmExit = () => router.push('/prepare');
 
+let resizeHandler: (() => void) | null = null;
+
 onMounted(async () => {
     gridItemRefs.value = []
+    
+    // 設定響應式 resize 監聽器，於大螢幕或視窗縮放時自動重算並重繪 Gabor 斑塊
+    resizeHandler = () => {
+        const oldSize = canvasSize.value;
+        updateResponsiveSize();
+        if (oldSize !== canvasSize.value) {
+            nextTick(() => {
+                updateAllCanvases();
+            });
+        }
+    };
+    window.addEventListener('resize', resizeHandler);
+    
     await startNewGame();
+});
+
+onUnmounted(() => {
+    if (resizeHandler) {
+        window.removeEventListener('resize', resizeHandler);
+    }
 });
 </script>

@@ -1,5 +1,5 @@
 <template>
-    <div class="flex-1 flex flex-col px-4 bg-background overflow-hidden relative">
+    <div class="flex-1 flex flex-col px-4 overflow-hidden relative">
         <!-- Top Calibration Tip (Minimal Style) -->
         <div class="pt-4 flex items-center justify-center">
             <div class="flex items-center space-x-2 bg-on-surface/[0.03] px-4 py-2 rounded-full border border-on-surface/[0.05]">
@@ -13,7 +13,7 @@
         <!-- Main Content -->
         <div class="flex-1 flex flex-col items-center justify-center space-y-12">
             <!-- Text Content -->
-            <div class="space-y-4 w-full">
+            <div class="space-y-4 w-full lg:text-center">
                 <h2 class="headline-lg-emphasis text-on-surface-variant">準備好放鬆了嗎？</h2>
                 <p class="headline-sm text-on-surface-variant">
                     請盡量在微光環境中使用
