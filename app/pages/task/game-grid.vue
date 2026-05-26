@@ -2,7 +2,7 @@
     <div ref="pageContainer" class="flex-1 flex flex-col px-4 space-y-8 relative transition-colors duration-100">
         <!-- Header & Title (Hidden during phase transition) -->
         <template v-if="!showPhaseTransition">
-            <TaskHeader class="z-20 w-full pt-4" :current="currentLevelInPhase - 1" :total="levelsPerPhase"
+            <TaskHeader class="z-20 w-full max-w-2xl mx-auto pt-4" :current="currentLevelInPhase - 1" :total="levelsPerPhase"
                 @exit="handleExit" />
 
             <!-- Instruction Title -->

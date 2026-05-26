@@ -18,7 +18,7 @@
         </div>
 
         <!-- Bottom Action Area -->
-        <div class="pb-[calc(16px+env(safe-area-inset-bottom))]">
+        <div class="w-full max-w-md md:max-w-2xl mx-auto px-0 md:px-6 pb-[calc(16px+env(safe-area-inset-bottom))]">
             <Buttons buttonStyle="Bordered - Prominent" size="Large" label="我準備好了" to="/prepare" />
         </div>
     </div>

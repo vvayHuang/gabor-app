@@ -56,9 +56,9 @@ const rollingWindow = computed(() => {
 </script>
 
 <template>
-    <div class="flex-1 flex flex-col px-4 space-y-8 text-center">
+    <div class="flex-1 flex flex-col px-4 justify-between text-center">
         <!-- Center Content -->
-        <div class="flex-1 flex flex-col items-center justify-center pt-8 space-y-12">
+        <div class="flex-1 flex flex-col items-center justify-center pt-8 space-y-12 w-full max-w-2xl mx-auto">
             <div class="space-y-2">
                 <h2 class="headline-sm text-on-background/60">今天，{{ todayDate }}</h2>
                 <h1 class="headline-lg text-primary">{{ streakMessage }}</h1>
@@ -86,7 +86,7 @@ const rollingWindow = computed(() => {
         </div>
 
         <!-- Bottom Button (Consistent Bottom Area) -->
-        <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md px-4 pb-[calc(16px+env(safe-area-inset-bottom))] transition-opacity duration-1000"
+        <div class="w-full max-w-md md:max-w-2xl mx-auto px-0 md:px-6 pb-[calc(16px+env(safe-area-inset-bottom))] transition-opacity duration-1000"
             :class="showButton ? 'opacity-100' : 'opacity-0 pointer-events-none'">
             <Buttons buttonStyle="Bordered - Prominent" size="Large" to="/timer" label="下一步" />
         </div>

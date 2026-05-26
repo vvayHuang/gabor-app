@@ -25,7 +25,7 @@
         </div>
 
         <!-- Skip Button (Bottom Area) -->
-        <div class="w-full max-w-md mx-auto z-10 px-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
+        <div class="w-full max-w-md md:max-w-2xl mx-auto z-10 px-0 md:px-6 pb-[calc(16px+env(safe-area-inset-bottom))]">
             <Buttons buttonStyle="Borderless" size="Medium" to="/completion" label="略過" />
         </div>
 

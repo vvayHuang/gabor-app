@@ -3,52 +3,52 @@
         <!-- Analysis Report View -->
         <div ref="analysisView"
             class="flex-1 flex flex-col items-center justify-between pt-8 space-y-8 opacity-0 translate-y-4">
-            <!-- Upper Half: Centered Logo and Title -->
-            <div class="flex-1 flex flex-col items-center justify-center w-full max-w-2xl text-center space-y-6">
-                <div class="flex flex-col items-center">
-                    <img src="~/assets/logo.svg" alt="Gabor Logo" class="w-24 h-auto animate-bounce-slow" />
+            <!-- Upper Half: Centered Logo, Title, and Metrics Layout -->
+            <div class="flex-1 flex flex-col items-center justify-center w-full max-w-2xl text-center space-y-12">
+                <div class="flex flex-col items-center space-y-6">
+                    <div class="flex flex-col items-center">
+                        <img src="~/assets/logo.svg" alt="Gabor Logo" class="w-24 h-auto animate-bounce-slow" />
+                    </div>
+
+                    <div class="space-y-2">
+                        <h1 class="display-sm-emphasis text-on-surface">分析報告</h1>
+                        <p class="headline-lg text-on-surface-variant">{{ feedbackText }}</p>
+                    </div>
                 </div>
 
-                <div class="space-y-2">
-                    <h1 class="display-sm-emphasis text-on-surface">分析報告</h1>
-                    <p class="headline-lg text-on-surface-variant">你做得很好</p>
+                <!-- 3-Column Metrics Layout (Minimalist Style) -->
+                <div class="w-full px-6">
+                    <div class="grid grid-cols-3 gap-4">
+                        <!-- Success Rate Stat -->
+                        <div class="flex flex-col items-start space-y-1">
+                            <span class="label-sm font-bold uppercase tracking-widest text-on-surface-variant">成功率</span>
+                            <div class="flex items-baseline space-x-1">
+                                <span class="display-sm-emphasis text-on-surface">{{ successRate }}</span>
+                                <span class="label-sm font-bold text-on-surface-variant">%</span>
+                            </div>
+                        </div>
+
+                        <!-- Time Elapsed Stat -->
+                        <div class="flex flex-col items-start space-y-1 border-l border-outline-variant/30 pl-6">
+                            <span class="label-sm font-bold uppercase tracking-widest text-on-surface-variant">訓練時間</span>
+                            <span class="display-sm-emphasis text-on-surface">{{ formattedTime }}</span>
+                        </div>
+
+                        <!-- Average Response Stat -->
+                        <div class="flex flex-col items-start space-y-1 border-l border-outline-variant/30 pl-6">
+                            <span class="label-sm font-bold uppercase tracking-widest text-on-surface-variant">平均反應</span>
+                            <div class="flex items-baseline space-x-1">
+                                <span class="display-sm-emphasis text-on-surface">{{ avgResponseSpeed }}</span>
+                                <span class="label-sm font-bold text-on-surface-variant">s</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Lower Half: De-carded Metrics Layout -->
-            <div class="w-full max-w-2xl px-6">
-                
-                <!-- 3-Column Metrics Layout (Minimalist Style) -->
-                <div class="grid grid-cols-3 gap-4">
-                    <!-- Success Rate Stat -->
-                    <div class="flex flex-col items-start space-y-1">
-                        <span class="label-sm font-bold uppercase tracking-widest text-on-surface-variant">成功率</span>
-                        <div class="flex items-baseline space-x-1">
-                            <span class="display-sm-emphasis text-on-surface">{{ successRate }}</span>
-                            <span class="label-sm font-bold text-on-surface-variant">%</span>
-                        </div>
-                    </div>
-
-                    <!-- Time Elapsed Stat -->
-                    <div class="flex flex-col items-start space-y-1 border-l border-outline-variant/30 pl-6">
-                        <span class="label-sm font-bold uppercase tracking-widest text-on-surface-variant">訓練時間</span>
-                        <span class="display-sm-emphasis text-on-surface">{{ formattedTime }}</span>
-                    </div>
-
-                    <!-- Average Response Stat -->
-                    <div class="flex flex-col items-start space-y-1 border-l border-outline-variant/30 pl-6">
-                        <span class="label-sm font-bold uppercase tracking-widest text-on-surface-variant">平均反應</span>
-                        <div class="flex items-baseline space-x-1">
-                            <span class="display-sm-emphasis text-on-surface">{{ avgResponseSpeed }}</span>
-                            <span class="label-sm font-bold text-on-surface-variant">s</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Button (Bottom Area) -->
-                <div class="w-full max-w-md mx-auto pb-[calc(16px+env(safe-area-inset-bottom))] pt-16">
-                    <Buttons buttonStyle="Bordered - Prominent" size="Large" label="繼續" to="/streak" />
-                </div>
+            <!-- Action Button (Bottom Area) -->
+            <div class="w-full max-w-md md:max-w-2xl mx-auto px-0 md:px-6 pb-[calc(16px+env(safe-area-inset-bottom))] pt-16">
+                <Buttons buttonStyle="Bordered - Prominent" size="Large" label="繼續" to="/streak" />
             </div>
         </div>
     </div>
@@ -85,6 +85,19 @@ const formattedTime = computed(() => {
     const minutes = Math.floor(elapsedSeconds.value / 60);
     const seconds = elapsedSeconds.value % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+});
+
+const feedbackText = computed(() => {
+    const rate = successRate.value;
+    if (rate >= 95) {
+        return '眼力極佳！你眼睛好利！';
+    } else if (rate >= 85) {
+        return '做得真棒！優秀的視覺敏銳度！';
+    } else if (rate >= 70) {
+        return '穩步提升中，繼續加油！';
+    } else {
+        return '熱身完畢！再接再厲，下次會更好！';
+    }
 });
 
 onMounted(async () => {
