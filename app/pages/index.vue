@@ -4,7 +4,7 @@
         <div class="flex flex-col items-center justify-center absolute inset-0 pointer-events-none">
             <!-- Phase 1: Logo Section -->
             <div ref="logoContainer" class="flex items-center justify-center opacity-0 scale-90">
-                <img src="@/assets/logo.svg" alt="Gabor Patch Logo" class="w-[200px] h-auto">
+                <Logo class="w-[200px] h-auto text-on-background" />
             </div>
 
             <!-- Phase 2: Welcome Text Section -->

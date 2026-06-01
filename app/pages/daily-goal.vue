@@ -7,7 +7,7 @@
             <div class="flex-1 flex flex-col items-center justify-center w-full max-w-2xl text-center space-y-12">
                 <div class="flex flex-col items-center space-y-6">
                     <div class="flex flex-col items-center">
-                        <img src="~/assets/logo.svg" alt="Gabor Logo" class="w-24 h-auto animate-bounce-slow" />
+                        <Logo class="w-24 h-auto animate-bounce-slow text-on-surface" />
                     </div>
 
                     <div class="space-y-2">
