@@ -17,8 +17,8 @@
                 </div>
 
                 <!-- 3-Column Metrics Layout (Minimalist Style) -->
-                <div class="w-full px-6">
-                    <div class="grid grid-cols-3 gap-4">
+                <div class="w-full px-1 sm:px-6">
+                    <div class="grid grid-cols-3 gap-2 sm:gap-4">
                         <!-- Success Rate Stat -->
                         <div class="flex flex-col items-start space-y-1">
                             <span class="label-sm font-bold uppercase tracking-widest text-on-surface-variant">成功率</span>
@@ -29,13 +29,13 @@
                         </div>
 
                         <!-- Time Elapsed Stat -->
-                        <div class="flex flex-col items-start space-y-1 border-l border-outline-variant/30 pl-6">
+                        <div class="flex flex-col items-start space-y-1 border-l border-outline-variant/30 pl-3 sm:pl-6">
                             <span class="label-sm font-bold uppercase tracking-widest text-on-surface-variant">訓練時間</span>
                             <span class="display-sm-emphasis text-on-surface">{{ formattedTime }}</span>
                         </div>
 
                         <!-- Average Response Stat -->
-                        <div class="flex flex-col items-start space-y-1 border-l border-outline-variant/30 pl-6">
+                        <div class="flex flex-col items-start space-y-1 border-l border-outline-variant/30 pl-3 sm:pl-6">
                             <span class="label-sm font-bold uppercase tracking-widest text-on-surface-variant">平均反應</span>
                             <div class="flex items-baseline space-x-1">
                                 <span class="display-sm-emphasis text-on-surface">{{ avgResponseSpeed }}</span>
