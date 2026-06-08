@@ -1,10 +1,10 @@
 <template>
   <div class="flex items-center w-full bg-background transition-all duration-300" :class="[
-    type === 'navigation' ? 'h-[54px] pt-0 pb-[10px]' : 'h-14',
+    type === 'navigation' ? 'h-[54px] pt-0 pb-2.5' : 'h-14',
     { 'fixed top-0 z-50': sticky }
   ]">
     <!-- Type: Navigation (Icon button left + Title next to it) -->
-    <div v-if="type === 'navigation'" class="flex items-center gap-[10px] w-full">
+    <div v-if="type === 'navigation'" class="flex items-center gap-2.5 lg:gap-0 w-full">
       <div class="flex-shrink-0 flex items-center justify-center">
         <slot name="left"></slot>
       </div>

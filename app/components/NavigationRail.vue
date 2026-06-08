@@ -5,6 +5,10 @@ const items = [
     { to: '/profile', icon: 'material-symbols:contacts-product', label: '個人' },
     { to: '/tutorial', icon: 'material-symbols:question-mark', label: '說明' },
 ];
+
+const utilityItems = [
+    { to: '/settings', icon: 'material-symbols:settings-outline', label: '設定' },
+];
 </script>
 
 <template>
@@ -26,6 +30,14 @@ const items = [
                         v-for="item in items" 
                         :key="item.to" 
                         v-bind="item" 
+                    />
+                </div>
+
+                <div class="w-full px-3 pt-4 mt-4 border-t border-outline-variant/30 space-y-1.5">
+                    <NavigationItem
+                        v-for="item in utilityItems"
+                        :key="item.to"
+                        v-bind="item"
                     />
                 </div>
             </div>
@@ -66,5 +78,4 @@ const items = [
     border-radius: 8px !important;
 }
 </style>
-
 

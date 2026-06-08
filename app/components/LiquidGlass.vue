@@ -15,20 +15,20 @@ const props = withDefaults(defineProps<Props>(), {
   <div class="relative isolate" :class="rounded ? `rounded-${rounded}` : 'rounded-none'">
     
     <!-- 1. External Glow & Soft Shadow -->
-    <div class="absolute -inset-4 opacity-30 pointer-events-none -z-40 blur-xl rounded-[inherit] bg-black/5"></div>
+    <div class="glass-glow absolute -inset-4 opacity-30 pointer-events-none -z-40 blur-xl rounded-[inherit]"></div>
 
     <!-- 2. Glass Core: Blur + Saturation (Apple-style transparency) -->
     <div 
-      class="absolute inset-0 -z-30 backdrop-blur-3xl backdrop-saturate-[1.8] bg-white/40 rounded-[inherit] overflow-hidden shadow-glass"
+      class="glass-core absolute inset-0 -z-30 backdrop-blur-3xl backdrop-saturate-[1.8] rounded-[inherit] overflow-hidden"
     >
       <!-- 3. Volume Layer (Subtle Gradient for depth) -->
-      <div class="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-black/[0.02] pointer-events-none"></div>
+      <div class="glass-volume absolute inset-0 pointer-events-none"></div>
     </div>
 
     <!-- 4. Fine Specular Edge -->
     <div 
       v-if="props.border"
-      class="absolute inset-0 -z-10 rounded-[inherit] border border-white/40"
+      class="glass-border absolute inset-0 -z-10 rounded-[inherit]"
     ></div>
 
     <!-- Content Slot -->
@@ -39,11 +39,29 @@ const props = withDefaults(defineProps<Props>(), {
 </template>
 
 <style scoped>
-/* 關鍵：模擬光線照在曲面玻璃上的立體感 */
-.shadow-glass {
-  box-shadow: 
-    inset 0 1px 1.5px rgba(255, 255, 255, 0.5), /* 頂部高光細節 */
-    inset 0 -0.5px 1px rgba(0, 0, 0, 0.05),    /* 底部遮蔽細節 */
-    0 4px 24px -1px rgba(0, 0, 0, 0.1);        /* 外部柔和落影 */
+/* 使用全域 tokens 讓玻璃材質跟著亮色／深色模式切換 */
+.glass-glow {
+  background: var(--glass-glow);
+}
+
+.glass-core {
+  background: var(--glass-fill);
+  box-shadow:
+    inset 0 1px 1.5px var(--glass-specular),
+    inset 0 -0.5px 1px var(--glass-shade),
+    0 4px 24px -1px var(--glass-shadow);
+}
+
+.glass-volume {
+  background: linear-gradient(
+    to bottom,
+    var(--glass-highlight),
+    transparent,
+    var(--glass-volume-shade)
+  );
+}
+
+.glass-border {
+  border: 1px solid var(--glass-border);
 }
 </style>

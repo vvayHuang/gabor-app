@@ -50,6 +50,14 @@
   --color-surface-container: #ebedf8;
   --color-surface-container-high: #e5e8f2;
   --color-surface-container-highest: #e0e2ec;
+  --glass-glow: rgba(0, 0, 0, 0.05);
+  --glass-fill: rgba(255, 255, 255, 0.4);
+  --glass-highlight: rgba(255, 255, 255, 0.2);
+  --glass-specular: rgba(255, 255, 255, 0.5);
+  --glass-shade: rgba(0, 0, 0, 0.05);
+  --glass-volume-shade: rgba(0, 0, 0, 0.02);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: rgba(0, 0, 0, 0.1);
 
   --font-sans:
     "Noto Sans TC", ui-ans-serif, system-ui, sans-serif, "Apple Color Emoji",
@@ -95,6 +103,14 @@
   --color-surface-container: #1c2027;
   --color-surface-container-high: #272a32;
   --color-surface-container-highest: #31353d;
+  --glass-glow: rgba(168, 200, 255, 0.08);
+  --glass-fill: rgba(28, 32, 39, 0.58);
+  --glass-highlight: rgba(255, 255, 255, 0.1);
+  --glass-specular: rgba(255, 255, 255, 0.18);
+  --glass-shade: rgba(0, 0, 0, 0.28);
+  --glass-volume-shade: rgba(0, 0, 0, 0.22);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-shadow: rgba(0, 0, 0, 0.36);
 }
 
 /* Display */

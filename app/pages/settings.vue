@@ -7,12 +7,9 @@
       <template #left>
         <NuxtLink
           to="/profile"
-          class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container transition-colors hover:bg-surface-variant text-on-surface"
+          class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container transition-colors hover:bg-surface-variant text-on-surface lg:hidden"
         >
-          <Icon
-            name="material-symbols:arrow-back-ios-new-rounded"
-            size="17"
-          />
+          <Icon name="material-symbols:arrow-back-ios-new-rounded" size="17" />
         </NuxtLink>
       </template>
     </ToolbarTop>
@@ -20,9 +17,7 @@
     <div class="flex flex-col space-y-10">
       <!-- Preferences Settings Section -->
       <section class="flex flex-col gap-6">
-        <h2 class="title-md-emphasis text-on-surface-variant">
-          偏好設定
-        </h2>
+        <h2 class="title-md-emphasis text-on-surface-variant">偏好設定</h2>
 
         <div class="flex flex-col gap-6 px-2">
           <!-- Item: 聲音 -->
@@ -82,38 +77,17 @@
               </div>
             </transition>
           </div>
-
-          <!-- Item: 字體大小 -->
-          <div class="flex items-center justify-between w-full h-[52px]">
-            <span class="body-lg text-on-background flex-shrink-0"
-              >字體大小</span
-            >
-            <!-- Slider Area -->
-            <div class="flex items-center gap-3 flex-1 px-4">
-              <span class="body-sm text-on-surface-variant">小</span>
-              <Slider
-                class="flex-1"
-                :min="12"
-                :max="24"
-                :step="3"
-                v-model="params.fontSize"
-              />
-              <span class="body-lg text-on-surface-variant">大</span>
-            </div>
-          </div>
         </div>
       </section>
 
       <!-- Account Section -->
       <section class="flex flex-col gap-6">
-        <h2 class="title-md-emphasis text-on-surface-variant">
-          客服
-        </h2>
+        <h2 class="title-md-emphasis text-on-surface-variant">客服</h2>
 
         <div class="flex flex-col gap-6">
           <!-- Menu Item: 聯絡我們 -->
           <div
-            class="flex items-center justify-between px-2 h-11 cursor-pointer hover:bg-on-surface/5 transition-colors rounded-lg gap-[4px]"
+            class="flex items-center justify-between px-2 h-11 rounded-lg gap-1"
           >
             <span class="body-lg text-on-background">聯絡我們</span>
             <Icon
@@ -124,14 +98,16 @@
           </div>
 
           <!-- Logout Button -->
-          <Buttons
-            buttonStyle="Bordered"
-            label="登出"
-            :destructive="true"
-            size="Large"
-            labelType="Text"
-            @click="handleLogout"
-          />
+          <div class="w-full lg:w-fit">
+            <Buttons
+              buttonStyle="Bordered"
+              label="登出"
+              :destructive="true"
+              size="Large"
+              labelType="Text"
+              @click="handleLogout"
+            />
+          </div>
         </div>
       </section>
     </div>
@@ -139,12 +115,10 @@
 </template>
 
 <script setup lang="ts">
-import { useGaborMock } from "~/composables/useGaborMock";
 import { useRouter } from "vue-router";
 import { useAppSettings } from "~/composables/useAppSettings";
 import { onMounted, ref } from "vue";
 
-const { params } = useGaborMock();
 const router = useRouter();
 const supabase = useSupabaseClient();
 const persistence = useGamePersistence();

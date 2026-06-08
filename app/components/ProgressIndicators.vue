@@ -3,8 +3,7 @@
         <!-- Progress Track -->
         <div class="relative h-[6px] bg-surface-dim rounded-full overflow-hidden w-full">
             <!-- Progress Fill -->
-            <div ref="progressFill" class="absolute top-0 left-0 h-full bg-primary rounded-full"
-                :style="{ width: `${initialPercentage}%` }">
+            <div ref="progressFill" class="absolute top-0 left-0 h-full bg-primary rounded-full w-0">
             </div>
         </div>
     </div>
@@ -27,29 +26,23 @@ const props = defineProps({
 
 const progressFill = ref<HTMLElement | null>(null);
 
-// Calculate percentage for initial mount or state resets
 const getPercentage = () => {
     if (props.total <= 0) return 0;
     return Math.min(100, Math.max(0, (props.current / props.total) * 100));
 };
 
-const initialPercentage = getPercentage();
-
-// Use GSAP to animate the width when current changes
-watch(() => props.current, (newVal) => {
+watch(() => [props.current, props.total], () => {
     if (progressFill.value) {
-        const targetPercent = (newVal / props.total) * 100;
         gsap.to(progressFill.value, {
-            width: `${targetPercent}%`,
+            width: `${getPercentage()}%`,
             duration: 0.6,
             ease: 'power2.out',
             overwrite: true
         });
     }
-});
+}, { flush: 'post' });
 
 onMounted(() => {
-    // Ensure initial sync
     if (progressFill.value) {
         gsap.set(progressFill.value, {
             width: `${getPercentage()}%`

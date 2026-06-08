@@ -3,7 +3,7 @@
         <div class="max-w-screen-xl mx-auto w-full">
             <ToolbarTop headline="個人資料" type="header">
                 <template #right>
-                    <NuxtLink to="/settings" class="p-2">
+                    <NuxtLink to="/settings" class="p-2 lg:hidden">
                         <Icon name="material-symbols:settings-outline" size="24" class="text-on-background" />
                     </NuxtLink>
                 </template>

@@ -14,7 +14,7 @@ const sideItem = { to: '/tutorial', icon: 'material-symbols:question-mark', labe
         <!-- 左側群組 -->
         <div class="pointer-events-auto h-[58px]">
             <LiquidGlass rounded="full" :border="false" class="h-full">
-                <div class="flex items-center h-full px-1 -space-x-[10px]">
+                <div class="flex items-center h-full px-1 -space-x-2.5">
                     <NavigationItem v-for="item in mainItems" :key="item.to" v-bind="item" />
                 </div>
             </LiquidGlass>

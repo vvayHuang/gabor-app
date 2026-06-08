@@ -3,9 +3,9 @@
         'flex items-center justify-center transition cursor-pointer font-sans transition-all duration-200',
 
         // Size and Padding (Figma mapping)
-        size === 'Small' ? 'px-[10px] py-[4px] gap-[3px] min-h-[28px]' :
-            size === 'Large' ? 'px-[20px] py-[14px] gap-[8px] min-h-[48px]' :
-                'px-[14px] py-[7px] gap-[4px] min-h-[34px]', // Medium default
+        size === 'Small' ? 'px-2.5 py-1 gap-[3px] min-h-7' :
+            size === 'Large' ? 'px-5 py-3.5 gap-2 min-h-12' :
+                'px-3.5 py-[7px] gap-1 min-h-[34px]', // Medium default
 
         // Typography (Figma mapping)
         size === 'Small' ? 'label-sm' :
