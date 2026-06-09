@@ -174,7 +174,7 @@ export function useGamePersistence() {
                 const payload = {
                     user_id: currentUser.id,
                     high_score: stats.value.highScore,
-                    consecutive_days: stats.value.consecutiveDays,
+                    consecutive_days: longestStreak.value,
                     total_time_minutes: stats.value.totalTimeMinutes,
                     total_xp: stats.value.totalXP,
                     total_sessions: stats.value.totalSessions,
@@ -205,6 +205,29 @@ export function useGamePersistence() {
         const range = xpForNext - xpForCurrent
         const progress = stats.value.totalXP - xpForCurrent
         return Math.min(100, Math.max(0, (progress / range) * 100))
+    })
+
+    const longestStreak = computed(() => {
+        const achievementDates = Object.keys(stats.value.achievements || {}).sort()
+        if (achievementDates.length === 0) return stats.value.consecutiveDays
+
+        let longest = 1
+        let current = 1
+
+        for (let i = 1; i < achievementDates.length; i++) {
+            const previousDate = new Date(`${achievementDates[i - 1]}T00:00:00`)
+            const currentDate = new Date(`${achievementDates[i]}T00:00:00`)
+            const diffDays = Math.round((currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24))
+
+            if (diffDays === 1) {
+                current++
+                longest = Math.max(longest, current)
+            } else if (diffDays > 1) {
+                current = 1
+            }
+        }
+
+        return longest
     })
 
     const rankName = computed(() => {
@@ -254,8 +277,8 @@ export function useGamePersistence() {
         const lastPlayed = stats.value.lastPlayedDate
 
         if (!lastPlayed) {
-            stats.value.consecutiveDays = 1
             stats.value.currentStreak = 1
+            stats.value.consecutiveDays = Math.max(stats.value.consecutiveDays, stats.value.currentStreak)
             await addXP(50)
         } else {
             const lastDate = new Date(lastPlayed)
@@ -267,11 +290,12 @@ export function useGamePersistence() {
             if (diffDays === 0) return
             
             if (diffDays === 1) {
-                stats.value.consecutiveDays++
                 stats.value.currentStreak++
+                stats.value.consecutiveDays = Math.max(stats.value.consecutiveDays, stats.value.currentStreak)
                 await addXP(30)
             } else {
                 stats.value.currentStreak = 1
+                stats.value.consecutiveDays = Math.max(stats.value.consecutiveDays, stats.value.currentStreak)
             }
         }
 
@@ -305,6 +329,7 @@ export function useGamePersistence() {
         stats,
         currentLevel,
         levelProgress,
+        longestStreak,
         rankName,
         loadStats,
         saveStats,

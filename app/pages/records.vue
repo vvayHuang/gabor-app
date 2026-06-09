@@ -57,6 +57,12 @@ onMounted(async () => {
                                     Math.round(persistence.stats.value.totalTimeMinutes || 0) }} <span
                                         class="label-sm">分鐘</span></span>
                             </div>
+                            <!-- Longest Streak -->
+                            <div class="flex flex-col border-l border-outline-variant/30 pl-6">
+                                <span class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">最長連續</span>
+                                <span class="title-lg-emphasis text-on-surface">{{ persistence.longestStreak.value }} <span
+                                        class="label-sm">天</span></span>
+                            </div>
 
                             <!-- Integrated Progress Bar -->
                             <div class="col-span-2 flex flex-col pt-2">
