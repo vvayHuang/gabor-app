@@ -60,12 +60,14 @@ import { useRouter } from 'vue-router';
 import gsap from 'gsap';
 import { useGameState } from '~/composables/useGameState';
 import { useGamePersistence } from '~/composables/useGamePersistence';
+import { useAudio } from '~/composables/useAudio';
 
 const router = useRouter();
 const analysisView = ref<HTMLElement | null>(null);
 
 const gameState = useGameState();
 const { loadStats } = useGamePersistence();
+const { playSound } = useAudio();
 
 const elapsedSeconds = computed(() => {
     const oneDayInMs = 24 * 60 * 60 * 1000;
@@ -105,6 +107,7 @@ onMounted(async () => {
     if (gameState.state.session.totalTime === 0 && gameState.state.session.startTime > 0) {
         gameState.endSession();
     }
+    playSound('complete');
     gsap.to(analysisView.value, {
         opacity: 1,
         y: 0,
