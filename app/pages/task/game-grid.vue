@@ -238,35 +238,22 @@ const generateLevel = () => {
 
         const baseAngle = Math.random() * 360;
         const targetAngle = (baseAngle + diff.angleOffset) % 360;
+        const frequencyJitter = 0.72 + Math.random() * 0.72;
+        const baseSF = (diff.cyclesPerMm / settings.pxPerMm.value) * frequencyJitter;
+        const phase = Math.random() * Math.PI * 2;
+        const sigma = (3.5 + Math.random() * 1.4) * settings.pxPerMm.value;
+        const contrast = Math.min(1, diff.contrast * (0.86 + Math.random() * 0.18));
 
         gridItems.value = Array.from({ length: count }, (_, i) => {
             const isTarget = i === targetIndex.value;
-            
-            // --- 強化視覺噪聲 (Enhanced Jitter) ---
-            
-            // 1. 全隨機相位
-            const phase = Math.random() * Math.PI * 2;
-            
-            // 2. 劇烈頻率變化：粗細波動擴大至 +/- 40%
-            const baseSF = diff.cyclesPerMm / settings.pxPerMm.value;
-            const freqJitter = 0.6 + Math.random() * 0.8; 
-            const finalFrequency = baseSF * freqJitter;
-            
-            // 3. 深度對比度波動：確保符號具備足夠濃度
-            const contrastJitter = 0.7 + Math.random() * 0.3;
-            const finalContrast = Math.min(1.0, diff.contrast * contrastJitter);
-            
-            // 4. 角度修正：確保「只有目標項不一樣」
-            // 移除非目標項的角度抖動 (angleJitter)，對齊使用者要求
-            const orientation = isTarget ? targetAngle : baseAngle;
 
-            // 5. 尺寸波動微調 (+/- 10%)，讓視覺呈現更穩定
-            const sigma = (4 * settings.pxPerMm.value) * (0.9 + Math.random() * 0.2);
+            // 同一題只改變目標項角度，避免頻率、相位、大小與對比形成額外辨識線索。
+            const orientation = isTarget ? targetAngle : baseAngle;
 
             return {
                 orientation,
-                frequency: finalFrequency,
-                contrast: finalContrast,
+                frequency: baseSF,
+                contrast,
                 sigma,
                 phase,
             };

@@ -86,21 +86,21 @@ const drawGabor = () => {
             const rx = xx * cosTheta + yy * sinTheta;
             const distSq = xx * xx + yy * yy;
             
-            // 蓋博數學模型
+            // 標準 Gabor patch: Gaussian envelope modulates a sinusoidal grating.
             const distNormalized = distSq / twoSqSigma;
             const envelope = Math.exp(-distNormalized);
             const carrier = Math.cos(TWO_PI * frequency * rx + phase);
             
-            // 非線性顏色與透明度處理 (對齊參考圖)
-            const t = ((1.0 - carrier) * 0.5) * contrast;
-            const finalT = Math.pow(t * envelope, 0.65);
+            // carrier 以背景色為中心，正負振幅分別往亮／暗兩端變化，邊緣自然回到背景色。
+            const signedAmplitude = carrier * envelope * contrast;
+            const t = (signedAmplitude + 1) * 0.5;
 
             const index = (rowOffset + x) * 4;
 
-            data[index]     = bg.r + rd * finalT;
-            data[index + 1] = bg.g + gd * finalT;
-            data[index + 2] = bg.b + bd * finalT;
-            data[index + 3] = envelope * 255;
+            data[index]     = bg.r + rd * t;
+            data[index + 1] = bg.g + gd * t;
+            data[index + 2] = bg.b + bd * t;
+            data[index + 3] = 255;
         }
     }
 
