@@ -3,7 +3,7 @@
         ref="canvasRef"
         :width="size"
         :height="size"
-        class="rounded-full transition-transform duration-150"
+        class="transition-transform duration-150"
         :class="{ 'animate-shake': isShaking, 'invert': isInverted }"
     ></canvas>
 </template>
@@ -43,6 +43,11 @@ const hexToRgb = (hex: string) => {
     return { r, g, b };
 };
 
+const smoothstep = (edge0: number, edge1: number, value: number) => {
+    const t = Math.min(1, Math.max(0, (value - edge0) / (edge1 - edge0)));
+    return t * t * (3 - 2 * t);
+};
+
 const drawGabor = () => {
     const canvas = canvasRef.value;
     if (!canvas) return;
@@ -58,17 +63,14 @@ const drawGabor = () => {
     const cx = w / 2;
     const cy = h / 2;
 
-    const s = sigma || w / 6.5;
-    const twoSqSigma = 2 * s * s;
+    const s = Math.min(sigma || w / 3.8, w * 0.32);
+    const sigmaAcross = s * 0.62;
+    const sigmaAlong = s * 0.82;
+    const twoSqSigmaAcross = 2 * sigmaAcross * sigmaAcross;
+    const twoSqSigmaAlong = 2 * sigmaAlong * sigmaAlong;
     const theta = (orientation * Math.PI) / 180;
     const cosTheta = Math.cos(theta);
     const sinTheta = Math.sin(theta);
-
-    const bg = hexToRgb(props.primaryColor);
-    const fg = hexToRgb(props.secondaryColor);
-    const rd = fg.r - bg.r;
-    const gd = fg.g - bg.g;
-    const bd = fg.b - bg.b;
 
     // 直接建立新的 ImageData，避免 readback
     const imageData = ctx.createImageData(w, h);
@@ -82,24 +84,23 @@ const drawGabor = () => {
         for (let x = 0; x < w; x++) {
             const xx = x - cx;
 
-            // 旋轉與座標計算
+            // 旋轉與座標計算：rx 控制條紋明暗，ry 控制符號沿條紋方向的柔邊延展。
             const rx = xx * cosTheta + yy * sinTheta;
-            const distSq = xx * xx + yy * yy;
+            const ry = -xx * sinTheta + yy * cosTheta;
             
-            // 標準 Gabor patch: Gaussian envelope modulates a sinusoidal grating.
-            const distNormalized = distSq / twoSqSigma;
+            // 墨暈式 Gabor：透明底上疊黑色條紋，外緣用橢圓 Gaussian 柔化。
+            const distNormalized = (rx * rx / twoSqSigmaAcross) + (ry * ry / twoSqSigmaAlong);
             const envelope = Math.exp(-distNormalized);
+            const edgeFade = 1 - smoothstep(w * 0.28, w * 0.4, Math.hypot(xx, yy));
             const carrier = Math.cos(TWO_PI * frequency * rx + phase);
-            
-            // carrier 以背景色為中心，正負振幅分別往亮／暗兩端變化，邊緣自然回到背景色。
-            const signedAmplitude = carrier * envelope * contrast;
-            const t = (signedAmplitude + 1) * 0.5;
+            const dark = envelope * edgeFade * ((carrier + 1) * 0.5) * contrast;
+            const value = Math.round(255 * (1 - Math.min(1, dark)));
 
             const index = (rowOffset + x) * 4;
 
-            data[index]     = bg.r + rd * t;
-            data[index + 1] = bg.g + gd * t;
-            data[index + 2] = bg.b + bd * t;
+            data[index]     = value;
+            data[index + 1] = value;
+            data[index + 2] = value;
             data[index + 3] = 255;
         }
     }

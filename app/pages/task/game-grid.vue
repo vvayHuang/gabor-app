@@ -238,11 +238,11 @@ const generateLevel = () => {
 
         const baseAngle = Math.random() * 360;
         const targetAngle = (baseAngle + diff.angleOffset) % 360;
-        const frequencyJitter = 0.72 + Math.random() * 0.72;
+        const frequencyJitter = 0.34 + Math.random() * 0.18;
         const baseSF = (diff.cyclesPerMm / settings.pxPerMm.value) * frequencyJitter;
         const phase = Math.random() * Math.PI * 2;
-        const sigma = (3.5 + Math.random() * 1.4) * settings.pxPerMm.value;
-        const contrast = Math.min(1, diff.contrast * (0.86 + Math.random() * 0.18));
+        const sigma = (4.2 + Math.random() * 0.8) * settings.pxPerMm.value;
+        const contrast = Math.min(1, diff.contrast * (1.08 + Math.random() * 0.14));
 
         gridItems.value = Array.from({ length: count }, (_, i) => {
             const isTarget = i === targetIndex.value;
