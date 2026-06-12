@@ -80,11 +80,11 @@ const sketch = (p: p5) => {
                 p.strokeWeight(2.0);
 
                 // A. 中央主條紋 ( Gaussian 峰值，透明度最高 )
-                p.stroke(24, 28, 35, opacity * 255);
+                p.drawingContext.strokeStyle = `rgba(24, 28, 35, ${opacity})`;
                 p.line(-15, 0, 15, 0);
 
                 // B. 兩側副條紋 ( Gaussian 衰減，長度縮短且透明度減半 )
-                p.stroke(24, 28, 35, opacity * 255 * 0.55);
+                p.drawingContext.strokeStyle = `rgba(24, 28, 35, ${opacity * 0.55})`;
                 p.line(-11, -5, 11, -5);
                 p.line(-11, 5, 11, 5);
 

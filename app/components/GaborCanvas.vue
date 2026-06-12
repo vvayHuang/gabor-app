@@ -75,6 +75,7 @@ const drawGabor = () => {
     // 直接建立新的 ImageData，避免 readback
     const imageData = ctx.createImageData(w, h);
     const data = imageData.data;
+    const stripeColor = hexToRgb(props.secondaryColor);
 
     const TWO_PI = Math.PI * 2;
 
@@ -93,15 +94,14 @@ const drawGabor = () => {
             const envelope = Math.exp(-distNormalized);
             const edgeFade = 1 - smoothstep(w * 0.28, w * 0.4, Math.hypot(xx, yy));
             const carrier = Math.cos(TWO_PI * frequency * rx + phase);
-            const dark = envelope * edgeFade * ((carrier + 1) * 0.5) * contrast;
-            const value = Math.round(255 * (1 - Math.min(1, dark)));
+            const dark = Math.min(1, envelope * edgeFade * ((carrier + 1) * 0.5) * contrast);
 
             const index = (rowOffset + x) * 4;
 
-            data[index]     = value;
-            data[index + 1] = value;
-            data[index + 2] = value;
-            data[index + 3] = 255;
+            data[index] = stripeColor.r;
+            data[index + 1] = stripeColor.g;
+            data[index + 2] = stripeColor.b;
+            data[index + 3] = Math.round(255 * dark);
         }
     }
 

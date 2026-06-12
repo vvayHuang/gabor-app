@@ -2,11 +2,11 @@
     <div ref="pageContainer" class="flex-1 flex flex-col px-4 space-y-8 relative transition-colors duration-100">
         <!-- Header & Title (Hidden during phase transition) -->
         <template v-if="!showPhaseTransition">
-            <TaskHeader class="z-20 w-full max-w-2xl mx-auto pt-4" :current="currentLevelInPhase - 1" :total="levelsPerPhase"
+            <TaskHeader class="z-20 w-full max-w-2xl lg:max-w-4xl mx-auto pt-4" :current="currentLevelInPhase - 1" :total="levelsPerPhase"
                 @exit="handleExit" />
 
             <!-- Instruction Title -->
-            <div class="flex items-center space-x-2 mb-8 w-full max-w-2xl mx-auto">
+            <div class="flex items-center space-x-2 mb-8 w-full max-w-2xl lg:max-w-4xl mx-auto">
                 <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
                     <Icon name="material-symbols:question-mark" size="24" class="text-on-primary-fixed" />
                 </div>
@@ -40,7 +40,7 @@
 
         <!-- Game Grid Container -->
         <div v-if="gameStarted && !showPhaseTransition"
-            class="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-[496px]">
+            class="relative w-full max-w-2xl lg:max-w-4xl mx-auto flex items-center justify-center min-h-[496px] lg:min-h-[620px]">
             <!-- Actual Game Grid -->
             <div class="grid w-full items-center justify-items-center" :style="{
                 gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
@@ -52,8 +52,9 @@
                     :ref="(el) => { if (el) gridItemRefs[index] = el }"
                     class="relative group aspect-square flex items-center justify-center cursor-pointer"
                     @click="handleInteraction(index)" :class="{ 'pointer-events-none': feedbackState !== 'IDLE' }">
-                    <div class="absolute inset-0 rounded-full bg-white mix-blend-difference pointer-events-none z-30 transition-opacity duration-75"
-                        :class="(feedbackState === 'SUCCESS' && selectedIndex === index) ? 'opacity-100' : 'opacity-0'">
+                    <div class="absolute rounded-full bg-primary/20 ring-2 ring-primary/70 pointer-events-none z-20 transition-all duration-100"
+                        :style="{ width: `${canvasSize}px`, height: `${canvasSize}px` }"
+                        :class="(feedbackState === 'SUCCESS' && selectedIndex === index) ? 'opacity-100 scale-105' : 'opacity-0 scale-95'">
                     </div>
                     <ClientOnly>
                         <GaborCanvas :ref="el => { if (el) canvasRefs[index] = el }" :size="canvasSize" :params="item"
@@ -81,7 +82,7 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { gsap } from 'gsap';
 import { useGameState } from '~/composables/useGameState';
 import { useGamePersistence } from '~/composables/useGamePersistence';
@@ -108,12 +109,15 @@ const gridCols = ref(3);
 const gridRows = ref(4);
 const gridGap = ref(16);
 // 響應式計算斑塊尺寸，大螢幕 (lg breakpoint >= 1024px) 下顯著放大，確保桌面端條紋特徵大而清晰
-const getResponsiveSize = (cols: number) => {
+const getResponsiveSize = (cols: number, rows: number) => {
     if (typeof window === 'undefined') return cols > 4 ? 65 : (cols > 3 ? 80 : 100);
     const isDesktop = window.innerWidth >= 1024;
     if (isDesktop) {
-        // 桌面端放大尺寸
-        return cols > 5 ? 85 : (cols > 4 ? 100 : (cols > 3 ? 120 : 155));
+        const idealSize = cols > 5 ? 110 : (cols > 4 ? 130 : (cols > 3 ? 150 : 185));
+        const maxGridWidth = Math.min(window.innerWidth * 0.78, 896);
+        const widthBound = (maxGridWidth - ((cols - 1) * gridGap.value)) / cols;
+        const heightBound = (window.innerHeight - 300 - ((rows - 1) * gridGap.value)) / rows;
+        return Math.max(96, Math.floor(Math.min(idealSize, widthBound, heightBound)));
     }
     // 行動端原本尺寸
     return cols > 4 ? 65 : (cols > 3 ? 80 : 100);
@@ -122,7 +126,7 @@ const getResponsiveSize = (cols: number) => {
 const canvasSize = ref(80);
 
 const updateResponsiveSize = () => {
-    canvasSize.value = getResponsiveSize(gridCols.value);
+    canvasSize.value = getResponsiveSize(gridCols.value, gridRows.value);
 };
 const gameStarted = ref(false);
 const showPhaseTransition = ref(false);
@@ -139,9 +143,9 @@ const isGridReady = ref(false);
 const clickStartTime = ref(0);
 
 // --- Colors (Deeper Scientific Palette) ---
-// 使用純黑純白對齊專業參考圖，確保最大對比度
-const primaryColor = ref('#FFFFFF'); // 純白背景
-const secondaryColor = ref('#000000'); // 純黑條紋
+// Canvas 本身保持透明，條紋依目前主題使用高對比前景色。
+const primaryColor = computed(() => settings.isDarkMode.value ? '#101318' : '#F9F9FF');
+const secondaryColor = computed(() => settings.isDarkMode.value ? '#E1E2EC' : '#000000');
 
 // --- Level Data ---
 const gridItems = ref<any[]>([]);
@@ -184,7 +188,7 @@ const startNewGame = async () => {
     const params = gameState.getDifficultyParams(persistence.currentLevel.value);
     gridCols.value = params.grid.cols;
     gridRows.value = params.grid.rows;
-    canvasSize.value = getResponsiveSize(gridCols.value);
+    canvasSize.value = getResponsiveSize(gridCols.value, gridRows.value);
 
     gamePhase.value = 'STAGE_1';
     currentLevelInPhase.value = 1;
@@ -207,7 +211,7 @@ const startNextPhase = () => {
     
     gridCols.value = params.grid.cols;
     gridRows.value = params.grid.rows;
-    canvasSize.value = getResponsiveSize(gridCols.value);
+    canvasSize.value = getResponsiveSize(gridCols.value, gridRows.value);
     
     gamePhase.value = 'STAGE_2';
     currentLevelInPhase.value = 1;
@@ -238,21 +242,21 @@ const generateLevel = () => {
 
         const baseAngle = Math.random() * 360;
         const targetAngle = (baseAngle + diff.angleOffset) % 360;
-        const frequencyJitter = 0.34 + Math.random() * 0.18;
-        const baseSF = (diff.cyclesPerMm / settings.pxPerMm.value) * frequencyJitter;
-        const phase = Math.random() * Math.PI * 2;
-        const sigma = (4.2 + Math.random() * 0.8) * settings.pxPerMm.value;
-        const contrast = Math.min(1, diff.contrast * (1.08 + Math.random() * 0.14));
+        const baseSF = diff.cyclesPerMm / settings.pxPerMm.value;
 
         gridItems.value = Array.from({ length: count }, (_, i) => {
             const isTarget = i === targetIndex.value;
 
-            // 同一題只改變目標項角度，避免頻率、相位、大小與對比形成額外辨識線索。
+            // 樣式可各自變化，但答題判斷仍只看目標項的角度差。
             const orientation = isTarget ? targetAngle : baseAngle;
+            const frequency = baseSF * (0.28 + Math.random() * 0.38);
+            const sigma = (3.7 + Math.random() * 1.5) * settings.pxPerMm.value;
+            const phase = Math.random() * Math.PI * 2;
+            const contrast = Math.min(1, diff.contrast * (1.0 + Math.random() * 0.22));
 
             return {
                 orientation,
-                frequency: baseSF,
+                frequency,
                 contrast,
                 sigma,
                 phase,
@@ -275,10 +279,17 @@ const handleInteraction = (index: number) => {
     if (isCorrect) {
         playSound('success');
         const targetEl = gridItemRefs.value[index];
+        const targetCanvas = canvasRefs.value[index];
         feedbackState.value = 'SUCCESS';
 
+        if (targetCanvas?.triggerInvert) {
+            targetCanvas.triggerInvert();
+        }
+
         if (targetEl) {
-            gsap.to(targetEl, { scale: 0, opacity: 0, duration: 0.3, ease: 'power2.in' });
+            gsap.timeline()
+                .to(targetEl, { scale: 1.08, duration: 0.12, ease: 'power2.out' })
+                .to(targetEl, { scale: 0, opacity: 0, duration: 0.28, ease: 'power2.in' });
         }
 
         currentLevelInPhase.value++;
@@ -373,6 +384,7 @@ let resizeHandler: (() => void) | null = null;
 
 onMounted(async () => {
     gridItemRefs.value = []
+    settings.loadSettings();
     
     // 設定響應式 resize 監聽器，於大螢幕或視窗縮放時自動重算並重繪 Gabor 斑塊
     resizeHandler = () => {
