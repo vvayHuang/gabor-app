@@ -6,17 +6,17 @@
       class="flex-1 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
       @scroll="handleScroll"
     >
-      <!-- Carousel Content with Clones for Infinite Loop -->
+      <!-- Carousel Content -->
       <div 
-        v-for="(step, idx) in displaySteps" 
+        v-for="(step, idx) in steps" 
         :key="idx"
-        class="w-full flex-shrink-0 snap-center flex flex-col items-center justify-center px-4"
+        class="w-full flex-shrink-0 snap-center flex flex-col items-center justify-center px-4 lg:px-10"
       >
         <!-- Illustration Container -->
-        <div class="flex items-center justify-center w-full h-[360px] mb-8">
+        <div class="flex items-center justify-center w-full h-[320px] lg:h-[420px] mb-8">
             
             <!-- Step 1 & 2 logic (Observe / Find) -->
-            <div v-if="step.type === 'gabor'" class="grid grid-cols-3 gap-4 w-full max-w-[320px]">
+            <div v-if="step.type === 'gabor'" class="grid grid-cols-3 gap-4 lg:gap-6 w-full max-w-[320px] lg:max-w-[420px]">
                 <div v-for="i in 6" :key="`g-${idx}-${i}`" class="aspect-square flex items-center justify-center relative">
                     <div class="absolute inset-0 flex items-center justify-center z-10">
                         <ClientOnly>
@@ -37,7 +37,7 @@
             </div>
 
             <!-- Step 3 logic (Records) -->
-            <div v-else class="w-full px-4 space-y-6">
+            <div v-else class="w-full max-w-[420px] px-4 space-y-6">
                 <div class="space-y-4">
                     <div class="flex items-end space-x-4">
                         <h3 class="display-lg-emphasis text-primary">7</h3>
@@ -57,7 +57,7 @@
         </div>
 
         <!-- Text Content -->
-        <div class="text-left w-full px-4 space-y-2 min-h-[120px]">
+        <div class="text-left w-full max-w-[520px] px-4 space-y-2 min-h-[120px]">
             <h3 class="title-lg-emphasis text-on-background">{{ step.title }}</h3>
             <p class="body-lg text-on-surface-variant">{{ step.description }}</p>
         </div>
@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, computed } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 
 const scrollContainer = ref<HTMLElement | null>(null);
 const activeIndex = ref(0);
@@ -101,12 +101,6 @@ const steps = [
   }
 ];
 
-const displaySteps = computed(() => [
-    steps[2],
-    ...steps,
-    steps[0]
-]);
-
 const handleReady = () => {
     nextTick(() => {
         gaborRefs.value.forEach(canvas => {
@@ -131,44 +125,17 @@ const getGaborParams = (stepId: number, itemIndex: number) => {
     return { ...baseParams };
 };
 
-let isJumping = false;
-
 const handleScroll = (event: Event) => {
-    if (isJumping) return;
-
     const container = event.target as HTMLElement;
     const width = container.clientWidth;
     const scrollLeft = container.scrollLeft;
     
-    const rawIndex = Math.round(scrollLeft / width);
-    
-    let visualIdx = rawIndex - 1;
-    if (visualIdx < 0) visualIdx = 2;
-    if (visualIdx > 2) visualIdx = 0;
-    activeIndex.value = visualIdx;
-
-    if (scrollLeft <= 0) {
-        jumpTo(3);
-    } else if (scrollLeft >= width * 4) {
-        jumpTo(1);
-    }
-};
-
-const jumpTo = (index: number) => {
-    isJumping = true;
-    nextTick(() => {
-        if (scrollContainer.value) {
-            scrollContainer.value.scrollLeft = scrollContainer.value.clientWidth * index;
-        }
-        setTimeout(() => {
-            isJumping = false;
-        }, 50);
-    });
+    activeIndex.value = Math.min(steps.length - 1, Math.max(0, Math.round(scrollLeft / width)));
 };
 
 onMounted(() => {
     if (scrollContainer.value) {
-        scrollContainer.value.scrollLeft = scrollContainer.value.clientWidth;
+        scrollContainer.value.scrollLeft = 0;
     }
     
     setTimeout(() => {

@@ -252,19 +252,14 @@ onMounted(() => {
             <div class="w-full flex flex-col items-center space-y-4">
                 <p class="title-sm text-on-background">或繼續使用</p>
                 <div class="w-full space-y-3">
-                    <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol" :enabled="!loading" @click="() => errorMessage = '目前尚未支援 Apple 登入'">
+                    <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol + Text" label="Continue with Apple" :enabled="!loading" @click="() => errorMessage = '目前尚未支援 Apple 登入'">
                         <template #icon>
                             <img src="@/assets/icons/apple.svg" alt="Apple" class="w-6 h-6" />
                         </template>
                     </Buttons>
-                    <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol" :enabled="!loading" @click="handleGoogleLogin">
+                    <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol + Text" label="Continue with Google" :enabled="!loading" @click="handleGoogleLogin">
                         <template #icon>
                             <img src="@/assets/icons/google.svg" alt="Google" class="w-6 h-6" />
-                        </template>
-                    </Buttons>
-                    <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol" :enabled="!loading" @click="() => errorMessage = '目前尚未支援 Figma 登入'">
-                        <template #icon>
-                            <img src="@/assets/icons/figma.svg" alt="Figma" class="w-6 h-6" />
                         </template>
                     </Buttons>
                 </div>
