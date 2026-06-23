@@ -12,17 +12,6 @@ This is a Nuxt 4, Vue 3, Tailwind CSS, Supabase, and Capacitor app for Gabor pat
 - `ios/`: Capacitor iOS project.
 - `.nuxt/`, `.output/`, `dist/`, and `node_modules/` are generated or dependency folders; avoid direct edits.
 
-## Build, Test, and Development Commands
-
-- `npm run dev`: start the Nuxt development server.
-- `npm run build`: build the production Nuxt/Nitro app.
-- `npm run generate`: generate static output where supported.
-- `npm run preview`: preview the built output locally.
-- `npm install`: install dependencies and run `nuxt prepare`.
-- `npm run generate && npx cap sync ios`: refresh iOS after web changes that ship to Capacitor.
-
-There is no `npm test` script yet. Validate with `npm run build` and targeted manual checks.
-
 ## Coding Style & Naming Conventions
 
 Use Vue SFCs with `<script setup lang="ts">`. Name components in PascalCase, composables with a `use` prefix, and pages by Nuxt route conventions.
@@ -48,3 +37,31 @@ PRs should include a summary, affected routes/components, screenshots for UI cha
 ## Security & Configuration Tips
 
 Keep secrets in `.env`. Do not commit private Supabase credentials. Review Capacitor/iOS changes for effects on login, deep links, storage, or device APIs.
+
+## Commands
+
+- 不要執行 npm install
+
+- 不要執行 npm run build
+
+- 不要執行 npm run test
+
+- 不要執行 git push
+
+## Vue
+
+- 使用 Composition API
+
+- 優先使用 script setup
+
+## Tailwind
+
+- 優先沿用現有設計系統
+
+- 不任意新增顏色 Token
+
+## Completion
+
+- 完成修改後停止
+
+- 說明修改了哪些檔案
