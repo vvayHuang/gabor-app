@@ -365,10 +365,13 @@ const handleGameOver = () => {
                 total_time_ms: totalTime
             });
 
-            await persistence.updateHighScore(score);
-            await persistence.updateConsecutiveDays();
-            await persistence.addTrainingTime(totalTime);
-            await persistence.recordAchievement(Math.floor(score / 500) + 1);
+            // 以下四個為純本地狀態異動，最後統一呼叫一次 saveStats() 持久化，
+            // 避免每個函式各自觸發 getUser() / upsert（原本結算一次最多產生近 10 次網路請求）。
+            persistence.updateHighScore(score);
+            persistence.updateConsecutiveDays();
+            persistence.addTrainingTime(totalTime);
+            persistence.recordAchievement(Math.floor(score / 500) + 1);
+            await persistence.saveStats();
 
             router.push('/daily-goal');
         }

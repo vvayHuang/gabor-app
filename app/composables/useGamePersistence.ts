@@ -132,14 +132,17 @@ export function useGamePersistence() {
         }
     }
 
+    // 注意：不在此處呼叫 saveStats()，避免與其他結算函式（updateHighScore 等）
+    // 各自觸發重複的 getUser() / upsert。呼叫端應在所有結算函式跑完後，
+    // 自行呼叫一次 saveStats() 統一持久化。
     const recordSession = async (sessionData: GameSessionData) => {
         // 先更新本地狀態（樂觀更新）
         const tempSession = { ...sessionData, created_at: new Date().toISOString() }
         stats.value.recentSessions = [tempSession, ...stats.value.recentSessions].slice(0, 50)
         stats.value.totalSessions++
-        
+
         const { data: { user: currentUser } } = await supabase.auth.getUser()
-        
+
         if (currentUser) {
             try {
                 const { error } = await supabase
@@ -158,8 +161,6 @@ export function useGamePersistence() {
                 console.error('Error recording session to cloud:', e)
             }
         }
-        
-        return saveStats()
     }
 
     const saveStats = async () => {
@@ -238,15 +239,15 @@ export function useGamePersistence() {
         return '觀察者'
     })
 
-    const addXP = async (amount: number) => {
+    // 純本地狀態異動，不觸發網路請求；由呼叫端統一呼叫 saveStats() 持久化
+    const addXP = (amount: number) => {
         stats.value.totalXP += Math.round(amount)
-        return saveStats()
     }
 
-    const recordAchievement = async (level: number) => {
+    const recordAchievement = (level: number) => {
         const today = new Date().toISOString().split('T')[0]
         const levelKey = `level-${Math.min(5, Math.max(1, level))}`
-        
+
         const existingLevel = stats.value.achievements[today]
         if (existingLevel) {
             const existingNum = parseInt(existingLevel.split('-')[1])
@@ -256,43 +257,41 @@ export function useGamePersistence() {
         } else {
             stats.value.achievements[today] = levelKey
         }
-        
+
         // 降低成就 XP：每個級別 10 XP
-        await addXP(level * 10) 
-        return saveStats()
+        addXP(level * 10)
     }
 
-    const updateHighScore = async (score: number) => {
+    const updateHighScore = (score: number) => {
         if (score > stats.value.highScore) {
             stats.value.highScore = score
         }
         // 大幅降低分數轉換 XP：從 0.5 降至 0.05
         // 例如 2000 分只給 100 XP，比較合理
-        await addXP(score * 0.05)
-        return saveStats()
+        addXP(score * 0.05)
     }
 
-    const updateConsecutiveDays = async () => {
+    const updateConsecutiveDays = () => {
         const today = new Date().toISOString().split('T')[0]
         const lastPlayed = stats.value.lastPlayedDate
 
         if (!lastPlayed) {
             stats.value.currentStreak = 1
             stats.value.consecutiveDays = Math.max(stats.value.consecutiveDays, stats.value.currentStreak)
-            await addXP(50)
+            addXP(50)
         } else {
             const lastDate = new Date(lastPlayed)
             const todayDate = new Date(today)
-            
+
             const diffTime = todayDate.getTime() - lastDate.getTime()
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
             if (diffDays === 0) return
-            
+
             if (diffDays === 1) {
                 stats.value.currentStreak++
                 stats.value.consecutiveDays = Math.max(stats.value.consecutiveDays, stats.value.currentStreak)
-                await addXP(30)
+                addXP(30)
             } else {
                 stats.value.currentStreak = 1
                 stats.value.consecutiveDays = Math.max(stats.value.consecutiveDays, stats.value.currentStreak)
@@ -300,14 +299,12 @@ export function useGamePersistence() {
         }
 
         stats.value.lastPlayedDate = today
-        return saveStats()
     }
 
-    const addTrainingTime = async (milliseconds: number) => {
+    const addTrainingTime = (milliseconds: number) => {
         const minutes = Math.max(1, Math.floor(milliseconds / 60000))
         stats.value.totalTimeMinutes += minutes
-        await addXP(minutes * 10)
-        return saveStats()
+        addXP(minutes * 10)
     }
 
     const resetStats = async () => {
