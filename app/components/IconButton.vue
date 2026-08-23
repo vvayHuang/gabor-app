@@ -2,7 +2,7 @@
     <button type="button" :class="[
         'flex items-center justify-center rounded-full transition-colors',
         sizeClasses,
-        colorClass || 'text-inverse-on-surface'
+        colorClass || 'text-on-surface'
     ]" v-bind="$attrs">
         <Icon :name="icon" :size="iconSize" :class="[hoverClass]" />
     </button>
@@ -29,7 +29,7 @@ const props = defineProps({
     },
     colorClass: {
         type: String,
-        default: 'text-inverse-on-surface'
+        default: 'text-on-surface'
     },
     hoverClass: {
         type: String,

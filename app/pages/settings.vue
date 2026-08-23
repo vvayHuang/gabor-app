@@ -139,7 +139,8 @@ onMounted(() => {
 const handleLogout = async () => {
   try {
     await supabase.auth.signOut();
-    persistence.resetStats();
+    // 需等待清空完成再離開，否則 router.push 可能搶在本機資料清乾淨之前發生
+    await persistence.resetStats();
     router.push("/");
   } catch (e) {
     console.error("Logout failed:", e);

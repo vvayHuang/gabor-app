@@ -16,10 +16,17 @@ const props = withDefaults(defineProps<{
     params?: any;
     primaryColor?: string;
     secondaryColor?: string;
+    /**
+     * 空間輪廓（Gaussian 包絡 × 條紋）的 gamma。
+     * 1 = 線性（淺色模式）；< 1 會抬升中低強度區域，讓墨暈在深色底上不至於糊進背景。
+     * 峰值強度不受影響，因此難度引擎的 contrast 語意保持不變。
+     */
+    profileGamma?: number;
 }>(), {
     size: 200,
     primaryColor: '#FFFFFF',
     secondaryColor: '#000000',
+    profileGamma: 1,
     params: () => ({
         orientation: 0,
         frequency: 0.025,
@@ -76,6 +83,8 @@ const drawGabor = () => {
     const imageData = ctx.createImageData(w, h);
     const data = imageData.data;
     const stripeColor = hexToRgb(props.secondaryColor);
+    const gamma = props.profileGamma;
+    const isLinearProfile = gamma === 1;
 
     const TWO_PI = Math.PI * 2;
 
@@ -94,7 +103,9 @@ const drawGabor = () => {
             const envelope = Math.exp(-distNormalized);
             const edgeFade = 1 - smoothstep(w * 0.28, w * 0.4, Math.hypot(xx, yy));
             const carrier = Math.cos(TWO_PI * frequency * rx + phase);
-            const dark = Math.min(1, envelope * edgeFade * ((carrier + 1) * 0.5) * contrast);
+            const profile = envelope * edgeFade * ((carrier + 1) * 0.5);
+            const shaped = isLinearProfile ? profile : Math.pow(profile, gamma);
+            const dark = Math.min(1, shaped * contrast);
 
             const index = (rowOffset + x) * 4;
 
@@ -125,8 +136,14 @@ onMounted(() => {
     emit('ready');
 });
 
-watch(() => props.params, drawGabor, { deep: true });
-watch([() => props.primaryColor, () => props.secondaryColor], drawGabor);
+// 元件自行負責重繪：任何影響畫面的 prop 變動都只觸發一次 drawGabor。
+// flush: 'post' 確保在 <canvas> 的 width/height 屬性更新（會清空畫布）之後才繪製，
+// 因此尺寸變化不需要外部再補一次繪製。
+watch(
+    [() => props.params, () => props.size, () => props.primaryColor, () => props.secondaryColor, () => props.profileGamma],
+    drawGabor,
+    { deep: true, flush: 'post' }
+);
 </script>
 
 <style scoped>

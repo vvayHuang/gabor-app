@@ -5,7 +5,7 @@
             class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface/80 backdrop-blur-md transition-opacity duration-500">
             <div class="space-y-6 px-6">
                 <h2 class="headline-md text-on-surface">準備好進入放鬆時刻？</h2>
-                <p class="body-large text-on-surface-variant">點擊按鈕開啟海浪音效</p>
+                <p class="body-lg text-on-surface-variant">點擊按鈕開啟海浪音效</p>
                 <Buttons buttonStyle="Bordered - Secondary" size="Large" label="開始放鬆" @click="handleStart" />
             </div>
         </div>

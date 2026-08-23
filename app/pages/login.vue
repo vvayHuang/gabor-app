@@ -177,7 +177,7 @@ const handleGoogleLogin = async () => {
             class="flex flex-col items-center justify-center space-y-8 w-full max-w-sm opacity-0 translate-y-8 relative z-10">
             <div class="flex flex-col space-y-2 w-full items-center text-center">
                 <h1 class="title-lg-emphasis text-on-background">登入以開始訓練</h1>
-                <p v-if="errorMessage" class="label-medium text-error">{{ errorMessage }}</p>
+                <p v-if="errorMessage" class="label-md text-error">{{ errorMessage }}</p>
             </div>
 
             <!-- Social Login -->

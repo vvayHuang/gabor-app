@@ -88,12 +88,14 @@ import { onMounted, computed, ref } from 'vue';
 import { useGamePersistence } from '~/composables/useGamePersistence';
 
 const persistence = useGamePersistence();
+// JWT claims 上有 email / user_metadata（頭像、暱稱都在這裡），可直接用；
+// 但沒有 created_at，註冊日期只能另外從 auth.getUser() 取。
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
 const manualDate = ref<string | null>(null);
 
 const joinedDate = computed(() => {
-    const rawDate = manualDate.value || user.value?.created_at;
+    const rawDate = manualDate.value;
     if (!rawDate) return null;
 
     const date = new Date(rawDate);

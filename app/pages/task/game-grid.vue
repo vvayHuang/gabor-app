@@ -59,7 +59,7 @@
                     <ClientOnly>
                         <GaborCanvas :ref="el => { if (el) canvasRefs[index] = el }" :size="canvasSize" :params="item"
                             :primary-color="primaryColor" :secondary-color="secondaryColor"
-                            @ready="handleCanvasReady" />
+                            :profile-gamma="profileGamma" />
                     </ClientOnly>
                 </div>
             </div>
@@ -69,7 +69,7 @@
         <div v-if="showPhaseTransition" class="fixed inset-0 z-30 flex flex-col items-center justify-center p-4">
             <div ref="transitionText" class="text-center space-y-2 opacity-0">
                 <h2 class="display-md text-on-surface">第一階段完成</h2>
-                <p class="body-large-emphasis text-on-surface text-balance">準備好進入更具挑戰性的第二階段了？</p>
+                <p class="body-lg-emphasis text-on-surface text-balance">準備好進入更具挑戰性的第二階段了？</p>
             </div>
 
             <!-- Bottom Action Area -->
@@ -138,14 +138,20 @@ const gridItemRefs = ref<any[]>([]);
 const pageContainer = ref<HTMLElement | null>(null);
 const transitionText = ref<HTMLElement | null>(null);
 const transitionButton = ref<HTMLElement | null>(null);
-const readyCount = ref(0);
 const isGridReady = ref(false);
 const clickStartTime = ref(0);
+// 頁面是否仍掛載中。GSAP 不會因元件卸載而自動停止 tween，計時器同理，
+// 因此離開頁面後的殘留回呼必須靠這個旗標擋下，避免把玩家從別的頁面彈走。
+let isPageActive = true;
 
 // --- Colors (Deeper Scientific Palette) ---
-// Canvas 本身保持透明，條紋依目前主題使用高對比前景色。
+// Canvas 本身保持透明，底色與墨色皆取自設計系統的 surface / on-surface：
+// 深色 #101318 / #E1E2EC，淺色 #F9F9FF / #181C23。
 const primaryColor = computed(() => settings.isDarkMode.value ? '#101318' : '#F9F9FF');
-const secondaryColor = computed(() => settings.isDarkMode.value ? '#E1E2EC' : '#000000');
+const secondaryColor = computed(() => settings.isDarkMode.value ? '#E1E2EC' : '#181C23');
+// on-surface 的墨色比純黑／純白弱，可見度改由 gamma < 1 抬升輪廓中低強度區補回，
+// 而不是把墨色調到色票以外。深色底缺少「白紙吸墨」的餘裕，需要抬得比淺色多。
+const profileGamma = computed(() => settings.isDarkMode.value ? 0.68 : 0.9);
 
 // --- Level Data ---
 const gridItems = ref<any[]>([]);
@@ -153,11 +159,8 @@ const targetIndex = ref(0);
 
 // --- Core Logic ---
 
-const updateAllCanvases = () => {
-    canvasRefs.value.forEach(canvas => {
-        if (canvas && canvas.drawGabor) canvas.drawGabor();
-    });
-
+// 只負責進場動畫；斑塊繪製由 GaborCanvas 自己的 watcher 處理，避免同一關重複繪製。
+const playGridEntrance = () => {
     const validRefs = gridItemRefs.value.filter(el => el);
     if (validRefs.length > 0) {
         gsap.set(validRefs, { scale: 0.4, opacity: 0 });
@@ -172,13 +175,6 @@ const updateAllCanvases = () => {
         });
     }
 }
-
-const handleCanvasReady = () => {
-    readyCount.value++;
-    if (readyCount.value >= gridItems.value.length) {
-        updateAllCanvases();
-    }
-};
 
 const startNewGame = async () => {
     gameState.startSession();
@@ -227,7 +223,6 @@ const startNextPhase = () => {
 const generateLevel = () => {
     feedbackState.value = 'IDLE';
     selectedIndex.value = -1;
-    readyCount.value = 0;
     isGridReady.value = false;
 
     nextTick(() => {
@@ -263,8 +258,34 @@ const generateLevel = () => {
             };
         });
 
-        setTimeout(() => updateAllCanvases(), 30); 
+        nextTick(() => playGridEntrance());
     });
+};
+
+// 解除答題鎖定：feedbackState 一旦離開 IDLE，網格會套用 pointer-events-none，
+// 因此所有離開 ERROR 的路徑都必須經過這裡。
+const clearFeedback = () => {
+    feedbackState.value = 'IDLE';
+    selectedIndex.value = -1;
+};
+
+// 一個階段的最後一題答完後的收尾：進入階段轉場或結算整局。
+const finishPhase = () => {
+    // 卸載後才觸發的回呼（例如玩家在收尾動畫播放中按了離開）不得繼續推進流程，
+    // 避免對已銷毀的頁面寫入狀態。
+    if (!isPageActive || gamePhase.value === 'GAME_OVER') return;
+
+    if (gamePhase.value === 'STAGE_1') {
+        showPhaseTransition.value = true;
+        isGridReady.value = false;
+        nextTick(() => {
+            const tl = gsap.timeline();
+            tl.to(transitionText.value, { opacity: 1, y: -20, duration: 0.8, ease: 'power2.out' })
+              .to(transitionButton.value, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, "-=0.2");
+        });
+    } else {
+        handleGameOver();
+    }
 };
 
 const handleInteraction = (index: number) => {
@@ -294,31 +315,28 @@ const handleInteraction = (index: number) => {
 
         currentLevelInPhase.value++;
 
-        setTimeout(() => {
-            if (gamePhase.value === 'GAME_OVER') return;
+        advanceTimer = setTimeout(() => {
+            advanceTimer = null;
+            if (!isPageActive || gamePhase.value === 'GAME_OVER') return;
 
             if (currentLevelInPhase.value > levelsPerPhase) {
                 const validRefs = gridItemRefs.value.filter(el => el);
-                gsap.to(validRefs, {
-                    opacity: 0,
-                    scale: 0.6,
-                    duration: 0.8,
-                    stagger: { each: 0.06, from: "center" },
-                    ease: 'power2.inOut',
-                    onComplete: () => {
-                        if (gamePhase.value === 'STAGE_1') {
-                            showPhaseTransition.value = true;
-                            isGridReady.value = false;
-                            nextTick(() => {
-                                const tl = gsap.timeline();
-                                tl.to(transitionText.value, { opacity: 1, y: -20, duration: 0.8, ease: 'power2.out' })
-                                  .to(transitionButton.value, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, "-=0.2");
-                            });
-                        } else {
-                            handleGameOver();
-                        }
-                    }
-                });
+                if (validRefs.length > 0) {
+                    // 與答錯分支同樣的理由：動畫被中斷時 onComplete 不會觸發，
+                    // 若只掛 onComplete，階段結束就會停在空白畫面。
+                    gsap.to(validRefs, {
+                        opacity: 0,
+                        scale: 0.6,
+                        duration: 0.8,
+                        stagger: { each: 0.06, from: "center" },
+                        ease: 'power2.inOut',
+                        onComplete: finishPhase,
+                        onInterrupt: finishPhase
+                    });
+                } else {
+                    // 沒有可動畫的格子時直接結算，不能等一個永遠不會回呼的 tween
+                    finishPhase();
+                }
                 return;
             }
             generateLevel();
@@ -331,14 +349,22 @@ const handleInteraction = (index: number) => {
 
         const targetEl = gridItemRefs.value[index];
         if (targetEl) {
+            // onComplete 與 onInterrupt 都要復位：若這個 tween 在播完前被其他
+            // 帶 overwrite 的動畫殺掉，只靠 onComplete 會永遠回不到 IDLE。
+            const releaseAfterShake = () => {
+                gsap.set(targetEl, { x: 0 });
+                clearFeedback();
+            };
             gsap.fromTo(targetEl, { x: 0 }, {
                 x: 6, duration: 0.07, repeat: 5, yoyo: true, ease: 'power2.inOut',
-                onComplete: () => {
-                    gsap.set(targetEl, { x: 0 });
-                    feedbackState.value = 'IDLE';
-                    selectedIndex.value = -1;
-                }
+                onComplete: releaseAfterShake,
+                onInterrupt: releaseAfterShake
             });
+        } else {
+            // 取不到 DOM ref 時沒有動畫可等，必須立刻復位，
+            // 否則 feedbackState 會卡在 ERROR，所有格子的 pointer-events-none
+            // 不會解除，玩家只能退出遊戲。
+            clearFeedback();
         }
     }
 };
@@ -384,29 +410,52 @@ const cancelExit = () => showExitConfirmation.value = false;
 const confirmExit = () => router.push('/prepare');
 
 let resizeHandler: (() => void) | null = null;
+let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+// 答對後推進下一關（或收尾）的計時器，卸載時必須清掉
+let advanceTimer: ReturnType<typeof setTimeout> | null = null;
 
 onMounted(async () => {
     gridItemRefs.value = []
     settings.loadSettings();
-    
-    // 設定響應式 resize 監聽器，於大螢幕或視窗縮放時自動重算並重繪 Gabor 斑塊
+
+    // resize 監聽器：debounce 後只更新 canvasSize，
+    // 尺寸真的改變時由各個 GaborCanvas 自行重繪一次（拖曳視窗不會連續重繪整個網格）。
     resizeHandler = () => {
-        const oldSize = canvasSize.value;
-        updateResponsiveSize();
-        if (oldSize !== canvasSize.value) {
-            nextTick(() => {
-                updateAllCanvases();
-            });
-        }
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(updateResponsiveSize, 120);
     };
     window.addEventListener('resize', resizeHandler);
-    
+
     await startNewGame();
 });
 
 onUnmounted(() => {
+    // 順序很重要：先關掉旗標，再殺 tween。killTweensOf 會觸發 onInterrupt，
+    // 旗標若還開著，收尾動畫的 onInterrupt 就會在頁面已卸載後繼續推進流程。
+    isPageActive = false;
+
+    if (advanceTimer) {
+        clearTimeout(advanceTimer);
+        advanceTimer = null;
+    }
+    if (resizeTimer) {
+        clearTimeout(resizeTimer);
+        resizeTimer = null;
+    }
     if (resizeHandler) {
         window.removeEventListener('resize', resizeHandler);
+        resizeHandler = null;
+    }
+
+    // GSAP 不會因為元件卸載就停止動畫，殘留的 tween 會繼續在脫離 DOM 的節點上執行。
+    const animatedTargets = [
+        ...gridItemRefs.value.filter(el => el),
+        pageContainer.value,
+        transitionText.value,
+        transitionButton.value
+    ].filter(Boolean);
+    if (animatedTargets.length > 0) {
+        gsap.killTweensOf(animatedTargets);
     }
 });
 </script>

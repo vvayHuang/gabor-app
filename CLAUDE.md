@@ -28,7 +28,7 @@ Note: `@playwright/test` is a devDependency and `test:e2e` scripts exist, but no
 ### Rendering: two deliberately separate systems
 
 - **`app/components/GaborCanvas.vue`** — the core training stimulus. Must use native Canvas `ImageData`/`putImageData` pixel operations (`getContext('2d', { willReadFrequently: true })`, building `ImageData` directly, avoiding readback). This is a hard constraint carried over from a past performance rewrite — do not replace it with p5.js or anything that reintroduces canvas readback warnings or drops below 60 FPS.
-- **`app/components/GaborFlowField.vue` / `TidalWaves.vue` / `TimeSphere.vue`** — decorative generative-art backgrounds using p5.js (Perlin noise, flowing/organic shapes). p5.js is for decoration only, never for the core Gabor patch rendering.
+- **`app/components/AuthFlowField.vue` / `TidalWaves.vue` / `TimeSphere.vue`** — decorative generative-art backgrounds using p5.js (Perlin noise, flowing/organic shapes). p5.js is for decoration only, never for the core Gabor patch rendering.
 
 ### Game/difficulty engine (`app/composables/useGameState.ts`)
 
@@ -53,7 +53,7 @@ Non-obvious and fragile — preserve unless explicitly changing it:
 
 ### Layout / navigation (`app/layouts/default.vue`)
 
-Single default layout wraps all pages: `GaborFlowField` background, `NavigationRail` (desktop, left sidebar) / `NavigationBar` (mobile, bottom), both driven by route name allow-lists (`prepare`, `records`, `profile`, `tutorial`, plus `settings` on desktop). Status-bar top padding is applied to every route except `index`, `login`, `prepare`. When adding a new page that should appear in navigation or need status-bar spacing, update these allow-lists in `default.vue`.
+Single default layout wraps all pages: flat `bg-surface` background, `NavigationRail` (desktop, left sidebar) / `NavigationBar` (mobile, bottom), both driven by route name allow-lists (`prepare`, `records`, `profile`, `tutorial`, plus `settings` on desktop). Status-bar top padding is applied to every route except `index`, `login`, `prepare`. When adding a new page that should appear in navigation or need status-bar spacing, update these allow-lists in `default.vue`.
 
 ### Directory layout
 

@@ -76,7 +76,7 @@ const rollingWindow = computed(() => {
                     </span>
                     <!-- Dot -->
                     <div class="w-8 h-8 rounded-full transition-all duration-300 flex items-center justify-center" :class="[
-                        day.active ? 'bg-primary shadow-[0_0_10px_rgba(var(--color-primary-rgb),0.3)]' : 'bg-surface-variant',
+                        day.active ? 'bg-primary shadow-[0_0_10px_color-mix(in_srgb,var(--color-primary)_30%,transparent)]' : 'bg-surface-variant',
                         day.isToday ? 'scale-110 border-2 border-primary-fixed' : ''
                     ]">
                         <Icon v-if="day.active" name="material-symbols:check-rounded" size="18" class="text-on-primary" />

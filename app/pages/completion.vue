@@ -3,7 +3,7 @@
         <!-- Center Content -->
         <div class="flex-1 flex flex-col items-start md:items-center justify-center w-full max-w-2xl mx-auto px-4">
             <div class="text-left md:text-center w-full">
-                <h1 class="headline-md-emphasis text-inverse-on-surface">{{ greetingTitle }}</h1>
+                <h1 class="headline-md-emphasis text-on-surface">{{ greetingTitle }}</h1>
             </div>
         </div>
 

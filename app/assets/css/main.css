@@ -60,7 +60,7 @@
   --glass-shadow: rgba(0, 0, 0, 0.1);
 
   --font-sans:
-    "Noto Sans TC", ui-ans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Noto Sans TC", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
   --spacing-status-bar: 62px;

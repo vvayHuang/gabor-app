@@ -1,4 +1,4 @@
-import { ref, watch, computed } from 'vue'
+import { ref, computed } from 'vue'
 
 export interface GameSessionData {
     id?: string
@@ -24,9 +24,10 @@ export interface GameStats {
 }
 
 const STORAGE_KEY = 'gabor_game_stats'
+// 記錄本機這份統計屬於哪個帳號，切換帳號時才能判斷本地資料是否可沿用
+const STORAGE_OWNER_KEY = 'gabor_game_stats_owner'
 
-// Singleton State
-const stats = ref<GameStats>({
+const createEmptyStats = (): GameStats => ({
     highScore: 0,
     consecutiveDays: 0,
     totalTimeMinutes: 0,
@@ -38,39 +39,78 @@ const stats = ref<GameStats>({
     recentSessions: []
 })
 
+// Singleton State
+const stats = ref<GameStats>(createEmptyStats())
+
 const isLoaded = ref(false)
+// 已載入資料所屬的使用者 id（未登入為 null），用來偵測帳號切換
+const loadedUserId = ref<string | null>(null)
+// 雲端統計是否已成功讀回（含「雲端還沒有資料」的新帳號情境）。
+// 沒讀回來就不准 upsert，否則會用空白統計整列覆蓋掉雲端既有紀錄。
+const cloudLoaded = ref(false)
 
 export function useGamePersistence() {
     const supabase = useSupabaseClient()
-    const user = useSupabaseUser()
+    // 注意：@nuxtjs/supabase v2 的 useSupabaseUser() 回傳的是 JWT claims（JwtPayload），
+    // 不是 User 物件，使用者 id 的欄位名稱是 `sub` 而非 `id`。
+    const claims = useSupabaseUser()
+    const currentUserId = computed(() => claims.value?.sub ?? null)
+
+    // 本機寫入一律連同「擁有者」一起記錄，避免帳號切換後誤用他人資料
+    const persistLocal = () => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(stats.value))
+        const owner = currentUserId.value
+        if (owner) {
+            localStorage.setItem(STORAGE_OWNER_KEY, owner)
+        } else {
+            localStorage.removeItem(STORAGE_OWNER_KEY)
+        }
+    }
 
     const loadStats = async () => {
-        if (typeof window === 'undefined' || isLoaded.value) return
+        if (typeof window === 'undefined') return
 
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored)
-                stats.value = {
-                    ...stats.value,
-                    ...parsed,
-                    totalXP: parsed.totalXP || 0,
-                    achievements: parsed.achievements || {},
-                    recentSessions: parsed.recentSessions || []
+        const userId = currentUserId.value
+        // 只有「同一個帳號且已載入過」才可略過；帳號切換時必須重新載入，
+        // 否則新帳號會沿用前一位使用者的統計，並在結算時 upsert 覆蓋雲端資料。
+        if (isLoaded.value && loadedUserId.value === userId) return
+
+        cloudLoaded.value = false
+
+        const storedOwner = localStorage.getItem(STORAGE_OWNER_KEY)
+        const localBelongsToOther = !!userId && !!storedOwner && storedOwner !== userId
+
+        if (localBelongsToOther) {
+            // 本機殘留的是別的帳號的資料：先清空，等雲端資料回來再填
+            stats.value = createEmptyStats()
+            localStorage.removeItem(STORAGE_KEY)
+            localStorage.removeItem(STORAGE_OWNER_KEY)
+        } else {
+            const stored = localStorage.getItem(STORAGE_KEY)
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored)
+                    stats.value = {
+                        ...stats.value,
+                        ...parsed,
+                        totalXP: parsed.totalXP || 0,
+                        achievements: parsed.achievements || {},
+                        recentSessions: parsed.recentSessions || []
+                    }
+                } catch (e) {
+                    console.error('Failed to parse game stats:', e)
                 }
-            } catch (e) {
-                console.error('Failed to parse game stats:', e)
             }
         }
 
-        const { data: { user: currentUser } } = await supabase.auth.getUser()
-        if (currentUser) {
+        if (userId) {
             await Promise.all([
-                fetchFromCloud(currentUser.id),
-                fetchSessionHistory(currentUser.id)
+                fetchFromCloud(userId),
+                fetchSessionHistory(userId)
             ])
         }
 
+        loadedUserId.value = userId
         isLoaded.value = true
     }
 
@@ -84,6 +124,10 @@ export function useGamePersistence() {
 
             if (error && error.code !== 'PGRST116') throw error
 
+            // PGRST116 = 雲端還沒有這個帳號的資料列，屬於正常的新帳號情境，
+            // 一樣視為「已同步」，第一次結算才寫得進去。
+            cloudLoaded.value = true
+
             if (data) {
                 stats.value = {
                     ...stats.value,
@@ -96,9 +140,10 @@ export function useGamePersistence() {
                     currentStreak: data.current_streak || 0,
                     achievements: data.achievements || {}
                 }
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(stats.value))
+                persistLocal()
             }
         } catch (e) {
+            cloudLoaded.value = false
             console.error('Error fetching stats from cloud:', e)
         }
     }
@@ -125,7 +170,7 @@ export function useGamePersistence() {
                     total_time_ms: s.total_time_ms,
                     created_at: s.created_at
                 }))
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(stats.value))
+                persistLocal()
             }
         } catch (e) {
             console.error('Error fetching session history:', e)
@@ -133,7 +178,7 @@ export function useGamePersistence() {
     }
 
     // 注意：不在此處呼叫 saveStats()，避免與其他結算函式（updateHighScore 等）
-    // 各自觸發重複的 getUser() / upsert。呼叫端應在所有結算函式跑完後，
+    // 各自觸發重複的 upsert。呼叫端應在所有結算函式跑完後，
     // 自行呼叫一次 saveStats() 統一持久化。
     const recordSession = async (sessionData: GameSessionData) => {
         // 先更新本地狀態（樂觀更新）
@@ -141,14 +186,14 @@ export function useGamePersistence() {
         stats.value.recentSessions = [tempSession, ...stats.value.recentSessions].slice(0, 50)
         stats.value.totalSessions++
 
-        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        const userId = currentUserId.value
 
-        if (currentUser) {
+        if (userId) {
             try {
                 const { error } = await supabase
                     .from('game_sessions')
                     .insert({
-                        user_id: currentUser.id,
+                        user_id: userId,
                         score: sessionData.score,
                         accuracy: sessionData.accuracy,
                         correct_count: sessionData.correct_count,
@@ -166,14 +211,21 @@ export function useGamePersistence() {
     const saveStats = async () => {
         if (typeof window === 'undefined') return
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stats.value))
+        persistLocal()
 
-        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        const userId = currentUserId.value
 
-        if (currentUser) {
+        // 雲端資料還沒成功讀回來就不要寫，upsert 是整列覆蓋，
+        // 這時候寫進去等於把雲端既有的 XP／成就洗成目前的空白狀態。
+        if (userId && !cloudLoaded.value) {
+            console.warn('Skip cloud upsert: cloud stats not loaded yet')
+            return
+        }
+
+        if (userId) {
             try {
                 const payload = {
-                    user_id: currentUser.id,
+                    user_id: userId,
                     high_score: stats.value.highScore,
                     consecutive_days: longestStreak.value,
                     total_time_minutes: stats.value.totalTimeMinutes,
@@ -246,12 +298,14 @@ export function useGamePersistence() {
 
     const recordAchievement = (level: number) => {
         const today = new Date().toISOString().split('T')[0]
-        const levelKey = `level-${Math.min(5, Math.max(1, level))}`
+        // 徽章與 XP 都用鉗制後的等級，避免高分場次拿到超出徽章上限的 XP
+        const cappedLevel = Math.min(5, Math.max(1, level))
+        const levelKey = `level-${cappedLevel}`
 
         const existingLevel = stats.value.achievements[today]
         if (existingLevel) {
             const existingNum = parseInt(existingLevel.split('-')[1])
-            if (level > existingNum) {
+            if (cappedLevel > existingNum) {
                 stats.value.achievements[today] = levelKey
             }
         } else {
@@ -259,7 +313,7 @@ export function useGamePersistence() {
         }
 
         // 降低成就 XP：每個級別 10 XP
-        addXP(level * 10)
+        addXP(cappedLevel * 10)
     }
 
     const updateHighScore = (score: number) => {
@@ -308,18 +362,15 @@ export function useGamePersistence() {
     }
 
     const resetStats = async () => {
-        stats.value = {
-            highScore: 0,
-            consecutiveDays: 0,
-            totalTimeMinutes: 0,
-            totalXP: 0,
-            totalSessions: 0,
-            lastPlayedDate: '',
-            currentStreak: 0,
-            achievements: {},
-            recentSessions: []
+        stats.value = createEmptyStats()
+        await saveStats()
+        // 清掉載入旗標，下一位登入的使用者才會真的重新向雲端拉資料
+        isLoaded.value = false
+        loadedUserId.value = null
+        cloudLoaded.value = false
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(STORAGE_OWNER_KEY)
         }
-        return saveStats()
     }
 
     return {

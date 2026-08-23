@@ -24,8 +24,9 @@
                                 ref="gaborRefs"
                                 :size="80"
                                 :params="getGaborParams(step.id, i)"
-                                primary-color="#FFFFFF"
-                                secondary-color="#000000"
+                                :primary-color="gaborPrimaryColor"
+                                :secondary-color="gaborSecondaryColor"
+                                :profile-gamma="gaborProfileGamma"
                                 @ready="handleReady"
                             />
                         </ClientOnly>
@@ -74,7 +75,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
+import { useAppSettings } from '~/composables/useAppSettings';
+
+const settings = useAppSettings();
+
+// 與遊戲畫面一致，底色與墨色取自設計系統的 surface / on-surface，
+// 並用 gamma < 1 抬升輪廓，避免墨暈糊進背景。
+const gaborPrimaryColor = computed(() => settings.isDarkMode.value ? '#101318' : '#F9F9FF');
+const gaborSecondaryColor = computed(() => settings.isDarkMode.value ? '#E1E2EC' : '#181C23');
+const gaborProfileGamma = computed(() => settings.isDarkMode.value ? 0.68 : 0.9);
 
 const scrollContainer = ref<HTMLElement | null>(null);
 const activeIndex = ref(0);

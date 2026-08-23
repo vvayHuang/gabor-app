@@ -2,7 +2,7 @@
   <div class="w-full bg-surface-container-low rounded-3xl p-6 space-y-4 border border-outline-variant/30">
     <div class="flex items-center justify-between">
       <h4 class="title-sm-emphasis text-on-surface-variant uppercase tracking-wider">準確度趨勢</h4>
-      <span class="label-medium text-primary font-bold">過去 7 天</span>
+      <span class="label-md text-primary font-bold">過去 7 天</span>
     </div>
 
     <!-- Chart SVG -->

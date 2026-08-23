@@ -18,7 +18,7 @@
 
             <!-- Content -->
             <div class="flex flex-col items-center justify-center w-full h-full z-10 relative">
-                <span class="display-lg-emphasis text-inverse-on-surface">{{ formattedTime }}</span>
+                <span class="display-lg-emphasis text-on-surface">{{ formattedTime }}</span>
             </div>
         </div>
     </div>

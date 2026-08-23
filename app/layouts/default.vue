@@ -2,11 +2,6 @@
     <!-- Screen Background (Uniform Color) -->
     <div class="min-h-screen bg-surface flex justify-center selection:bg-gray-700 selection:text-white relative overflow-hidden">
         
-        <!-- p5.js 生成式幾何流場背景 (僅在支援的客戶端渲染) -->
-        <ClientOnly>
-            <GaborFlowField />
-        </ClientOnly>
-        
         <!-- Desktop Navigation Rail (Fixed on the left) -->
         <NavigationRail v-if="showDesktopNavigation" />
 
