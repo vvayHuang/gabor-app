@@ -1,0 +1,41 @@
+name: Supabase keepalive
+
+# Supabase pauses free-tier projects after ~7 days without activity.
+# Run a real database query twice a week to keep the project active.
+on:
+  schedule:
+    - cron: '17 3 * * 1,4' # Mon & Thu 03:17 UTC
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Query Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            --retry 3 --retry-delay 10 --max-time 30 \
+            "${SUPABASE_URL}/rest/v1/game_stats?select=*&limit=1" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}")
+          echo "Supabase responded with HTTP ${status}"
+          if [ "${status}" != "200" ]; then
+            exit 1
+          fi
+
+      # GitHub disables scheduled workflows in public repos after 60 days
+      # without repository activity. Re-enabling resets that timer.
+      - name: Re-enable this workflow
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method PUT \
+            "repos/${{ github.repository }}/actions/workflows/supabase-keepalive.yml/enable"
