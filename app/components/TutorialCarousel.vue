@@ -47,7 +47,7 @@
                         <div class="grid grid-cols-7 gap-2">
                             <div v-for="day in 21" :key="day" 
                                 class="aspect-square rounded-full flex items-center justify-center text-[10px] font-bold"
-                                :class="[day <= 7 ? 'bg-primary text-white' : 'bg-surface-variant text-on-surface-variant']">
+                                :class="[day <= 7 ? 'bg-primary text-on-primary' : 'bg-surface-variant text-on-surface-variant']">
                                 {{ day }}
                             </div>
                         </div>

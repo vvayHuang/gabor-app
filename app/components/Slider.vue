@@ -22,7 +22,7 @@
                 </div>
 
                 <!-- Knob (Handle) - Align edges at 0% and 100% -->
-                <div class="absolute top-1/2 w-[38px] h-6 bg-white rounded-full shadow-[0px_0.5px_4px_0px_rgba(0,0,0,0.12),0px_6px_13px_0px_rgba(0,0,0,0.12)] border border-black/5 transition-all duration-75 ease-out pointer-events-none"
+                <div class="absolute top-1/2 w-[38px] h-6 bg-surface rounded-full shadow-[0px_0.5px_4px_0px_rgba(0,0,0,0.12),0px_6px_13px_0px_rgba(0,0,0,0.12)] border border-black/5 transition-all duration-75 ease-out pointer-events-none"
                     :style="{
                         left: `${percentage}%`,
                         transform: `translate(-${percentage}%, -50%)`

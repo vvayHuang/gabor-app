@@ -33,7 +33,7 @@ const props = defineProps({
     },
     hoverClass: {
         type: String,
-        default: 'group-hover:text-white'
+        default: 'group-hover:text-on-surface'
     }
 });
 
