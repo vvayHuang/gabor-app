@@ -27,6 +27,58 @@ export interface GameStats {
 const STORAGE_KEY = 'gabor_game_stats'
 // 記錄本機這份統計屬於哪個帳號，切換帳號時才能判斷本地資料是否可沿用
 const STORAGE_OWNER_KEY = 'gabor_game_stats_owner'
+// 上傳失敗的場次佇列，等下次載入或下一局結算時重送
+const PENDING_SESSIONS_KEY = 'gabor_pending_sessions'
+const MAX_PENDING_SESSIONS = 50
+
+// 佇列中的一筆場次：id 與 created_at 在結算當下就決定，重送時沿用，
+// 這樣即使「雲端其實已寫入、只是回應沒收到」，重送也會撞主鍵而不會多一筆。
+interface PendingSession {
+    id: string
+    user_id: string
+    score: number
+    accuracy: number
+    correct_count: number
+    incorrect_count: number
+    avg_response_time: number
+    total_time_ms: number
+    created_at: string
+}
+
+// Postgres unique_violation：代表這筆 id 已經在雲端，視為上傳成功
+const UNIQUE_VIOLATION = '23505'
+
+const readPendingSessions = (): PendingSession[] => {
+    try {
+        const raw = localStorage.getItem(PENDING_SESSIONS_KEY)
+        const parsed = raw ? JSON.parse(raw) : []
+        return Array.isArray(parsed) ? parsed : []
+    } catch (e) {
+        console.error('Failed to parse pending sessions:', e)
+        return []
+    }
+}
+
+const writePendingSessions = (pending: PendingSession[]) => {
+    if (pending.length === 0) {
+        localStorage.removeItem(PENDING_SESSIONS_KEY)
+    } else {
+        localStorage.setItem(PENDING_SESSIONS_KEY, JSON.stringify(pending.slice(-MAX_PENDING_SESSIONS)))
+    }
+}
+
+// crypto.randomUUID 只在安全來源（https / localhost）可用，其他情況退回用 getRandomValues 組 v4 UUID
+const newSessionId = (): string => {
+    if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+    const bytes = crypto.getRandomValues(new Uint8Array(16))
+    bytes[6] = (bytes[6]! & 0x0f) | 0x40
+    bytes[8] = (bytes[8]! & 0x3f) | 0x80
+    const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0'))
+    return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10).join('')}`
+}
+
+// 同一時間只跑一輪重送，避免 loadStats 與結算同時觸發而重複上傳
+let flushInFlight: Promise<void> | null = null
 
 const createEmptyStats = (): GameStats => ({
     highScore: 0,
@@ -105,6 +157,8 @@ export function useGamePersistence() {
         }
 
         if (userId) {
+            // 先補傳上次失敗的場次，接著抓回來的歷史紀錄才會包含它們
+            await flushPendingSessions(userId)
             await Promise.all([
                 fetchFromCloud(userId),
                 fetchSessionHistory(userId)
@@ -178,33 +232,68 @@ export function useGamePersistence() {
         }
     }
 
+    // 寫入一筆場次；id 已存在（重送撞主鍵）也算成功
+    const uploadSession = async (row: PendingSession): Promise<boolean> => {
+        try {
+            const { error } = await supabase.from('game_sessions').insert(row)
+            if (error && error.code !== UNIQUE_VIOLATION) throw error
+            return true
+        } catch (e) {
+            console.error('Error recording session to cloud:', e)
+            return false
+        }
+    }
+
+    // 重送目前帳號的待上傳場次。其他帳號的留在佇列裡，等該帳號下次登入再送。
+    const flushPendingSessions = (userId: string): Promise<void> => {
+        if (typeof window === 'undefined') return Promise.resolve()
+        if (flushInFlight) return flushInFlight
+
+        flushInFlight = (async () => {
+            const mine = readPendingSessions().filter(row => row.user_id === userId)
+            for (const row of mine) {
+                // 一筆失敗就停：多半是還沒連上網，後面的也不會成功
+                if (!(await uploadSession(row))) break
+                // 每成功一筆就重讀再寫回，避免蓋掉期間新加入佇列的場次
+                writePendingSessions(readPendingSessions().filter(item => item.id !== row.id))
+            }
+        })().finally(() => {
+            flushInFlight = null
+        })
+
+        return flushInFlight
+    }
+
     // 注意：不在此處呼叫 saveStats()，避免與其他結算函式（updateHighScore 等）
     // 各自觸發重複的 upsert。呼叫端應在所有結算函式跑完後，
     // 自行呼叫一次 saveStats() 統一持久化。
     const recordSession = async (sessionData: GameSessionData) => {
         // 先更新本地狀態（樂觀更新）
-        const tempSession = { ...sessionData, created_at: new Date().toISOString() }
+        const createdAt = new Date().toISOString()
+        const tempSession = { ...sessionData, created_at: createdAt }
         stats.value.recentSessions = [tempSession, ...stats.value.recentSessions].slice(0, 50)
         stats.value.totalSessions++
 
         const userId = currentUserId.value
 
         if (userId) {
-            try {
-                const { error } = await supabase
-                    .from('game_sessions')
-                    .insert({
-                        user_id: userId,
-                        score: sessionData.score,
-                        accuracy: sessionData.accuracy,
-                        correct_count: sessionData.correct_count,
-                        incorrect_count: sessionData.incorrect_count,
-                        avg_response_time: sessionData.avg_response_time,
-                        total_time_ms: sessionData.total_time_ms
-                    })
-                if (error) throw error
-            } catch (e) {
-                console.error('Error recording session to cloud:', e)
+            const row: PendingSession = {
+                id: newSessionId(),
+                user_id: userId,
+                score: sessionData.score,
+                accuracy: sessionData.accuracy,
+                correct_count: sessionData.correct_count,
+                incorrect_count: sessionData.incorrect_count,
+                avg_response_time: sessionData.avg_response_time,
+                total_time_ms: sessionData.total_time_ms,
+                created_at: createdAt
+            }
+
+            if (await uploadSession(row)) {
+                // 這一局傳得上去代表網路通了，順便補傳之前失敗的（不擋結算流程）
+                void flushPendingSessions(userId)
+            } else {
+                writePendingSessions([...readPendingSessions(), row])
             }
         }
     }
