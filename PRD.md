@@ -179,7 +179,7 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
 | C06 | 斑塊顏色 hex 重複寫在兩處，抽成共用（或讀 CSS 變數） | `game-grid.vue`、`TutorialCarousel.vue` | ✅ `f966927`（抽成 `useGaborAppearance`） |
 | C07 | 網格格子改成 `<button>`，加 `aria-label`；桌機支援方向鍵＋Enter 選擇 | `game-grid.vue` | ✅ `8132894`（方向鍵＋Enter／空白鍵；標籤只描述位置；未以螢幕報讀器實測） |
 | C08 | `params?: any` 補上型別 `GaborParams` | `GaborCanvas.vue`、`game-grid.vue` | ✅ `798c330`（未跑型別檢查，專案未安裝 `vue-tsc`） |
-| C09 | `dist` symlink 指向別的專案（`gabor-app-wireframe-demo`），改指向本專案 `.output/public` 或刪除 | repo 根目錄（**請 Way 手動處理**） | ⏸ 待手動處理（指向的目錄已不存在） |
+| C09 | `dist` symlink 指向別的專案（`gabor-app-wireframe-demo`），改指向本專案 `.output/public` 或刪除 | repo 根目錄（**請 Way 手動處理**） | ✅ 已由 Way 於 2026-10-08 刪除（不在版控內，無 commit） |
 | C10 | `ios/` 被 `.gitignore` 排除，評估是否納入版控 | `.gitignore`（**需決策**） | ⏸ 待決策 |
 | C11 | 整併文件：README、PRD、DESIGN 保留；GEMINI.md、`.gabor_app_wireframe_...md` 過時內容移除或合併 | 根目錄文件 | ⏸ 待決策 |
 
