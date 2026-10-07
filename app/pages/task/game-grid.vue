@@ -92,6 +92,7 @@ import { useGamePersistence } from '~/composables/useGamePersistence';
 import { useAppSettings } from '~/composables/useAppSettings';
 import { useGaborAppearance } from '~/composables/useGaborAppearance';
 import { useAudio } from '~/composables/useAudio';
+import type { GaborParams } from '~/types/gabor';
 
 const router = useRouter();
 const route = useRoute();
@@ -186,7 +187,7 @@ let isPageActive = true;
 const { inkColor: secondaryColor, profileGamma } = useGaborAppearance();
 
 // --- Level Data ---
-const gridItems = ref<any[]>([]);
+const gridItems = ref<GaborParams[]>([]);
 const targetIndex = ref(0);
 
 // --- Core Logic ---
@@ -286,7 +287,7 @@ const generateLevel = () => {
         const targetAngle = (baseAngle + diff.angleOffset) % 360;
         const baseSF = diff.cyclesPerMm / settings.pxPerMm.value;
 
-        gridItems.value = Array.from({ length: count }, (_, i) => {
+        gridItems.value = Array.from({ length: count }, (_, i): GaborParams => {
             const isTarget = i === targetIndex.value;
 
             // 樣式可各自變化，但答題判斷仍只看目標項的角度差。

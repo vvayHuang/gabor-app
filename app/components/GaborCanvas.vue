@@ -11,10 +11,11 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import type { GaborParams } from '~/types/gabor';
 
 const props = withDefaults(defineProps<{
     size?: number;
-    params?: any;
+    params?: GaborParams;
     secondaryColor?: string;
     /**
      * 空間輪廓（Gaussian 包絡 × 條紋）的 gamma。
@@ -26,7 +27,7 @@ const props = withDefaults(defineProps<{
     size: 200,
     secondaryColor: '#000000',
     profileGamma: 1,
-    params: () => ({
+    params: (): GaborParams => ({
         orientation: 0,
         frequency: 0.025,
         contrast: 1,
