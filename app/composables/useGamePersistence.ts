@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { localDateKey, diffDateKeys } from '~/utils/date'
 
 export interface GameSessionData {
     id?: string
@@ -297,7 +298,7 @@ export function useGamePersistence() {
     }
 
     const recordAchievement = (level: number) => {
-        const today = new Date().toISOString().split('T')[0]
+        const today = localDateKey()
         // 徽章與 XP 都用鉗制後的等級，避免高分場次拿到超出徽章上限的 XP
         const cappedLevel = Math.min(5, Math.max(1, level))
         const levelKey = `level-${cappedLevel}`
@@ -326,7 +327,7 @@ export function useGamePersistence() {
     }
 
     const updateConsecutiveDays = () => {
-        const today = new Date().toISOString().split('T')[0]
+        const today = localDateKey()
         const lastPlayed = stats.value.lastPlayedDate
 
         if (!lastPlayed) {
@@ -334,11 +335,7 @@ export function useGamePersistence() {
             stats.value.consecutiveDays = Math.max(stats.value.consecutiveDays, stats.value.currentStreak)
             addXP(50)
         } else {
-            const lastDate = new Date(lastPlayed)
-            const todayDate = new Date(today)
-
-            const diffTime = todayDate.getTime() - lastDate.getTime()
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+            const diffDays = diffDateKeys(lastPlayed, today)
 
             if (diffDays === 0) return
 

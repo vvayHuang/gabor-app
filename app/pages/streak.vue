@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useGamePersistence } from '~/composables/useGamePersistence';
+import { localDateKey, diffDateKeys } from '~/utils/date';
 
 const persistence = useGamePersistence();
 const showButton = ref(false);
@@ -23,9 +24,7 @@ const streakMessage = computed(() => {
     
     if (!lastPlayed) return '開始你的第一次練習！';
     
-    const lastDate = new Date(lastPlayed);
-    const diffTime = now.getTime() - lastDate.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = diffDateKeys(lastPlayed, localDateKey(now));
     
     if (diffDays > 2) return '好久不見，重新開始練習吧！';
     if (streak > 1) return `你已連續達成 ${streak} 天`;
@@ -42,7 +41,7 @@ const rollingWindow = computed(() => {
         const targetDate = new Date();
         targetDate.setDate(now.getDate() + (i - 3));
         
-        const dateKey = targetDate.toISOString().split('T')[0];
+        const dateKey = localDateKey(targetDate);
         const dayLabel = fullDays[targetDate.getDay()];
         const hasAchieved = !!persistence.stats.value.achievements[dateKey];
         
