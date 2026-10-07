@@ -85,6 +85,8 @@
 import { useRouter, useRoute } from 'vue-router';
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { gsap } from 'gsap';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, NotificationType } from '@capacitor/haptics';
 import { useGameState } from '~/composables/useGameState';
 import { useGamePersistence } from '~/composables/useGamePersistence';
 import { useAppSettings } from '~/composables/useAppSettings';
@@ -311,6 +313,16 @@ const generateLevel = () => {
     });
 };
 
+// 答錯的觸覺回饋。iOS WebView 不支援 navigator.vibrate，原生平台改走 Haptics；
+// Web 維持原本的 navigator.vibrate，不支援的瀏覽器就靜默略過。
+const triggerErrorHaptic = () => {
+    if (Capacitor.isNativePlatform()) {
+        Haptics.notification({ type: NotificationType.Error }).catch(() => {});
+    } else if (navigator.vibrate) {
+        navigator.vibrate(100);
+    }
+};
+
 // 解除答題鎖定：feedbackState 一旦離開 IDLE，網格會套用 pointer-events-none，
 // 因此所有離開 ERROR 的路徑都必須經過這裡。
 const clearFeedback = () => {
@@ -394,7 +406,7 @@ const handleInteraction = (index: number) => {
     } else {
         playSound('error');
         feedbackState.value = 'ERROR';
-        if (navigator.vibrate) navigator.vibrate(100);
+        triggerErrorHaptic();
 
         const targetEl = gridItemRefs.value[index];
         if (targetEl) {
