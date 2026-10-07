@@ -89,7 +89,21 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      increment_stats: {
+        Args: {
+          p_xp?: number
+          p_minutes?: number
+          p_sessions?: number
+          p_high_score?: number
+          p_longest_streak?: number
+          p_current_streak?: number
+          p_last_played_date?: string
+          p_achievements?: Record<string, string>
+        }
+        Returns: Database['public']['Tables']['game_stats']['Row']
+      }
+    }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
   }

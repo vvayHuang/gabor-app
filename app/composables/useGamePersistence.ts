@@ -1,5 +1,8 @@
 import { ref, computed } from 'vue'
 import { localDateKey, diffDateKeys } from '~/utils/date'
+import type { Database } from '~/types/database.types'
+
+type GameStatsRow = Database['public']['Tables']['game_stats']['Row']
 
 export interface GameSessionData {
     id?: string
@@ -30,6 +33,37 @@ const STORAGE_OWNER_KEY = 'gabor_game_stats_owner'
 // 上傳失敗的場次佇列，等下次載入或下一局結算時重送
 const PENDING_SESSIONS_KEY = 'gabor_pending_sessions'
 const MAX_PENDING_SESSIONS = 50
+
+// 尚未累加到雲端的增量（XP、訓練分鐘、場次）。雲端由 increment_stats RPC 做加法，
+// 兩台裝置各自送出自己的增量，才不會像整列 upsert 那樣後存者蓋掉先存者。
+const PENDING_DELTA_KEY = 'gabor_pending_stats_delta'
+
+interface StatsDelta {
+    xp: number
+    minutes: number
+    sessions: number
+}
+
+const createEmptyDelta = (): StatsDelta => ({ xp: 0, minutes: 0, sessions: 0 })
+
+let pendingDelta: StatsDelta = createEmptyDelta()
+
+const readPendingDelta = (): StatsDelta => {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(PENDING_DELTA_KEY) || 'null')
+        return {
+            xp: Number(parsed?.xp) || 0,
+            minutes: Number(parsed?.minutes) || 0,
+            sessions: Number(parsed?.sessions) || 0
+        }
+    } catch (e) {
+        console.error('Failed to parse pending stats delta:', e)
+        return createEmptyDelta()
+    }
+}
+
+// PostgREST 找不到函式（migration 尚未套用）時的錯誤碼
+const FUNCTION_NOT_FOUND = 'PGRST202'
 
 // 佇列中的一筆場次：id 與 created_at 在結算當下就決定，重送時沿用，
 // 這樣即使「雲端其實已寫入、只是回應沒收到」，重送也會撞主鍵而不會多一筆。
@@ -112,6 +146,7 @@ export function useGamePersistence() {
     // 本機寫入一律連同「擁有者」一起記錄，避免帳號切換後誤用他人資料
     const persistLocal = () => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stats.value))
+        localStorage.setItem(PENDING_DELTA_KEY, JSON.stringify(pendingDelta))
         const owner = currentUserId.value
         if (owner) {
             localStorage.setItem(STORAGE_OWNER_KEY, owner)
@@ -136,9 +171,12 @@ export function useGamePersistence() {
         if (localBelongsToOther) {
             // 本機殘留的是別的帳號的資料：先清空，等雲端資料回來再填
             stats.value = createEmptyStats()
+            pendingDelta = createEmptyDelta()
             localStorage.removeItem(STORAGE_KEY)
             localStorage.removeItem(STORAGE_OWNER_KEY)
+            localStorage.removeItem(PENDING_DELTA_KEY)
         } else {
+            pendingDelta = readPendingDelta()
             const stored = localStorage.getItem(STORAGE_KEY)
             if (stored) {
                 try {
@@ -169,6 +207,22 @@ export function useGamePersistence() {
         isLoaded.value = true
     }
 
+    // 以雲端資料列為準更新本機；累計值要再加上還沒送出的增量，
+    // 否則離線時玩的進度會在下次載入時被雲端的舊數字蓋掉。
+    const applyCloudRow = (data: GameStatsRow) => {
+        stats.value = {
+            ...stats.value,
+            highScore: data.high_score || 0,
+            consecutiveDays: data.consecutive_days || 0,
+            totalTimeMinutes: (data.total_time_minutes || 0) + pendingDelta.minutes,
+            totalXP: (data.total_xp || 0) + pendingDelta.xp,
+            totalSessions: (data.total_sessions || 0) + pendingDelta.sessions,
+            lastPlayedDate: data.last_played_date || '',
+            currentStreak: data.current_streak || 0,
+            achievements: data.achievements || {}
+        }
+    }
+
     const fetchFromCloud = async (userId: string) => {
         try {
             const { data, error } = await supabase
@@ -184,19 +238,17 @@ export function useGamePersistence() {
             cloudLoaded.value = true
 
             if (data) {
-                stats.value = {
-                    ...stats.value,
-                    highScore: data.high_score || 0,
-                    consecutiveDays: data.consecutive_days || 0,
-                    totalTimeMinutes: data.total_time_minutes || 0,
-                    totalXP: data.total_xp || 0,
-                    totalSessions: data.total_sessions || 0,
-                    lastPlayedDate: data.last_played_date || '',
-                    currentStreak: data.current_streak || 0,
-                    achievements: data.achievements || {}
+                applyCloudRow(data)
+            } else {
+                // 雲端還沒有資料列：本機現有的累計（例如登入前以訪客身分玩的）
+                // 全部算作待上傳的增量，第一次存檔時一次加上去。
+                pendingDelta = {
+                    xp: stats.value.totalXP,
+                    minutes: stats.value.totalTimeMinutes,
+                    sessions: stats.value.totalSessions
                 }
-                persistLocal()
             }
+            persistLocal()
         } catch (e) {
             cloudLoaded.value = false
             console.error('Error fetching stats from cloud:', e)
@@ -275,6 +327,7 @@ export function useGamePersistence() {
         stats.value.totalSessions++
 
         const userId = currentUserId.value
+        if (userId) pendingDelta.sessions++
 
         if (userId) {
             const row: PendingSession = {
@@ -305,38 +358,74 @@ export function useGamePersistence() {
 
         const userId = currentUserId.value
 
-        // 雲端資料還沒成功讀回來就不要寫，upsert 是整列覆蓋，
-        // 這時候寫進去等於把雲端既有的 XP／成就洗成目前的空白狀態。
+        // 雲端資料還沒成功讀回來就不要寫：這時本機的徽章／連續天數可能是空白的，
+        // 而且還不知道雲端有沒有資料列，無法判斷本機累計是否該整筆算作增量。
         if (userId && !cloudLoaded.value) {
-            console.warn('Skip cloud upsert: cloud stats not loaded yet')
+            console.warn('Skip cloud sync: cloud stats not loaded yet')
             return
         }
 
         if (userId) {
+            // 送出當下的增量快照；等待回應期間若又有新增量，回來後只扣掉已送出的部分
+            const sent = { ...pendingDelta }
             try {
-                const payload = {
-                    user_id: userId,
-                    high_score: stats.value.highScore,
-                    consecutive_days: longestStreak.value,
-                    total_time_minutes: stats.value.totalTimeMinutes,
-                    total_xp: stats.value.totalXP,
-                    total_sessions: stats.value.totalSessions,
-                    current_level: currentLevel.value,
-                    current_streak: stats.value.currentStreak,
-                    achievements: stats.value.achievements,
-                    last_played_date: stats.value.lastPlayedDate,
-                    updated_at: new Date().toISOString()
+                const { data, error } = await supabase.rpc('increment_stats', {
+                    p_xp: sent.xp,
+                    p_minutes: sent.minutes,
+                    p_sessions: sent.sessions,
+                    p_high_score: stats.value.highScore,
+                    p_longest_streak: longestStreak.value,
+                    p_current_streak: stats.value.currentStreak,
+                    p_last_played_date: stats.value.lastPlayedDate,
+                    p_achievements: stats.value.achievements
+                })
+
+                if (error?.code === FUNCTION_NOT_FOUND) {
+                    // migration 尚未套用：退回舊的整列 upsert，功能照常但仍有多裝置覆蓋問題
+                    console.warn('increment_stats RPC not found, falling back to full-row upsert')
+                    await upsertFullRow(userId)
+                    return
                 }
-                
-                const { error } = await supabase
-                    .from('game_stats')
-                    .upsert(payload, { onConflict: 'user_id' })
-                
                 if (error) throw error
+
+                pendingDelta = {
+                    xp: pendingDelta.xp - sent.xp,
+                    minutes: pendingDelta.minutes - sent.minutes,
+                    sessions: pendingDelta.sessions - sent.sessions
+                }
+                if (data) applyCloudRow(data)
+                persistLocal()
             } catch (e) {
                 console.error('Error saving stats to cloud:', e)
             }
         }
+    }
+
+    // increment_stats 不存在時的後備路徑（S01 之前的行為）
+    const upsertFullRow = async (userId: string) => {
+        const payload = {
+            user_id: userId,
+            high_score: stats.value.highScore,
+            consecutive_days: longestStreak.value,
+            total_time_minutes: stats.value.totalTimeMinutes,
+            total_xp: stats.value.totalXP,
+            total_sessions: stats.value.totalSessions,
+            current_level: currentLevel.value,
+            current_streak: stats.value.currentStreak,
+            achievements: stats.value.achievements,
+            last_played_date: stats.value.lastPlayedDate,
+            updated_at: new Date().toISOString()
+        }
+
+        const { error } = await supabase
+            .from('game_stats')
+            .upsert(payload, { onConflict: 'user_id' })
+
+        if (error) throw error
+
+        // 整列已寫上去，雲端等於本機，沒有待送的增量了
+        pendingDelta = createEmptyDelta()
+        persistLocal()
     }
 
     const currentLevel = computed(() => Math.floor(Math.sqrt(stats.value.totalXP / 100)) + 1)
@@ -383,7 +472,9 @@ export function useGamePersistence() {
 
     // 純本地狀態異動，不觸發網路請求；由呼叫端統一呼叫 saveStats() 持久化
     const addXP = (amount: number) => {
-        stats.value.totalXP += Math.round(amount)
+        const xp = Math.round(amount)
+        stats.value.totalXP += xp
+        if (currentUserId.value) pendingDelta.xp += xp
     }
 
     const recordAchievement = (level: number) => {
@@ -444,12 +535,15 @@ export function useGamePersistence() {
     const addTrainingTime = (milliseconds: number) => {
         const minutes = Math.max(1, Math.floor(milliseconds / 60000))
         stats.value.totalTimeMinutes += minutes
+        if (currentUserId.value) pendingDelta.minutes += minutes
         addXP(minutes * 10)
     }
 
     const resetStats = async () => {
         stats.value = createEmptyStats()
-        await saveStats()
+        pendingDelta = createEmptyDelta()
+        // 只清本機。雲端改成累加後，這裡不需要也不應該再寫雲端。
+        if (typeof window !== 'undefined') persistLocal()
         // 清掉載入旗標，下一位登入的使用者才會真的重新向雲端拉資料
         isLoaded.value = false
         loadedUserId.value = null
