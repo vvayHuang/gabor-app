@@ -181,7 +181,7 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
 | C08 | `params?: any` 補上型別 `GaborParams` | `GaborCanvas.vue`、`game-grid.vue` | ✅ `798c330`（未跑型別檢查，專案未安裝 `vue-tsc`） |
 | C09 | `dist` symlink 指向別的專案（`gabor-app-wireframe-demo`），改指向本專案 `.output/public` 或刪除 | repo 根目錄（**請 Way 手動處理**） | ✅ 已由 Way 於 2026-10-08 刪除（不在版控內，無 commit） |
 | C10 | `ios/` 被 `.gitignore` 排除，評估是否納入版控 | `.gitignore`（**需決策**） | ✅ `201da74`（納入 20 個原生專案檔；建置產物與 `cap sync` 產生的檔案仍排除；未從乾淨 clone 實際建置驗證） |
-| C11 | 整併文件：README、PRD、DESIGN 保留；GEMINI.md、`.gabor_app_wireframe_...md` 過時內容移除或合併 | 根目錄文件 | ⏸ 待決策 |
+| C11 | 整併文件：README、PRD、DESIGN 保留；GEMINI.md、`.gabor_app_wireframe_...md` 過時內容移除或合併 | 根目錄文件 | ✅ `b7b2a52`（刪除 `AGENTS.md`、`GEMINI.md`，值得保留的內容併入 `CLAUDE.md`；線框稿規格已移除；README 僅修正連結） |
 
 ---
 
@@ -190,7 +190,7 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
 1. ✅ **第一批（P0）**：B01 → B02 → B03 → B04（每項一個 commit）
 2. ✅ **第二批（P2 快速清理）**：C01、C02、C03、C04、C05、C06、C08
 3. ✅ **第三批**：S02 → S01（S01 需要 DB migration）、S03
-4. ⏸ **決策後**：D01、D02、D03、C11（C07、C10 已完成）
+4. ⏸ **決策後**：D01、D02、D03（C07、C10、C11 已完成）
 5. **待實機／登入後驗證**：B04（iPhone 3x）、C02（iOS 震動）、S01（兩台裝置）、S02（斷網補傳）
 
 ## 9. 給 Claude Code 的執行規則
