@@ -49,6 +49,7 @@ export interface Database {
         Row: {
           user_id: string
           high_score: number
+          /** 歷來最長連續天數（不是目前連續天數，目前的是 current_streak） */
           consecutive_days: number
           total_time_minutes: number
           total_xp: number

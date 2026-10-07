@@ -17,6 +17,8 @@ export interface GameSessionData {
 
 export interface GameStats {
     highScore: number
+    // 注意：名稱容易誤會。這是「歷來最長連續天數」，不是目前連續天數（那是 currentStreak）。
+    // 對應雲端 game_stats.consecutive_days，欄位改名要動資料庫，暫不處理。
     consecutiveDays: number
     totalTimeMinutes: number
     totalXP: number
