@@ -24,7 +24,6 @@
                                 ref="gaborRefs"
                                 :size="80"
                                 :params="getGaborParams(step.id, i)"
-                                :primary-color="gaborPrimaryColor"
                                 :secondary-color="gaborSecondaryColor"
                                 :profile-gamma="gaborProfileGamma"
                                 @ready="handleReady"
@@ -80,9 +79,8 @@ import { useAppSettings } from '~/composables/useAppSettings';
 
 const settings = useAppSettings();
 
-// 與遊戲畫面一致，底色與墨色取自設計系統的 surface / on-surface，
+// 與遊戲畫面一致，墨色取自設計系統的 on-surface，
 // 並用 gamma < 1 抬升輪廓，避免墨暈糊進背景。
-const gaborPrimaryColor = computed(() => settings.isDarkMode.value ? '#101318' : '#F9F9FF');
 const gaborSecondaryColor = computed(() => settings.isDarkMode.value ? '#E1E2EC' : '#181C23');
 const gaborProfileGamma = computed(() => settings.isDarkMode.value ? 0.68 : 0.9);
 

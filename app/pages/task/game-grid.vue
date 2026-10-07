@@ -59,7 +59,7 @@
                     </div>
                     <ClientOnly>
                         <GaborCanvas :ref="el => { if (el) canvasRefs[index] = el }" :size="canvasSize" :params="item"
-                            :primary-color="primaryColor" :secondary-color="secondaryColor"
+                            :secondary-color="secondaryColor"
                             :profile-gamma="profileGamma" />
                     </ClientOnly>
                 </div>
@@ -181,9 +181,8 @@ let levelToken = 0;
 let isPageActive = true;
 
 // --- Colors (Deeper Scientific Palette) ---
-// Canvas 本身保持透明，底色與墨色皆取自設計系統的 surface / on-surface：
-// 深色 #101318 / #E1E2EC，淺色 #F9F9FF / #181C23。
-const primaryColor = computed(() => settings.isDarkMode.value ? '#101318' : '#F9F9FF');
+// Canvas 本身保持透明（底色由頁面的 surface 提供），墨色取自設計系統的 on-surface：
+// 深色 #E1E2EC，淺色 #181C23。
 const secondaryColor = computed(() => settings.isDarkMode.value ? '#E1E2EC' : '#181C23');
 // on-surface 的墨色比純黑／純白弱，可見度改由 gamma < 1 抬升輪廓中低強度區補回，
 // 而不是把墨色調到色票以外。深色底缺少「白紙吸墨」的餘裕，需要抬得比淺色多。

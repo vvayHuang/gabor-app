@@ -15,7 +15,6 @@ import { computed, onMounted, ref, watch } from 'vue';
 const props = withDefaults(defineProps<{
     size?: number;
     params?: any;
-    primaryColor?: string;
     secondaryColor?: string;
     /**
      * 空間輪廓（Gaussian 包絡 × 條紋）的 gamma。
@@ -25,7 +24,6 @@ const props = withDefaults(defineProps<{
     profileGamma?: number;
 }>(), {
     size: 200,
-    primaryColor: '#FFFFFF',
     secondaryColor: '#000000',
     profileGamma: 1,
     params: () => ({
@@ -157,7 +155,7 @@ onMounted(() => {
 // flush: 'post' 確保在 <canvas> 的 width/height 屬性更新（會清空畫布）之後才繪製，
 // 因此尺寸變化不需要外部再補一次繪製。
 watch(
-    [() => props.params, () => props.size, () => props.primaryColor, () => props.secondaryColor, () => props.profileGamma],
+    [() => props.params, () => props.size, () => props.secondaryColor, () => props.profileGamma],
     drawGabor,
     { deep: true, flush: 'post' }
 );
