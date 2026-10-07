@@ -23,7 +23,7 @@
                         <div class="flex flex-col items-start space-y-1">
                             <span class="label-sm font-bold uppercase tracking-widest text-on-surface-variant">成功率</span>
                             <div class="flex items-baseline space-x-1">
-                                <span class="display-sm-emphasis text-on-surface">{{ successRate }}</span>
+                                <span class="display-sm-emphasis text-on-surface">{{ successRateText }}</span>
                                 <span class="label-sm font-bold text-on-surface-variant">%</span>
                             </div>
                         </div>
@@ -79,7 +79,13 @@ const elapsedSeconds = computed<number | null>(() => {
 
 const successRate = computed(() => Math.round(gameState.accuracy.value));
 
+// 這一局沒有任何作答紀錄（例如直接開啟本頁）時，數值欄位顯示 -- 而不是 0
+const hasResponses = computed(() => gameState.state.session.responseTimes.length > 0);
+
+const successRateText = computed(() => hasResponses.value ? String(successRate.value) : '--');
+
 const avgResponseSpeed = computed(() => {
+    if (!hasResponses.value) return '--';
     const ms = gameState.averageResponseTime.value;
     return (ms / 1000).toFixed(2);
 });
