@@ -42,27 +42,31 @@
         <div v-if="gameStarted && !showPhaseTransition"
             class="relative w-full max-w-2xl lg:max-w-4xl mx-auto flex items-center justify-center min-h-[min(496px,calc(100dvh-242px))] lg:min-h-[620px]">
             <!-- Actual Game Grid -->
-            <div class="grid w-full items-center justify-items-center" :style="{
+            <div class="grid w-full items-center justify-items-center" role="group" aria-label="符號網格"
+                @keydown="handleGridKeydown" @pointerdown="handleGridPointerDown" :style="{
                 gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
                 gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
                 gap: `${gridGap}px`,
                 maxWidth: gridMaxWidth ? `${gridMaxWidth}px` : undefined,
                 opacity: isGridReady ? 1 : 0
             }">
-                <div v-for="(item, index) in gridItems" :key="`cell-${index}`"
+                <!-- 用 roving tabindex：整個網格只佔一個 Tab 停駐點，格子之間用方向鍵移動 -->
+                <button v-for="(item, index) in gridItems" :key="`cell-${index}`" type="button"
                     :ref="(el) => { if (el) gridItemRefs[index] = el }"
-                    class="relative group aspect-square flex items-center justify-center cursor-pointer"
-                    @click="handleInteraction(index)" :class="{ 'pointer-events-none': feedbackState !== 'IDLE' || !isInputEnabled }">
-                    <div class="absolute rounded-full bg-primary/20 ring-2 ring-primary/70 pointer-events-none z-20 transition-all duration-100"
+                    :aria-label="getCellLabel(index)" :tabindex="index === focusedIndex ? 0 : -1"
+                    class="relative group aspect-square flex items-center justify-center cursor-pointer rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    @click="handleInteraction(index)" @focus="focusedIndex = index"
+                    :class="{ 'pointer-events-none': feedbackState !== 'IDLE' || !isInputEnabled }">
+                    <span class="absolute rounded-full bg-primary/20 ring-2 ring-primary/70 pointer-events-none z-20 transition-all duration-100"
                         :style="{ width: `${canvasSize}px`, height: `${canvasSize}px` }"
                         :class="(feedbackState === 'SUCCESS' && selectedIndex === index) ? 'opacity-100 scale-105' : 'opacity-0 scale-95'">
-                    </div>
+                    </span>
                     <ClientOnly>
                         <GaborCanvas :ref="el => { if (el) canvasRefs[index] = el }" :size="canvasSize" :params="item"
                             :secondary-color="secondaryColor"
                             :profile-gamma="profileGamma" />
                     </ClientOnly>
-                </div>
+                </button>
             </div>
         </div>
 
@@ -201,6 +205,8 @@ const playGridEntrance = () => {
         if (!isPageActive || token !== levelToken || isInputEnabled.value) return;
         clickStartTime.value = Date.now();
         isInputEnabled.value = true;
+        // 鍵盤操作中換題或換階段時，把焦點放回網格，不用每題重新按 Tab
+        if (isKeyboardNavigating) gridItemRefs.value[focusedIndex.value]?.focus();
     };
 
     const validRefs = gridItemRefs.value.filter(el => el);
@@ -277,6 +283,7 @@ const generateLevel = () => {
     nextTick(() => {
         const count = gridCols.value * gridRows.value;
         targetIndex.value = Math.floor(Math.random() * count);
+        if (focusedIndex.value >= count) focusedIndex.value = 0;
 
         // --- 呼叫難度引擎 ---
         const lv = persistence.currentLevel.value;
@@ -317,6 +324,61 @@ const triggerErrorHaptic = () => {
         Haptics.notification({ type: NotificationType.Error }).catch(() => {});
     } else if (navigator.vibrate) {
         navigator.vibrate(100);
+    }
+};
+
+// --- Keyboard / Accessibility ---
+// 目前擁有 tabindex=0 的格子；方向鍵移動它，Enter / 空白鍵由 <button> 原生觸發 click。
+const focusedIndex = ref(0);
+// 玩家是否正在用鍵盤操作網格（用滑鼠或觸控點擊後即視為否）
+let isKeyboardNavigating = false;
+
+// 標籤只描述位置，不透露哪一格是目標
+const getCellLabel = (index: number) => {
+    const row = Math.floor(index / gridCols.value) + 1;
+    const col = (index % gridCols.value) + 1;
+    return `第 ${row} 列，第 ${col} 欄`;
+};
+
+const handleGridPointerDown = () => {
+    isKeyboardNavigating = false;
+};
+
+const handleGridKeydown = (event: KeyboardEvent) => {
+    const cols = gridCols.value;
+    const count = gridItems.value.length;
+    const current = focusedIndex.value;
+    let next = current;
+
+    switch (event.key) {
+        case 'ArrowRight':
+            if (current % cols < cols - 1 && current + 1 < count) next = current + 1;
+            break;
+        case 'ArrowLeft':
+            if (current % cols > 0) next = current - 1;
+            break;
+        case 'ArrowDown':
+            if (current + cols < count) next = current + cols;
+            break;
+        case 'ArrowUp':
+            if (current - cols >= 0) next = current - cols;
+            break;
+        case 'Enter':
+        case ' ':
+            // 按住不放的連發不算作答，避免下一題一開放就被自動選掉
+            if (event.repeat) event.preventDefault();
+            isKeyboardNavigating = true;
+            return;
+        default:
+            return;
+    }
+
+    // 方向鍵預設會捲動頁面
+    event.preventDefault();
+    isKeyboardNavigating = true;
+    if (next !== current) {
+        focusedIndex.value = next;
+        gridItemRefs.value[next]?.focus();
     }
 };
 
