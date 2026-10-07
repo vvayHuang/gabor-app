@@ -83,13 +83,14 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { gsap } from 'gsap';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, NotificationType } from '@capacitor/haptics';
 import { useGameState } from '~/composables/useGameState';
 import { useGamePersistence } from '~/composables/useGamePersistence';
 import { useAppSettings } from '~/composables/useAppSettings';
+import { useGaborAppearance } from '~/composables/useGaborAppearance';
 import { useAudio } from '~/composables/useAudio';
 
 const router = useRouter();
@@ -180,13 +181,9 @@ let levelToken = 0;
 // 因此離開頁面後的殘留回呼必須靠這個旗標擋下，避免把玩家從別的頁面彈走。
 let isPageActive = true;
 
-// --- Colors (Deeper Scientific Palette) ---
-// Canvas 本身保持透明（底色由頁面的 surface 提供），墨色取自設計系統的 on-surface：
-// 深色 #E1E2EC，淺色 #181C23。
-const secondaryColor = computed(() => settings.isDarkMode.value ? '#E1E2EC' : '#181C23');
-// on-surface 的墨色比純黑／純白弱，可見度改由 gamma < 1 抬升輪廓中低強度區補回，
-// 而不是把墨色調到色票以外。深色底缺少「白紙吸墨」的餘裕，需要抬得比淺色多。
-const profileGamma = computed(() => settings.isDarkMode.value ? 0.68 : 0.9);
+// --- Colors ---
+// 墨色與輪廓 gamma 與教學頁共用，定義在 useGaborAppearance。
+const { inkColor: secondaryColor, profileGamma } = useGaborAppearance();
 
 // --- Level Data ---
 const gridItems = ref<any[]>([]);

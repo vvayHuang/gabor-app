@@ -74,15 +74,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue';
-import { useAppSettings } from '~/composables/useAppSettings';
+import { ref, onMounted, nextTick } from 'vue';
+import { useGaborAppearance } from '~/composables/useGaborAppearance';
 
-const settings = useAppSettings();
-
-// 與遊戲畫面一致，墨色取自設計系統的 on-surface，
-// 並用 gamma < 1 抬升輪廓，避免墨暈糊進背景。
-const gaborSecondaryColor = computed(() => settings.isDarkMode.value ? '#E1E2EC' : '#181C23');
-const gaborProfileGamma = computed(() => settings.isDarkMode.value ? 0.68 : 0.9);
+// 墨色與輪廓 gamma 與遊戲畫面共用，定義在 useGaborAppearance。
+const { inkColor: gaborSecondaryColor, profileGamma: gaborProfileGamma } = useGaborAppearance();
 
 const scrollContainer = ref<HTMLElement | null>(null);
 const activeIndex = ref(0);
