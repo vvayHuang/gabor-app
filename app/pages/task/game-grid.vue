@@ -25,12 +25,12 @@
                 <p class="text-on-surface-variant mb-6">您的進度將會遺失。</p>
                 <div class="flex justify-end space-x-3">
                     <button
-                        class="px-4 py-2 text-on-surface-variant hover:text-on-surface hover:bg-on-surface/10 rounded-lg transition"
+                        class="px-4 py-2 text-on-surface-variant hover:text-on-surface hover:bg-on-surface/10 rounded-full transition"
                         @click="cancelExit">
                         取消
                     </button>
                     <button
-                        class="px-4 py-2 bg-error text-on-error hover:bg-error-container hover:text-on-error-container rounded-lg transition font-medium"
+                        class="px-4 py-2 bg-error text-on-error hover:bg-error-container hover:text-on-error-container rounded-full transition font-medium"
                         @click="confirmExit">
                         離開
                     </button>
