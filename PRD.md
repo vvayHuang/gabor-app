@@ -2,7 +2,7 @@
 
 > 版本：v2.0（2026-10-07）
 > 狀態：MVP 已完成，進入「修正與優化」階段
-> 進度（2026-10-07）：P0（B01–B04）、清理（C01–C06、C08）、同步（S01–S03）已完成並 commit；剩餘項目待決策或待實機驗證，見第 7 節各項標記。
+> 進度（2026-10-07）：P0（B01–B04）、清理（C01–C08）、同步（S01–S03）已完成並 commit；剩餘項目待決策或待實機驗證，見第 7 節各項標記。
 > 本文件同時是 Claude Code 的執行清單：第 7 節的每一項都有 ID、範圍、驗收標準，可以逐項交辦。
 
 ---
@@ -84,7 +84,7 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
 | F08 | 紀錄頁（趨勢圖、行事曆） | ✅ 完成 |
 | F09 | 響應式（手機 / 桌機） | ✅ 完成（B03 已修正手機大網格溢出） |
 | F10 | 螢幕校準（px/mm） | ❌ 未實作（D03） |
-| F11 | 鍵盤 / 無障礙操作 | ❌ 未實作（C07） |
+| F11 | 鍵盤 / 無障礙操作 | 🔶 網格可用鍵盤操作並有標籤（C07）；未以螢幕報讀器實測，任務本身仍需視覺辨識 |
 | F12 | E2E 測試 | ❌ 已裝 Playwright，未建立設定與測試 |
 
 ---
@@ -177,7 +177,7 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
 | C04 | 離開確認框、設定頁的 `rounded-lg` 改成符合規範；確認框標題改用 typography class | `game-grid.vue`、`settings.vue` | ✅ `000dd84`（依決定只改確認框兩顆按鈕；設定頁與標題不改） |
 | C05 | `SelectButton` 寫死的 `#695D40`、NavigationRail 的 `text-white` 改用既有 token | `SelectButton.vue`、`NavigationRail.vue` | ✅ `8e103e5`（`SelectButton` 目前無任何頁面使用） |
 | C06 | 斑塊顏色 hex 重複寫在兩處，抽成共用（或讀 CSS 變數） | `game-grid.vue`、`TutorialCarousel.vue` | ✅ `f966927`（抽成 `useGaborAppearance`） |
-| C07 | 網格格子改成 `<button>`，加 `aria-label`；桌機支援方向鍵＋Enter 選擇 | `game-grid.vue` | ⏸ 待決策 |
+| C07 | 網格格子改成 `<button>`，加 `aria-label`；桌機支援方向鍵＋Enter 選擇 | `game-grid.vue` | ✅ `8132894`（方向鍵＋Enter／空白鍵；標籤只描述位置；未以螢幕報讀器實測） |
 | C08 | `params?: any` 補上型別 `GaborParams` | `GaborCanvas.vue`、`game-grid.vue` | ✅ `798c330`（未跑型別檢查，專案未安裝 `vue-tsc`） |
 | C09 | `dist` symlink 指向別的專案（`gabor-app-wireframe-demo`），改指向本專案 `.output/public` 或刪除 | repo 根目錄（**請 Way 手動處理**） | ⏸ 待手動處理（指向的目錄已不存在） |
 | C10 | `ios/` 被 `.gitignore` 排除，評估是否納入版控 | `.gitignore`（**需決策**） | ⏸ 待決策 |
@@ -190,7 +190,7 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
 1. ✅ **第一批（P0）**：B01 → B02 → B03 → B04（每項一個 commit）
 2. ✅ **第二批（P2 快速清理）**：C01、C02、C03、C04、C05、C06、C08
 3. ✅ **第三批**：S02 → S01（S01 需要 DB migration）、S03
-4. ⏸ **決策後**：D01、D02、D03、C07、C10、C11
+4. ⏸ **決策後**：D01、D02、D03、C10、C11（C07 已完成）
 5. **待實機／登入後驗證**：B04（iPhone 3x）、C02（iOS 震動）、S01（兩台裝置）、S02（斷網補傳）
 
 ## 9. 給 Claude Code 的執行規則
