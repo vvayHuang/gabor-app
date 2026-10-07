@@ -19,7 +19,7 @@ npm run test:e2e:ui  # Playwright e2e tests, UI mode
 
 iOS workflow after native-relevant changes: `npm run generate && npx cap sync ios && npx cap open ios`, then run from Xcode.
 
-Do **not** run `npm install`, `npm run build`, `npm run test`, or `git push` unless the user explicitly asks — these are disallowed by default in this repo (see `AGENTS.md`).
+Do **not** run `npm install`, `npm run build`, `npm run test`, or `git push` unless the user explicitly asks — these are disallowed by default in this repo.
 
 Note: `@playwright/test` is a devDependency and `test:e2e` scripts exist, but no `playwright.config.ts` or spec files currently exist in the repo — e2e testing is not yet wired up.
 
@@ -42,7 +42,15 @@ Scoring: 100 base + speed bonus `max(0, 400 - responseTime/10)` per correct answ
 
 ### Persistence (`app/composables/useGamePersistence.ts`)
 
-Singleton reactive `stats` synced to both `localStorage` (key `gabor_game_stats`, always) and Supabase (`game_stats` table for aggregate stats, `game_sessions` for per-session history) when a user is authenticated — LocalStorage-first optimistic updates, Supabase as best-effort cloud sync (failures are logged, not thrown). Derived values (`currentLevel`, `levelProgress`, `rankName`, `longestStreak`) are computed from `totalXP`: `currentLevel = floor(sqrt(totalXP/100)) + 1`. Supabase table types are generated into `app/types/database.types.ts`.
+Singleton reactive `stats`, LocalStorage-first: every change is written to `localStorage` (key `gabor_game_stats`) right away, and Supabase is a best-effort cloud sync when a user is authenticated (failures are logged, not thrown).
+
+- **Aggregate stats (`game_stats`)** — `saveStats()` calls the `increment_stats` RPC (`supabase/migrations/20261007000000_increment_stats.sql`) with only the deltas since the last successful sync (XP, minutes, sessions; persisted under `gabor_pending_stats_delta`). The server adds the deltas, keeps the larger high score / longest streak, and merges achievements per day, so two devices no longer overwrite each other. The returned row becomes the local truth, plus any delta still unsent. If the RPC is missing (`PGRST202`) it falls back to the old full-row upsert.
+- **Never sync before the cloud row has been read** (`cloudLoaded`), otherwise blank local stats could be pushed over existing cloud data.
+- **Sessions (`game_sessions`)** — each row gets a client-generated `id` and `created_at`. Failed uploads are queued under `gabor_pending_sessions` and retried on the next `loadStats()` or after the next successful upload; a duplicate-key error (`23505`) counts as success, so retries never create duplicates.
+- **Date keys** (`achievements`, `lastPlayedDate`) are local-timezone `YYYY-MM-DD` from `localDateKey()` in `app/utils/date.ts`. Do not use `toISOString()` for them — that is the UTC date.
+- `consecutiveDays` / `game_stats.consecutive_days` stores the **longest streak ever**, not the current one (`currentStreak`).
+
+Derived values (`currentLevel`, `levelProgress`, `rankName`, `longestStreak`) are computed from `totalXP`: `currentLevel = floor(sqrt(totalXP/100)) + 1`. Supabase table types live in `app/types/database.types.ts`.
 
 ### iOS OAuth deep-link flow (`app/pages/login.vue`)
 
@@ -50,6 +58,7 @@ Non-obvious and fragile — preserve unless explicitly changing it:
 - Uses **implicit flow** (`flowType: 'implicit'`), not PKCE, to avoid losing `code_verifier` in the iOS simulator webview.
 - Redirect URL is `gaborapp://login-callback` on native, `${origin}/prepare` on web.
 - On callback, manually writes the `sb-<project-ref>-auth-token` cookie before doing a hard `window.location.href` redirect, to force the webview to reload and pick up the Supabase auth cookie.
+- Known limitation: the iOS simulator sometimes still loses the session after the hard redirect. Prefer a physical device when testing login.
 
 ### Layout / navigation (`app/layouts/default.vue`)
 
@@ -59,9 +68,12 @@ Single default layout wraps all pages: flat `bg-surface` background, `Navigation
 
 - `app/pages/` — file-based routes; `task/game-grid.vue` is the main training flow.
 - `app/components/` — UI, navigation, charts, buttons, canvas/visual components.
-- `app/composables/` — shared state: game state, persistence, app settings, audio, 3D tilt.
+- `app/composables/` — shared state: game state, persistence, app settings, audio, Gabor appearance (ink color / gamma).
+- `app/utils/` — small pure helpers (e.g. `date.ts` for local date keys).
+- `app/types/` — shared types: Supabase tables (`database.types.ts`), `GaborParams` (`gabor.ts`).
+- `supabase/migrations/` — SQL applied by hand in the Supabase SQL Editor (there is no CLI migration flow).
 - `public/shape/` — static SVG achievement/badge shapes (keep new badge assets here, not `app/assets`).
-- `ios/` — Capacitor iOS project.
+- `ios/` — Capacitor iOS project (tracked; build output is ignored via `ios/.gitignore`).
 - `.nuxt/`, `.output/`, `node_modules/` — generated/dependency, do not edit.
 
 ## Design system
@@ -80,7 +92,9 @@ Material Design 3 tokens, defined in `app/assets/css/main.css`. Key constraints 
 - Vue SFCs with `<script setup lang="ts">`, Composition API only.
 - Components: PascalCase. Composables: `use` prefix. Pages: Nuxt file-based routing conventions.
 - Secrets live in `.env` (`SUPABASE_URL`, `SUPABASE_KEY`); never commit real credentials.
+- Commit messages use a `feat:` / `fix:` / `refactor:` / `style:` / `docs:` / `chore:` prefix, e.g. `fix: prevent progress bar reset during animation`.
+- After finishing a change, stop and report which files were modified.
 
 ## Verifying changes
 
-No automated test suite is currently exercised in this repo. For UI changes, check desktop and mobile layouts, dark mode, navigation, and affected states manually. For game/scoring changes, verify feedback, progress, scoring, and persistence (both LocalStorage and, if testable, Supabase sync) manually.
+No automated test suite is currently exercised in this repo. Type checking is available via `npx nuxi typecheck` (vue-tsc); it still reports a handful of older errors in a few components, so compare against that baseline and do not add new ones. For UI changes, check desktop and mobile layouts, dark mode, navigation, and affected states manually. For game/scoring changes, verify feedback, progress, scoring, and persistence (both LocalStorage and, if testable, Supabase sync) manually.

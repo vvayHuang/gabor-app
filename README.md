@@ -47,4 +47,4 @@ npm run dev
 
 *注意：目前 Google 登入使用 `gaborapp://` 自定義 Scheme 進行跳轉。*
 
-更多詳細資訊請參考 [PRD.md](./PRD.md) 與 [GEMINI.md](./GEMINI.md)。
+更多詳細資訊請參考 [PRD.md](./PRD.md)。

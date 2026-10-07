@@ -197,7 +197,7 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
 
 - 一次只做一個 ID，完成後說明改了哪些檔案、如何驗證，然後停下等確認。
 - Commit 格式：`fix(B01): use local date for daily achievement keys`
-- **不要執行** `npm install`、`npm run build`、`npm run test`、`git push`（見 AGENTS.md）。
+- **不要執行** `npm install`、`npm run build`、`npm run test`、`git push`（見 CLAUDE.md）。
 - 遵守第 5.5 節的技術限制；第 5 節的公式除非該 ID 明確要求，否則不改。
 - 標示「需決策」或「請 Way 手動處理」的項目不要自行實作。
 - UI 改動要檢查：手機 / 桌機、深色模式、導覽列。
