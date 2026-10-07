@@ -22,8 +22,7 @@ logs
 # Local env files
 .env
 .env.*
-# iOS
-ios/
+# iOS (the native project is tracked; build output is ignored here and in ios/.gitignore)
 App.xcresult
 DerivedData/
 Pods/
