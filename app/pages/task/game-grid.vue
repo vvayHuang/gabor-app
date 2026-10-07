@@ -40,12 +40,13 @@
 
         <!-- Game Grid Container -->
         <div v-if="gameStarted && !showPhaseTransition"
-            class="relative w-full max-w-2xl lg:max-w-4xl mx-auto flex items-center justify-center min-h-[496px] lg:min-h-[620px]">
+            class="relative w-full max-w-2xl lg:max-w-4xl mx-auto flex items-center justify-center min-h-[min(496px,calc(100dvh-242px))] lg:min-h-[620px]">
             <!-- Actual Game Grid -->
             <div class="grid w-full items-center justify-items-center" :style="{
                 gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
                 gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
                 gap: `${gridGap}px`,
+                maxWidth: gridMaxWidth ? `${gridMaxWidth}px` : undefined,
                 opacity: isGridReady ? 1 : 0
             }">
                 <div v-for="(item, index) in gridItems" :key="`cell-${index}`"
@@ -108,25 +109,54 @@ const levelsPerPhase = 5;
 const gridCols = ref(3);
 const gridRows = ref(4);
 const gridGap = ref(16);
+// 手機版網格的最大寬度（px）。格子是 1fr + aspect-square，列高跟著欄寬走，
+// 所以要把網格收窄到剛好等於斑塊尺寸，高度上限才算得準。桌機版為 null（不限制）。
+const gridMaxWidth = ref<number | null>(null);
+const DESKTOP_GRID_GAP = 16;
+const MOBILE_GRID_GAPS = [16, 8];
+// 手機版網格以外的垂直空間：狀態列 + 頁首 + 題目列（226px）與底部留白（16px）。
+// 與模板中網格容器的 min-h calc(100dvh-242px) 必須一致。
+const MOBILE_CHROME_HEIGHT = 242;
+// 手機版內容區：layout 的 max-w-[440px] 扣掉本頁 px-4 左右各 16px
+const MOBILE_MAX_CONTENT_WIDTH = 440;
+const MOBILE_PAGE_PADDING = 32;
+
 // 響應式計算斑塊尺寸，大螢幕 (lg breakpoint >= 1024px) 下顯著放大，確保桌面端條紋特徵大而清晰
-const getResponsiveSize = (cols: number, rows: number) => {
-    if (typeof window === 'undefined') return cols > 4 ? 65 : (cols > 3 ? 80 : 100);
+const getResponsiveLayout = (cols: number, rows: number) => {
+    const mobileIdeal = cols > 4 ? 65 : (cols > 3 ? 80 : 100);
+    if (typeof window === 'undefined') return { size: mobileIdeal, gap: DESKTOP_GRID_GAP, maxWidth: null };
     const isDesktop = window.innerWidth >= 1024;
     if (isDesktop) {
+        const gap = DESKTOP_GRID_GAP;
         const idealSize = cols > 5 ? 110 : (cols > 4 ? 130 : (cols > 3 ? 150 : 185));
         const maxGridWidth = Math.min(window.innerWidth * 0.78, 896);
-        const widthBound = (maxGridWidth - ((cols - 1) * gridGap.value)) / cols;
-        const heightBound = (window.innerHeight - 300 - ((rows - 1) * gridGap.value)) / rows;
-        return Math.max(96, Math.floor(Math.min(idealSize, widthBound, heightBound)));
+        const widthBound = (maxGridWidth - ((cols - 1) * gap)) / cols;
+        const heightBound = (window.innerHeight - 300 - ((rows - 1) * gap)) / rows;
+        return { size: Math.max(96, Math.floor(Math.min(idealSize, widthBound, heightBound))), gap, maxWidth: null };
     }
-    // 行動端原本尺寸
-    return cols > 4 ? 65 : (cols > 3 ? 80 : 100);
+    // 行動端：理想尺寸當上限，再受可用寬度與高度限制。
+    // 16px 間距放不下理想尺寸時才縮成 8px。
+    const availableWidth = Math.min(window.innerWidth, MOBILE_MAX_CONTENT_WIDTH) - MOBILE_PAGE_PADDING;
+    const availableHeight = window.innerHeight - MOBILE_CHROME_HEIGHT;
+    let size = 0;
+    let gap = DESKTOP_GRID_GAP;
+    for (const candidate of MOBILE_GRID_GAPS) {
+        const widthBound = (availableWidth - ((cols - 1) * candidate)) / cols;
+        const heightBound = (availableHeight - ((rows - 1) * candidate)) / rows;
+        size = Math.max(1, Math.floor(Math.min(mobileIdeal, widthBound, heightBound)));
+        gap = candidate;
+        if (size >= mobileIdeal) break;
+    }
+    return { size, gap, maxWidth: cols * size + (cols - 1) * gap };
 };
 
 const canvasSize = ref(80);
 
 const updateResponsiveSize = () => {
-    canvasSize.value = getResponsiveSize(gridCols.value, gridRows.value);
+    const layout = getResponsiveLayout(gridCols.value, gridRows.value);
+    canvasSize.value = layout.size;
+    gridGap.value = layout.gap;
+    gridMaxWidth.value = layout.maxWidth;
 };
 const gameStarted = ref(false);
 const showPhaseTransition = ref(false);
@@ -202,7 +232,7 @@ const startNewGame = async () => {
     const params = gameState.getDifficultyParams(persistence.currentLevel.value);
     gridCols.value = params.grid.cols;
     gridRows.value = params.grid.rows;
-    canvasSize.value = getResponsiveSize(gridCols.value, gridRows.value);
+    updateResponsiveSize();
 
     gamePhase.value = 'STAGE_1';
     currentLevelInPhase.value = 1;
@@ -225,7 +255,7 @@ const startNextPhase = () => {
     
     gridCols.value = params.grid.cols;
     gridRows.value = params.grid.rows;
-    canvasSize.value = getResponsiveSize(gridCols.value, gridRows.value);
+    updateResponsiveSize();
     
     gamePhase.value = 'STAGE_2';
     currentLevelInPhase.value = 1;
