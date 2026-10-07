@@ -51,7 +51,7 @@
                 <div v-for="(item, index) in gridItems" :key="`cell-${index}`"
                     :ref="(el) => { if (el) gridItemRefs[index] = el }"
                     class="relative group aspect-square flex items-center justify-center cursor-pointer"
-                    @click="handleInteraction(index)" :class="{ 'pointer-events-none': feedbackState !== 'IDLE' }">
+                    @click="handleInteraction(index)" :class="{ 'pointer-events-none': feedbackState !== 'IDLE' || !isInputEnabled }">
                     <div class="absolute rounded-full bg-primary/20 ring-2 ring-primary/70 pointer-events-none z-20 transition-all duration-100"
                         :style="{ width: `${canvasSize}px`, height: `${canvasSize}px` }"
                         :class="(feedbackState === 'SUCCESS' && selectedIndex === index) ? 'opacity-100 scale-105' : 'opacity-0 scale-95'">
@@ -140,6 +140,10 @@ const transitionText = ref<HTMLElement | null>(null);
 const transitionButton = ref<HTMLElement | null>(null);
 const isGridReady = ref(false);
 const clickStartTime = ref(0);
+// 進場動畫播完才開放作答並開始計時，反應時間不含進場動畫。
+const isInputEnabled = ref(false);
+// 每產生一題就遞增，讓上一題殘留的動畫回呼無法開放新一題的作答。
+let levelToken = 0;
 // 頁面是否仍掛載中。GSAP 不會因元件卸載而自動停止 tween，計時器同理，
 // 因此離開頁面後的殘留回呼必須靠這個旗標擋下，避免把玩家從別的頁面彈走。
 let isPageActive = true;
@@ -161,6 +165,15 @@ const targetIndex = ref(0);
 
 // 只負責進場動畫；斑塊繪製由 GaborCanvas 自己的 watcher 處理，避免同一關重複繪製。
 const playGridEntrance = () => {
+    const token = levelToken;
+    // onComplete 與 onInterrupt 都要開放作答：動畫被中斷時 onComplete 不會觸發，
+    // 只掛 onComplete 會讓整個網格永遠不能點。
+    const enableInput = () => {
+        if (!isPageActive || token !== levelToken || isInputEnabled.value) return;
+        clickStartTime.value = Date.now();
+        isInputEnabled.value = true;
+    };
+
     const validRefs = gridItemRefs.value.filter(el => el);
     if (validRefs.length > 0) {
         gsap.set(validRefs, { scale: 0.4, opacity: 0 });
@@ -171,8 +184,13 @@ const playGridEntrance = () => {
             duration: 0.5,
             stagger: 0.04,
             ease: 'back.out(1.5)',
-            overwrite: true
+            overwrite: true,
+            onComplete: enableInput,
+            onInterrupt: enableInput
         });
+    } else {
+        // 沒有可動畫的格子時不能等一個永遠不會回呼的 tween
+        enableInput();
     }
 }
 
@@ -224,9 +242,10 @@ const generateLevel = () => {
     feedbackState.value = 'IDLE';
     selectedIndex.value = -1;
     isGridReady.value = false;
+    isInputEnabled.value = false;
+    levelToken++;
 
     nextTick(() => {
-        clickStartTime.value = Date.now();
         const count = gridCols.value * gridRows.value;
         targetIndex.value = Math.floor(Math.random() * count);
 
@@ -289,7 +308,7 @@ const finishPhase = () => {
 };
 
 const handleInteraction = (index: number) => {
-    if (feedbackState.value !== 'IDLE') return;
+    if (!isInputEnabled.value || feedbackState.value !== 'IDLE') return;
 
     selectedIndex.value = index;
     const responseTime = Date.now() - clickStartTime.value;
