@@ -1,15 +1,16 @@
 <template>
     <canvas 
         ref="canvasRef"
-        :width="size"
-        :height="size"
+        :width="pixelSize"
+        :height="pixelSize"
+        :style="{ width: `${size}px`, height: `${size}px` }"
         class="transition-transform duration-150"
         :class="{ 'animate-shake': isShaking, 'invert': isInverted }"
     ></canvas>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 const props = withDefaults(defineProps<{
     size?: number;
@@ -42,6 +43,12 @@ const canvasRef = ref<HTMLCanvasElement | null>(null);
 const isShaking = ref(false);
 const isInverted = ref(false);
 
+// 畫布像素尺寸 = CSS 尺寸 × devicePixelRatio，Retina 螢幕才不會被放大而模糊。
+// 上限 3，避免高密度螢幕上大網格的像素量失控。
+const MAX_PIXEL_RATIO = 3;
+const pixelRatio = typeof window === 'undefined' ? 1 : Math.min(MAX_PIXEL_RATIO, window.devicePixelRatio || 1);
+const pixelSize = computed(() => Math.max(1, Math.round(props.size * pixelRatio)));
+
 // 解析 Hex 顏色
 const hexToRgb = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -65,10 +72,13 @@ const drawGabor = () => {
     if (!ctx) return;
 
     const { orientation, frequency, contrast, sigma, phase } = props.params;
+    // w 是 CSS 尺寸，所有長度參數（frequency、sigma、邊緣淡出）都以 CSS px 計；
+    // 迴圈內把畫布像素座標除以 scale 換回 CSS px，斑塊外觀因此不隨 dpr 改變。
     const w = props.size;
-    const h = props.size;
-    const cx = w / 2;
-    const cy = h / 2;
+    const px = pixelSize.value;
+    const scale = px / w;
+    const cx = px / 2;
+    const cy = px / 2;
 
     const s = Math.min(sigma || w / 3.8, w * 0.32);
     const sigmaAcross = s * 0.62;
@@ -80,19 +90,26 @@ const drawGabor = () => {
     const sinTheta = Math.sin(theta);
 
     // 直接建立新的 ImageData，避免 readback
-    const imageData = ctx.createImageData(w, h);
+    const imageData = ctx.createImageData(px, px);
     const data = imageData.data;
     const stripeColor = hexToRgb(props.secondaryColor);
     const gamma = props.profileGamma;
     const isLinearProfile = gamma === 1;
 
     const TWO_PI = Math.PI * 2;
+    const fadeStart = w * 0.28;
+    const fadeEnd = w * 0.4;
+    const fadeEndSq = fadeEnd * fadeEnd;
 
-    for (let y = 0; y < h; y++) {
-        const yy = y - cy;
-        const rowOffset = y * w;
-        for (let x = 0; x < w; x++) {
-            const xx = x - cx;
+    for (let y = 0; y < px; y++) {
+        const yy = (y - cy) / scale;
+        const rowOffset = y * px;
+        for (let x = 0; x < px; x++) {
+            const xx = (x - cx) / scale;
+
+            // 淡出半徑以外 alpha 必為 0，ImageData 預設就是全透明，直接跳過。
+            const distSq = xx * xx + yy * yy;
+            if (distSq >= fadeEndSq) continue;
 
             // 旋轉與座標計算：rx 控制條紋明暗，ry 控制符號沿條紋方向的柔邊延展。
             const rx = xx * cosTheta + yy * sinTheta;
@@ -101,7 +118,7 @@ const drawGabor = () => {
             // 墨暈式 Gabor：透明底上疊黑色條紋，外緣用橢圓 Gaussian 柔化。
             const distNormalized = (rx * rx / twoSqSigmaAcross) + (ry * ry / twoSqSigmaAlong);
             const envelope = Math.exp(-distNormalized);
-            const edgeFade = 1 - smoothstep(w * 0.28, w * 0.4, Math.hypot(xx, yy));
+            const edgeFade = 1 - smoothstep(fadeStart, fadeEnd, Math.sqrt(distSq));
             const carrier = Math.cos(TWO_PI * frequency * rx + phase);
             const profile = envelope * edgeFade * ((carrier + 1) * 0.5);
             const shaped = isLinearProfile ? profile : Math.pow(profile, gamma);
