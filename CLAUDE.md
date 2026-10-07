@@ -62,7 +62,7 @@ Single default layout wraps all pages: flat `bg-surface` background, `Navigation
 - `app/composables/` — shared state: game state, persistence, app settings, audio, 3D tilt.
 - `public/shape/` — static SVG achievement/badge shapes (keep new badge assets here, not `app/assets`).
 - `ios/` — Capacitor iOS project.
-- `.nuxt/`, `.output/`, `dist/` (symlink to `.output/public`), `node_modules/` — generated/dependency, do not edit.
+- `.nuxt/`, `.output/`, `node_modules/` — generated/dependency, do not edit.
 
 ## Design system
 
