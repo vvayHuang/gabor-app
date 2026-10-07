@@ -18,7 +18,7 @@ const utilityItems = [
             <div class="flex flex-col items-center h-full py-8 w-full">
                 <!-- 頂部 Logo 與標題 -->
                 <div class="w-full px-6 mb-8 flex items-center space-x-3">
-                    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-sm">
+                    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary font-bold text-sm">
                         G
                     </div>
                     <span class="font-bold text-on-surface text-base tracking-wide">Gabor Patch</span>

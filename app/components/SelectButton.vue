@@ -2,7 +2,7 @@
     <button type="button" @click="onClick" class="px-6 py-2 rounded-full border transition-all duration-200 label-lg"
         :class="[
             selected
-                ? 'bg-[#695D40] border-[#695D40] text-white'
+                ? 'bg-primary border-primary text-on-primary'
                 : 'bg-transparent border-gray-300 text-gray-400 hover:border-gray-400'
         ]">
         {{ label }}
