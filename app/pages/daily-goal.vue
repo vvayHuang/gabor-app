@@ -69,10 +69,11 @@ const gameState = useGameState();
 const { loadStats } = useGamePersistence();
 const { playSound } = useAudio();
 
-const elapsedSeconds = computed(() => {
+// 讀不到有效的訓練時間（例如直接開啟本頁）時回傳 null，由畫面顯示 --:--
+const elapsedSeconds = computed<number | null>(() => {
     const oneDayInMs = 24 * 60 * 60 * 1000;
     const totalTime = gameState.state.session.totalTime;
-    if (totalTime <= 0 || totalTime > oneDayInMs) return 323;
+    if (totalTime <= 0 || totalTime > oneDayInMs) return null;
     return Math.floor(totalTime / 1000);
 });
 
@@ -84,6 +85,7 @@ const avgResponseSpeed = computed(() => {
 });
 
 const formattedTime = computed(() => {
+    if (elapsedSeconds.value === null) return '--:--';
     const minutes = Math.floor(elapsedSeconds.value / 60);
     const seconds = elapsedSeconds.value % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
