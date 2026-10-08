@@ -10,6 +10,8 @@ export interface GameSession {
     consecutiveCorrect: number
     // 局內實際使用的難度（1–100），由 staircase 依作答表現調整
     difficultyLevel: number
+    // 這一局開始時的難度，結算頁用來顯示本局的難度變化
+    startDifficultyLevel: number
     // staircase 用的連對計數，每次升級後歸零（與整局的 consecutiveCorrect 分開）
     staircaseStreak: number
     responseTimes: number[]
@@ -29,6 +31,7 @@ const state = reactive<{
         incorrectCount: 0,
         consecutiveCorrect: 0,
         difficultyLevel: 1,
+        startDifficultyLevel: 1,
         staircaseStreak: 0,
         responseTimes: [],
         startTime: 0,
@@ -101,6 +104,7 @@ export function useGameState() {
     // 設定這一局的起始難度（上一局結束時的難度，由 persistence 提供）
     const setDifficultyLevel = (level: number) => {
         state.session.difficultyLevel = clampDifficultyLevel(level)
+        state.session.startDifficultyLevel = state.session.difficultyLevel
         state.session.staircaseStreak = 0
     }
 

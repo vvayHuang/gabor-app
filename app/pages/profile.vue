@@ -51,6 +51,13 @@
                                 <span class="title-lg-emphasis text-on-surface">{{ persistence.stats.value.totalXP }} <span
                                         class="label-sm">XP</span></span>
                             </div>
+                            <!-- Training Difficulty -->
+                            <div class="flex flex-col">
+                                <span
+                                    class="label-sm text-on-surface-variant font-bold uppercase tracking-widest mb-1">訓練難度</span>
+                                <span class="title-lg-emphasis text-on-surface">{{ persistence.difficultyLevel.value }} <span
+                                        class="label-sm">/ 100</span></span>
+                            </div>
                         </div>
                     </div>
                 </div>

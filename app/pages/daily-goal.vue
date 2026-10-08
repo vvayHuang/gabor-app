@@ -43,6 +43,13 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Difficulty Change Stat -->
+                    <!-- 單行呈現：再多一列大數字，小螢幕（iPhone SE）會把按鈕擠出畫面 -->
+                    <div class="flex items-baseline space-x-2 mt-6">
+                        <span class="label-sm font-bold uppercase tracking-widest text-on-surface-variant">訓練難度</span>
+                        <span class="title-lg-emphasis text-on-surface">{{ difficultyText }}</span>
+                    </div>
                 </div>
             </div>
 
@@ -88,6 +95,15 @@ const avgResponseSpeed = computed(() => {
     if (!hasResponses.value) return '--';
     const ms = gameState.averageResponseTime.value;
     return (ms / 1000).toFixed(2);
+});
+
+// 本局難度的變化（開始 → 結束）；沒有變化時只顯示一個數字
+const difficultyText = computed(() => {
+    if (!hasResponses.value) return '--';
+    const { startDifficultyLevel, difficultyLevel } = gameState.state.session;
+    return startDifficultyLevel === difficultyLevel
+        ? String(difficultyLevel)
+        : `${startDifficultyLevel} → ${difficultyLevel}`;
 });
 
 const formattedTime = computed(() => {
