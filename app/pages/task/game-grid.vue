@@ -74,7 +74,7 @@
         <div v-if="showPhaseTransition" class="fixed inset-0 z-30 flex flex-col items-center justify-center p-4">
             <div ref="transitionText" class="text-center space-y-2 opacity-0">
                 <h2 class="display-md text-on-surface">第一階段完成</h2>
-                <p class="body-lg-emphasis text-on-surface text-balance">準備好進入更具挑戰性的第二階段了？</p>
+                <p class="body-lg-emphasis text-on-surface text-balance">眨眨眼、放鬆一下，再繼續下一階段。</p>
             </div>
 
             <!-- Bottom Action Area -->
@@ -277,9 +277,8 @@ const startNextPhase = () => {
     showPhaseTransition.value = false;
     isGridReady.value = false; 
 
-    // 第二階段難度微調
-    const nextLevelSim = gameState.state.session.difficultyLevel + 5;
-    const params = gameState.getDifficultyParams(nextLevelSim);
+    // 第二階段沿用同一條 staircase，只依當下難度重新決定網格大小
+    const params = gameState.getDifficultyParams(gameState.state.session.difficultyLevel);
     
     gridCols.value = params.grid.cols;
     gridRows.value = params.grid.rows;
@@ -310,9 +309,7 @@ const generateLevel = () => {
         if (focusedIndex.value >= count) focusedIndex.value = 0;
 
         // --- 呼叫難度引擎 ---
-        const lv = gameState.state.session.difficultyLevel;
-        const phaseBonus = gamePhase.value === 'STAGE_2' ? 5 : 0;
-        const diff = gameState.getDifficultyParams(lv + phaseBonus);
+        const diff = gameState.getDifficultyParams(gameState.state.session.difficultyLevel);
 
         const baseAngle = Math.random() * 360;
         const targetAngle = (baseAngle + diff.angleOffset) % 360;
