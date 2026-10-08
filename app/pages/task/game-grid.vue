@@ -59,7 +59,7 @@
                     :class="{ 'pointer-events-none': feedbackState !== 'IDLE' || !isInputEnabled }">
                     <span class="absolute rounded-full bg-primary/20 ring-2 ring-primary/70 pointer-events-none z-20 transition-all duration-100"
                         :style="{ width: `${canvasSize}px`, height: `${canvasSize}px` }"
-                        :class="(feedbackState === 'SUCCESS' && selectedIndex === index) ? 'opacity-100 scale-105' : 'opacity-0 scale-95'">
+                        :class="((feedbackState === 'SUCCESS' && selectedIndex === index) || (isRevealingTarget && targetIndex === index)) ? 'opacity-100 scale-105' : 'opacity-0 scale-95'">
                     </span>
                     <ClientOnly>
                         <GaborCanvas :ref="el => { if (el) canvasRefs[index] = el }" :size="canvasSize" :params="item"
@@ -171,6 +171,11 @@ const showPhaseTransition = ref(false);
 
 const feedbackState = ref<FeedbackState>('IDLE');
 const selectedIndex = ref(-1);
+// 答錯後換題前，短暫標示正確的那一格
+const isRevealingTarget = ref(false);
+const REVEAL_DURATION_MS = 1600;
+// 答對後，目標格放大並亮著光暈的停留時間，之後才縮小消失並換題
+const CORRECT_HOLD_MS = 800;
 const canvasRefs = ref<any[]>([]);
 const gridItemRefs = ref<any[]>([]);
 const pageContainer = ref<HTMLElement | null>(null);
@@ -276,6 +281,7 @@ const startNextPhase = () => {
 const generateLevel = () => {
     feedbackState.value = 'IDLE';
     selectedIndex.value = -1;
+    isRevealingTarget.value = false;
     isGridReady.value = false;
     isInputEnabled.value = false;
     levelToken++;
@@ -428,6 +434,22 @@ const advanceLevel = () => {
     generateLevel();
 };
 
+// 答錯後的揭曉：目標格亮出光暈、其餘格子淡出，停留一下再推進。
+const revealTargetThenAdvance = () => {
+    if (!isPageActive || gamePhase.value === 'GAME_OVER') return;
+
+    isRevealingTarget.value = true;
+    const others = gridItemRefs.value.filter((el, i) => el && i !== targetIndex.value);
+    if (others.length > 0) {
+        gsap.to(others, { opacity: 0.3, duration: 0.5, ease: 'power2.out' });
+    }
+
+    advanceTimer = setTimeout(() => {
+        advanceTimer = null;
+        advanceLevel();
+    }, REVEAL_DURATION_MS);
+};
+
 const handleInteraction = (index: number) => {
     if (!isInputEnabled.value || feedbackState.value !== 'IDLE') return;
 
@@ -450,7 +472,7 @@ const handleInteraction = (index: number) => {
         if (targetEl) {
             gsap.timeline()
                 .to(targetEl, { scale: 1.08, duration: 0.12, ease: 'power2.out' })
-                .to(targetEl, { scale: 0, opacity: 0, duration: 0.28, ease: 'power2.in' });
+                .to(targetEl, { scale: 0, opacity: 0, duration: 0.28, ease: 'power2.in' }, `+=${CORRECT_HOLD_MS / 1000}`);
         }
 
         currentLevelInPhase.value++;
@@ -458,11 +480,11 @@ const handleInteraction = (index: number) => {
         advanceTimer = setTimeout(() => {
             advanceTimer = null;
             advanceLevel();
-        }, 300);
+        }, 300 + CORRECT_HOLD_MS);
 
     } else {
-        // 答錯不能重選：記為錯誤後直接換下一題。feedbackState 維持 ERROR 鎖住網格，
-        // 由 generateLevel() 重設回 IDLE。
+        // 答錯不能重選：記為錯誤，揭曉正確的格子後換下一題。feedbackState 維持 ERROR
+        // 鎖住網格，由 generateLevel() 重設回 IDLE。
         playSound('error');
         feedbackState.value = 'ERROR';
         triggerErrorHaptic();
@@ -478,7 +500,7 @@ const handleInteraction = (index: number) => {
                 if (hasAdvanced) return;
                 hasAdvanced = true;
                 gsap.set(targetEl, { x: 0 });
-                advanceLevel();
+                revealTargetThenAdvance();
             };
             gsap.fromTo(targetEl, { x: 0 }, {
                 x: 6, duration: 0.07, repeat: 5, yoyo: true, ease: 'power2.inOut',
@@ -489,7 +511,7 @@ const handleInteraction = (index: number) => {
             // 取不到 DOM ref 時沒有動畫可等，必須立刻推進，
             // 否則 feedbackState 會卡在 ERROR，所有格子的 pointer-events-none
             // 不會解除，玩家只能退出遊戲。
-            advanceLevel();
+            revealTargetThenAdvance();
         }
     }
 };
@@ -536,7 +558,7 @@ const confirmExit = () => router.push('/prepare');
 
 let resizeHandler: (() => void) | null = null;
 let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-// 答對後推進下一關（或收尾）的計時器，卸載時必須清掉
+// 答對後、或答錯揭曉後推進下一關（或收尾）的計時器，卸載時必須清掉
 let advanceTimer: ReturnType<typeof setTimeout> | null = null;
 
 onMounted(async () => {
