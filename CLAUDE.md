@@ -38,7 +38,7 @@ Singleton reactive state (`gameState: START|PLAYING|REST|RESULTS`, `session`). D
 - `cyclesPerMm = 0.38 + level*0.005`
 - grid size steps up at levels 8, 20, 45 (3×4 → 4×5 → 5×6 → 6×8)
 
-The ability difficulty is driven by an in-session 2-down-1-up staircase (2 correct in a row → +2, 1 wrong → −2) and carried across sessions in LocalStorage only (`stats.difficultyLevel`, not synced to Supabase); with no stored value it starts from the XP level. Grid size is fixed within a stage and decided at stage start; stage 2 uses difficulty + 5.
+The ability difficulty is driven by an in-session 2-down-1-up staircase (2 correct in a row → +2, 1 wrong → −2) and carried across sessions in LocalStorage only (`stats.difficultyLevel`, not synced to Supabase); with no stored value it starts from the XP level. Grid size is fixed within a stage and decided at stage start from the current difficulty; both stages share the same staircase (there is no stage 2 bonus).
 
 Scoring: 100 base + speed bonus `max(0, 400 - responseTime/10)` per correct answer. This difficulty curve and scoring formula are intentional design choices — preserve them unless a change is explicitly requested.
 
