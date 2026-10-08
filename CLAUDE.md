@@ -32,11 +32,13 @@ Note: `@playwright/test` is a devDependency and `test:e2e` scripts exist, but no
 
 ### Game/difficulty engine (`app/composables/useGameState.ts`)
 
-Singleton reactive state (`gameState: START|PLAYING|REST|RESULTS`, `session`) computed from player level (1–100):
+Singleton reactive state (`gameState: START|PLAYING|REST|RESULTS`, `session`). Difficulty parameters are computed from the **ability difficulty level** (1–100, `session.difficultyLevel`), which is separate from the XP level:
 - `contrast = max(0.03, 0.94^(level-1))`
 - `angleOffset = max(2, 30 * 0.95^(level-1))` degrees
 - `cyclesPerMm = 0.38 + level*0.005`
 - grid size steps up at levels 8, 20, 45 (3×4 → 4×5 → 5×6 → 6×8)
+
+The ability difficulty is driven by an in-session 2-down-1-up staircase (2 correct in a row → +2, 1 wrong → −2) and carried across sessions in LocalStorage only (`stats.difficultyLevel`, not synced to Supabase); with no stored value it starts from the XP level. Grid size is fixed within a stage and decided at stage start; stage 2 uses difficulty + 5.
 
 Scoring: 100 base + speed bonus `max(0, 400 - responseTime/10)` per correct answer. This difficulty curve and scoring formula are intentional design choices — preserve them unless a change is explicitly requested.
 
