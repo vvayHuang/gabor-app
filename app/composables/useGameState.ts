@@ -8,6 +8,10 @@ export interface GameSession {
     correctCount: number
     incorrectCount: number
     consecutiveCorrect: number
+    // 局內實際使用的難度（1–100），由 staircase 依作答表現調整
+    difficultyLevel: number
+    // staircase 用的連對計數，每次升級後歸零（與整局的 consecutiveCorrect 分開）
+    staircaseStreak: number
     responseTimes: number[]
     startTime: number
     totalTime: number
@@ -24,11 +28,23 @@ const state = reactive<{
         correctCount: 0,
         incorrectCount: 0,
         consecutiveCorrect: 0,
+        difficultyLevel: 1,
+        staircaseStreak: 0,
         responseTimes: [],
         startTime: 0,
         totalTime: 0
     }
 })
+
+export const MIN_DIFFICULTY_LEVEL = 1
+export const MAX_DIFFICULTY_LEVEL = 100
+// Staircase（2-down-1-up）：連對 2 題難度 +STEP，答錯 1 題 −STEP，
+// 長期會收斂在約 71% 正確率。
+const STAIRCASE_STEP = 2
+const STAIRCASE_CORRECT_TO_STEP_UP = 2
+
+export const clampDifficultyLevel = (level: number) =>
+    Math.min(MAX_DIFFICULTY_LEVEL, Math.max(MIN_DIFFICULTY_LEVEL, Math.round(level)))
 
 export function useGameState() {
 
@@ -67,10 +83,25 @@ export function useGameState() {
             // 分數計算：基礎 100 分 + 反應時間獎勵 (最高 400 分)
             const speedBonus = Math.max(0, 400 - (responseTime / 10))
             state.session.score += Math.floor(100 + speedBonus)
+
+            state.session.staircaseStreak++
+            if (state.session.staircaseStreak >= STAIRCASE_CORRECT_TO_STEP_UP) {
+                state.session.difficultyLevel = clampDifficultyLevel(state.session.difficultyLevel + STAIRCASE_STEP)
+                state.session.staircaseStreak = 0
+            }
         } else {
             state.session.incorrectCount++
             state.session.consecutiveCorrect = 0
+
+            state.session.difficultyLevel = clampDifficultyLevel(state.session.difficultyLevel - STAIRCASE_STEP)
+            state.session.staircaseStreak = 0
         }
+    }
+
+    // 設定這一局的起始難度（上一局結束時的難度，由 persistence 提供）
+    const setDifficultyLevel = (level: number) => {
+        state.session.difficultyLevel = clampDifficultyLevel(level)
+        state.session.staircaseStreak = 0
     }
 
     const startSession = () => {
@@ -80,6 +111,7 @@ export function useGameState() {
         state.session.correctCount = 0
         state.session.incorrectCount = 0
         state.session.consecutiveCorrect = 0
+        state.session.staircaseStreak = 0
         state.session.responseTimes = []
     }
 
@@ -110,6 +142,7 @@ export function useGameState() {
         endSession,
         resetGame,
         recordResponse,
+        setDifficultyLevel,
         averageResponseTime,
         accuracy
     }

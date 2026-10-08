@@ -238,8 +238,11 @@ const startNewGame = async () => {
     gameState.startSession();
     await persistence.loadStats();
     
-    // 從難度引擎獲取初始參數
-    const params = gameState.getDifficultyParams(persistence.currentLevel.value);
+    // 起始難度沿用上一局結束時的能力難度（與 XP 等級分開），局內再由 staircase 調整
+    gameState.setDifficultyLevel(persistence.difficultyLevel.value);
+
+    // 從難度引擎獲取初始參數；網格大小在一個階段內固定
+    const params = gameState.getDifficultyParams(gameState.state.session.difficultyLevel);
     gridCols.value = params.grid.cols;
     gridRows.value = params.grid.rows;
     updateResponsiveSize();
@@ -260,7 +263,7 @@ const startNextPhase = () => {
     isGridReady.value = false; 
 
     // 第二階段難度微調
-    const nextLevelSim = persistence.currentLevel.value + 5;
+    const nextLevelSim = gameState.state.session.difficultyLevel + 5;
     const params = gameState.getDifficultyParams(nextLevelSim);
     
     gridCols.value = params.grid.cols;
@@ -292,7 +295,7 @@ const generateLevel = () => {
         if (focusedIndex.value >= count) focusedIndex.value = 0;
 
         // --- 呼叫難度引擎 ---
-        const lv = persistence.currentLevel.value;
+        const lv = gameState.state.session.difficultyLevel;
         const phaseBonus = gamePhase.value === 'STAGE_2' ? 5 : 0;
         const diff = gameState.getDifficultyParams(lv + phaseBonus);
 
@@ -543,6 +546,7 @@ const handleGameOver = () => {
             persistence.updateHighScore(score);
             persistence.updateConsecutiveDays();
             persistence.addTrainingTime(totalTime);
+            persistence.setDifficultyLevel(session.difficultyLevel);
             persistence.recordAchievement(Math.floor(score / 500) + 1);
             await persistence.saveStats();
 

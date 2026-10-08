@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { localDateKey, diffDateKeys } from '~/utils/date'
 import type { Database } from '~/types/database.types'
+import { clampDifficultyLevel } from '~/composables/useGameState'
 
 type GameStatsRow = Database['public']['Tables']['game_stats']['Row']
 
@@ -27,6 +28,9 @@ export interface GameStats {
     currentStreak: number
     achievements: Record<string, string> // YYYY-MM-DD -> 'level-1' to 'level-5'
     recentSessions: GameSessionData[]
+    // 能力難度（1–100）：上一局 staircase 結束時的難度，下一局從這裡開始。
+    // 只存本機、不同步雲端；沒有值時以 XP 等級當起點。
+    difficultyLevel?: number
 }
 
 const STORAGE_KEY = 'gabor_game_stats'
@@ -432,6 +436,9 @@ export function useGamePersistence() {
 
     const currentLevel = computed(() => Math.floor(Math.sqrt(stats.value.totalXP / 100)) + 1)
 
+    // 訓練實際使用的起始難度，與 XP 等級（進度／稱號）分開
+    const difficultyLevel = computed(() => clampDifficultyLevel(stats.value.difficultyLevel ?? currentLevel.value))
+
     const levelProgress = computed(() => {
         const lvl = currentLevel.value
         const xpForCurrent = Math.pow(lvl - 1, 2) * 100
@@ -534,6 +541,11 @@ export function useGamePersistence() {
         stats.value.lastPlayedDate = today
     }
 
+    // 純本地狀態異動；由呼叫端統一呼叫 saveStats() 持久化
+    const setDifficultyLevel = (level: number) => {
+        stats.value.difficultyLevel = clampDifficultyLevel(level)
+    }
+
     const addTrainingTime = (milliseconds: number) => {
         const minutes = Math.max(1, Math.floor(milliseconds / 60000))
         stats.value.totalTimeMinutes += minutes
@@ -558,6 +570,7 @@ export function useGamePersistence() {
     return {
         stats,
         currentLevel,
+        difficultyLevel,
         levelProgress,
         longestStreak,
         rankName,
@@ -568,6 +581,7 @@ export function useGamePersistence() {
         updateHighScore,
         updateConsecutiveDays,
         addTrainingTime,
+        setDifficultyLevel,
         resetStats
     }
 }
