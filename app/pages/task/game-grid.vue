@@ -62,7 +62,7 @@
                         :class="((feedbackState === 'SUCCESS' && selectedIndex === index) || (isRevealingTarget && targetIndex === index)) ? 'opacity-100 scale-105' : 'opacity-0 scale-95'">
                     </span>
                     <ClientOnly>
-                        <GaborCanvas :ref="el => { if (el) canvasRefs[index] = el }" :size="canvasSize" :params="item"
+                        <GaborCanvas :ref="el => { if (el) canvasRefs[index] = el }" :size="canvasSize" :params="displayItems[index]"
                             :secondary-color="secondaryColor"
                             :profile-gamma="profileGamma" />
                     </ClientOnly>
@@ -87,7 +87,7 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { gsap } from 'gsap';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, NotificationType } from '@capacitor/haptics';
@@ -129,14 +129,17 @@ const MOBILE_CHROME_HEIGHT = 242;
 const MOBILE_MAX_CONTENT_WIDTH = 440;
 const MOBILE_PAGE_PADDING = 32;
 
+// 桌機版各欄數的理想格子尺寸；斑塊的條紋與外形是以這個尺寸為基準設計的。
+const getDesktopIdealSize = (cols: number) => cols > 5 ? 110 : (cols > 4 ? 130 : (cols > 3 ? 150 : 185));
+
 // 響應式計算斑塊尺寸，大螢幕 (lg breakpoint >= 1024px) 下顯著放大，確保桌面端條紋特徵大而清晰
 const getResponsiveLayout = (cols: number, rows: number) => {
-    const mobileIdeal = cols > 4 ? 65 : (cols > 3 ? 80 : 100);
+    const mobileIdeal = cols > 4 ? 70 : (cols > 3 ? 90 : 120);
     if (typeof window === 'undefined') return { size: mobileIdeal, gap: DESKTOP_GRID_GAP, maxWidth: null };
     const isDesktop = window.innerWidth >= 1024;
     if (isDesktop) {
         const gap = DESKTOP_GRID_GAP;
-        const idealSize = cols > 5 ? 110 : (cols > 4 ? 130 : (cols > 3 ? 150 : 185));
+        const idealSize = getDesktopIdealSize(cols);
         const maxGridWidth = Math.min(window.innerWidth * 0.78, 896);
         const widthBound = (maxGridWidth - ((cols - 1) * gap)) / cols;
         const heightBound = (window.innerHeight - 300 - ((rows - 1) * gap)) / rows;
@@ -197,6 +200,18 @@ const { inkColor: secondaryColor, profileGamma } = useGaborAppearance();
 
 // --- Level Data ---
 const gridItems = ref<GaborParams[]>([]);
+// 格子比桌機理想尺寸小時（手機、矮視窗），把斑塊等比縮小：sigma 變小、頻率變高，
+// 條紋數量與外形和桌機一致。否則固定 px 的斑塊會塞滿小格子並被邊緣淡出切成圓盤。
+const stimulusScale = computed(() => Math.min(1, canvasSize.value / getDesktopIdealSize(gridCols.value)));
+const displayItems = computed<GaborParams[]>(() => {
+    const scale = stimulusScale.value;
+    if (scale === 1) return gridItems.value;
+    return gridItems.value.map(item => ({
+        ...item,
+        frequency: item.frequency / scale,
+        sigma: item.sigma * scale
+    }));
+});
 const targetIndex = ref(0);
 
 // --- Core Logic ---
