@@ -382,13 +382,6 @@ const handleGridKeydown = (event: KeyboardEvent) => {
     }
 };
 
-// 解除答題鎖定：feedbackState 一旦離開 IDLE，網格會套用 pointer-events-none，
-// 因此所有離開 ERROR 的路徑都必須經過這裡。
-const clearFeedback = () => {
-    feedbackState.value = 'IDLE';
-    selectedIndex.value = -1;
-};
-
 // 一個階段的最後一題答完後的收尾：進入階段轉場或結算整局。
 const finishPhase = () => {
     // 卸載後才觸發的回呼（例如玩家在收尾動畫播放中按了離開）不得繼續推進流程，
@@ -406,6 +399,33 @@ const finishPhase = () => {
     } else {
         handleGameOver();
     }
+};
+
+// 一題作答完（不論對錯）後的推進：還有題目就出下一題，否則播放收尾動畫並結束階段。
+const advanceLevel = () => {
+    if (!isPageActive || gamePhase.value === 'GAME_OVER') return;
+
+    if (currentLevelInPhase.value > levelsPerPhase) {
+        const validRefs = gridItemRefs.value.filter(el => el);
+        if (validRefs.length > 0) {
+            // 動畫被中斷時 onComplete 不會觸發，
+            // 若只掛 onComplete，階段結束就會停在空白畫面。
+            gsap.to(validRefs, {
+                opacity: 0,
+                scale: 0.6,
+                duration: 0.8,
+                stagger: { each: 0.06, from: "center" },
+                ease: 'power2.inOut',
+                onComplete: finishPhase,
+                onInterrupt: finishPhase
+            });
+        } else {
+            // 沒有可動畫的格子時直接結算，不能等一個永遠不會回呼的 tween
+            finishPhase();
+        }
+        return;
+    }
+    generateLevel();
 };
 
 const handleInteraction = (index: number) => {
@@ -437,54 +457,39 @@ const handleInteraction = (index: number) => {
 
         advanceTimer = setTimeout(() => {
             advanceTimer = null;
-            if (!isPageActive || gamePhase.value === 'GAME_OVER') return;
-
-            if (currentLevelInPhase.value > levelsPerPhase) {
-                const validRefs = gridItemRefs.value.filter(el => el);
-                if (validRefs.length > 0) {
-                    // 與答錯分支同樣的理由：動畫被中斷時 onComplete 不會觸發，
-                    // 若只掛 onComplete，階段結束就會停在空白畫面。
-                    gsap.to(validRefs, {
-                        opacity: 0,
-                        scale: 0.6,
-                        duration: 0.8,
-                        stagger: { each: 0.06, from: "center" },
-                        ease: 'power2.inOut',
-                        onComplete: finishPhase,
-                        onInterrupt: finishPhase
-                    });
-                } else {
-                    // 沒有可動畫的格子時直接結算，不能等一個永遠不會回呼的 tween
-                    finishPhase();
-                }
-                return;
-            }
-            generateLevel();
+            advanceLevel();
         }, 300);
 
     } else {
+        // 答錯不能重選：記為錯誤後直接換下一題。feedbackState 維持 ERROR 鎖住網格，
+        // 由 generateLevel() 重設回 IDLE。
         playSound('error');
         feedbackState.value = 'ERROR';
         triggerErrorHaptic();
 
+        currentLevelInPhase.value++;
+
         const targetEl = gridItemRefs.value[index];
         if (targetEl) {
-            // onComplete 與 onInterrupt 都要復位：若這個 tween 在播完前被其他
-            // 帶 overwrite 的動畫殺掉，只靠 onComplete 會永遠回不到 IDLE。
-            const releaseAfterShake = () => {
+            // onComplete 與 onInterrupt 都要推進：若這個 tween 在播完前被其他
+            // 帶 overwrite 的動畫殺掉，只靠 onComplete 會永遠卡在 ERROR。
+            let hasAdvanced = false;
+            const advanceAfterShake = () => {
+                if (hasAdvanced) return;
+                hasAdvanced = true;
                 gsap.set(targetEl, { x: 0 });
-                clearFeedback();
+                advanceLevel();
             };
             gsap.fromTo(targetEl, { x: 0 }, {
                 x: 6, duration: 0.07, repeat: 5, yoyo: true, ease: 'power2.inOut',
-                onComplete: releaseAfterShake,
-                onInterrupt: releaseAfterShake
+                onComplete: advanceAfterShake,
+                onInterrupt: advanceAfterShake
             });
         } else {
-            // 取不到 DOM ref 時沒有動畫可等，必須立刻復位，
+            // 取不到 DOM ref 時沒有動畫可等，必須立刻推進，
             // 否則 feedbackState 會卡在 ERROR，所有格子的 pointer-events-none
             // 不會解除，玩家只能退出遊戲。
-            clearFeedback();
+            advanceLevel();
         }
     }
 };
