@@ -59,6 +59,10 @@ export interface Database {
           achievements: Record<string, string>
           last_played_date: string
           updated_at: string
+          /** 能力難度（1–100）；還沒同步過為 null，用戶端改以 XP 等級當起點 */
+          difficulty_level: number | null
+          /** difficulty_level 的設定時間，多裝置之間以較新的為準 */
+          difficulty_updated_at: string | null
         }
         Insert: {
           user_id: string
@@ -72,6 +76,8 @@ export interface Database {
           achievements?: Record<string, string>
           last_played_date?: string
           updated_at?: string
+          difficulty_level?: number | null
+          difficulty_updated_at?: string | null
         }
         Update: {
           user_id?: string
@@ -85,6 +91,8 @@ export interface Database {
           achievements?: Record<string, string>
           last_played_date?: string
           updated_at?: string
+          difficulty_level?: number | null
+          difficulty_updated_at?: string | null
         }
         Relationships: []
       }
@@ -101,6 +109,8 @@ export interface Database {
           p_current_streak?: number
           p_last_played_date?: string
           p_achievements?: Record<string, string>
+          p_difficulty_level?: number | null
+          p_difficulty_updated_at?: string | null
         }
         Returns: Database['public']['Tables']['game_stats']['Row']
       }

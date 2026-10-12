@@ -29,8 +29,11 @@ export interface GameStats {
     achievements: Record<string, string> // YYYY-MM-DD -> 'level-1' to 'level-5'
     recentSessions: GameSessionData[]
     // 能力難度（1–100）：上一局 staircase 結束時的難度，下一局從這裡開始。
-    // 只存本機、不同步雲端；沒有值時以 XP 等級當起點。
+    // 沒有值時以 XP 等級當起點。
     difficultyLevel?: number
+    // 能力難度是什麼時候設定的（ISO 時間）。難度會升也會降，不能像 XP 那樣累加，
+    // 多裝置之間以「最後設定的那一方」為準，本機與雲端都靠這個時間比較新舊。
+    difficultyUpdatedAt?: string
 }
 
 const STORAGE_KEY = 'gabor_game_stats'
@@ -227,6 +230,16 @@ export function useGamePersistence() {
             currentStreak: data.current_streak || 0,
             achievements: data.achievements || {}
         }
+
+        // 能力難度：雲端的值比本機新才採用，否則保留本機（例如離線玩完、還沒送上去的那一局）
+        if (data.difficulty_level != null) {
+            const cloudTime = Date.parse(data.difficulty_updated_at ?? '') || 0
+            const localTime = Date.parse(stats.value.difficultyUpdatedAt ?? '') || 0
+            if (stats.value.difficultyLevel == null || cloudTime > localTime) {
+                stats.value.difficultyLevel = clampDifficultyLevel(data.difficulty_level)
+                stats.value.difficultyUpdatedAt = data.difficulty_updated_at ?? undefined
+            }
+        }
     }
 
     const fetchFromCloud = async (userId: string) => {
@@ -375,7 +388,7 @@ export function useGamePersistence() {
             // 送出當下的增量快照；等待回應期間若又有新增量，回來後只扣掉已送出的部分
             const sent = { ...pendingDelta }
             try {
-                const { data, error } = await supabase.rpc('increment_stats', {
+                const args = {
                     p_xp: sent.xp,
                     p_minutes: sent.minutes,
                     p_sessions: sent.sessions,
@@ -384,7 +397,18 @@ export function useGamePersistence() {
                     p_current_streak: stats.value.currentStreak,
                     p_last_played_date: stats.value.lastPlayedDate,
                     p_achievements: stats.value.achievements
+                }
+                let { data, error } = await supabase.rpc('increment_stats', {
+                    ...args,
+                    p_difficulty_level: stats.value.difficultyLevel ?? null,
+                    p_difficulty_updated_at: stats.value.difficultyUpdatedAt ?? null
                 })
+
+                if (error?.code === FUNCTION_NOT_FOUND) {
+                    // 難度同步的 migration 尚未套用：改用舊參數再試一次，
+                    // 累加同步照常運作，只是難度暫時留在本機。
+                    ({ data, error } = await supabase.rpc('increment_stats', args))
+                }
 
                 if (error?.code === FUNCTION_NOT_FOUND) {
                     // migration 尚未套用：退回舊的整列 upsert，功能照常但仍有多裝置覆蓋問題
@@ -544,6 +568,7 @@ export function useGamePersistence() {
     // 純本地狀態異動；由呼叫端統一呼叫 saveStats() 持久化
     const setDifficultyLevel = (level: number) => {
         stats.value.difficultyLevel = clampDifficultyLevel(level)
+        stats.value.difficultyUpdatedAt = new Date().toISOString()
     }
 
     const addTrainingTime = (milliseconds: number) => {

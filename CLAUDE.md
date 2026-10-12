@@ -38,7 +38,7 @@ Singleton reactive state (`gameState: START|PLAYING|REST|RESULTS`, `session`). D
 - `cyclesPerMm = 0.38 + level*0.005`
 - grid size steps up at levels 8, 20, 45 (3×4 → 4×5 → 5×6 → 6×8)
 
-The ability difficulty is driven by an in-session 2-down-1-up staircase (2 correct in a row → +2, 1 wrong → −2) and carried across sessions in LocalStorage only (`stats.difficultyLevel`, not synced to Supabase); with no stored value it starts from the XP level. Grid size is fixed within a stage and decided at stage start from the current difficulty; both stages share the same staircase (there is no stage 2 bonus).
+The ability difficulty is driven by an in-session 2-down-1-up staircase (2 correct in a row → +2, 1 wrong → −2) and carried across sessions in `stats.difficultyLevel`, synced to Supabase as `game_stats.difficulty_level` (see Persistence); with no stored value it starts from the XP level. Grid size is fixed within a stage and decided at stage start from the current difficulty; both stages share the same staircase (there is no stage 2 bonus).
 
 Scoring: 100 base + speed bonus `max(0, 400 - responseTime/10)` per correct answer. This difficulty curve and scoring formula are intentional design choices — preserve them unless a change is explicitly requested.
 
@@ -47,6 +47,7 @@ Scoring: 100 base + speed bonus `max(0, 400 - responseTime/10)` per correct answ
 Singleton reactive `stats`, LocalStorage-first: every change is written to `localStorage` (key `gabor_game_stats`) right away, and Supabase is a best-effort cloud sync when a user is authenticated (failures are logged, not thrown).
 
 - **Aggregate stats (`game_stats`)** — `saveStats()` calls the `increment_stats` RPC (`supabase/migrations/20261007000000_increment_stats.sql`) with only the deltas since the last successful sync (XP, minutes, sessions; persisted under `gabor_pending_stats_delta`). The server adds the deltas, keeps the larger high score / longest streak, and merges achievements per day, so two devices no longer overwrite each other. The returned row becomes the local truth, plus any delta still unsent. If the RPC is missing (`PGRST202`) it falls back to the old full-row upsert.
+- **Ability difficulty (`difficulty_level` / `difficulty_updated_at`)** — it moves both ways, so it is not added or max()-ed: the most recently set value wins, compared by `difficultyUpdatedAt` on both the client (`applyCloudRow`) and the server (`supabase/migrations/20261012000000_sync_difficulty_level.sql`, which replaces `increment_stats` with a version taking two extra optional parameters). If that migration is not applied yet, `saveStats()` retries the RPC without the difficulty parameters and the difficulty stays local.
 - **Never sync before the cloud row has been read** (`cloudLoaded`), otherwise blank local stats could be pushed over existing cloud data.
 - **Sessions (`game_sessions`)** — each row gets a client-generated `id` and `created_at`. Failed uploads are queued under `gabor_pending_sessions` and retried on the next `loadStats()` or after the next successful upload; a duplicate-key error (`23505`) counts as success, so retries never create duplicates.
 - **Date keys** (`achievements`, `lastPlayedDate`) are local-timezone `YYYY-MM-DD` from `localDateKey()` in `app/utils/date.ts`. Do not use `toISOString()` for them — that is the UTC date.
