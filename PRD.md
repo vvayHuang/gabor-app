@@ -2,7 +2,7 @@
 
 > 版本：v2.0（2026-10-07）
 > 狀態：MVP 已完成，進入「修正與優化」階段
-> 進度（2026-10-08）：P0（B01–B05）、清理（C01–C11）、同步（S01–S03）、遊戲設計（D01–D03）已完成並 commit；剩餘為待實機／登入後驗證與數值微調，見第 7 節各項標記。
+> 進度（2026-10-13）：P0（B01–B08）、清理（C01–C11）、同步（S01–S03）、遊戲設計（D01–D03）已完成並 commit；iOS 實機已可啟動與登入（B06–B08）。剩餘為實機上的畫質／回饋驗證、登入後的同步實測與數值微調，見第 7 節各項標記。
 > 本文件同時是 Claude Code 的執行清單：第 7 節的每一項都有 ID、範圍、驗收標準，可以逐項交辦。
 
 ---
@@ -68,7 +68,7 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
 ### 5.5 不可破壞的技術限制
 - `GaborCanvas.vue` 必須用原生 Canvas `ImageData` / `putImageData`，不可改成 p5.js，維持 60 FPS。
 - p5.js 只用於裝飾背景（AuthFlowField / TidalWaves / TimeSphere）。
-- iOS OAuth：implicit flow、`gaborapp://login-callback`、手動寫入 auth cookie 後硬跳轉 —— 不要動。
+- iOS OAuth：implicit flow、`gaborapp://login-callback`，回呼後 `setSession` 再以 `router.push` 換頁 —— 不要動。不要改回硬跳轉、不要手寫 auth cookie；`capacitor.config.json` 的 `CapacitorCookies` 與原生專案的 `SceneDelegate` 都不能拿掉（B06–B08）。
 - 設計系統：只用 `main.css` 既有 MD3 token，不新增顏色；按鈕 `rounded-full`、卡片 `rounded-2xl`。
 
 ## 6. 功能需求總表
@@ -79,7 +79,7 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
 | F02 | 訓練流程（2 階段 × 5 題 → 結果頁） | ✅ 完成 |
 | F03 | 等級 / XP / 稱號 | ✅ 完成（D01：難度改由能力難度決定，與 XP 等級分開） |
 | F04 | 每日徽章、Streak、行事曆 | ✅ 完成（時區 bug 已於 B01 修正） |
-| F05 | Google 登入（Web + iOS deep link） | ✅ 完成 |
+| F05 | Google 登入（Web + iOS deep link） | ✅ 完成（iOS 實機登入於 2026-10-13 修正並由 Way 實測通過，見 B06–B08；隔天是否仍保持登入待確認） |
 | F06 | LocalStorage + Supabase 同步 | ✅ 完成（S01 改為雲端累加、S02 失敗重送；待登入後實測） |
 | F07 | 深色模式、音效開關 | ✅ 完成 |
 | F08 | 紀錄頁（行事曆、統計） | ✅ 完成（`TrendChart` 元件存在但沒有頁面引用，趨勢圖實際未顯示） |
@@ -146,6 +146,38 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
   - [x] 其他網格、iPhone SE、深色模式 — 2026-10-12 於瀏覽器模擬 375×667／390×844／430×932 實測 3×4、4×5、5×6、6×8：格子全在畫面內、無水平或垂直捲動；斑塊在畫布外圈（半徑 0.42 以上）完全透明，沒有被切齊；深色模式版面相同、墨色為 `#E1E2EC`
   - [ ] iOS 實機 — **未驗證**
 - **副作用**：手機上條紋比修改前細（4×5 約為原本的一半間距），6×8 的小格子可能偏細，待實機確認；`pxPerMm` 對手機實際條紋粗細的影響變小，之後若做校準（D03 的 a／b）需一併考慮。
+
+#### B06｜iOS 實機一啟動就當機、停在黑畫面 ✅（`582b724`）
+- **問題**：以 Xcode 27（iOS 27 SDK）建置後裝到 iPhone，App 啟動即中止，主控台訊息為「UIScene life cycle is required for apps built with this SDK」。Capacitor 8.3.4 產生的原生專案仍是舊的 AppDelegate 生命週期。
+- **範圍**：`ios/App/App/AppDelegate.swift`、`ios/App/App/Info.plist`
+- **做法**：新增 `SceneDelegate`（與 `AppDelegate` 放在同一個檔案，不必改 Xcode 專案檔），`Info.plist` 加上 `UIApplicationSceneManifest`，視窗仍由 `Main.storyboard` 建立。採用 scene 後，系統改把網址開啟與 Universal Link 交給 scene delegate，因此在 `SceneDelegate` 轉呼叫 Capacitor 的 `ApplicationDelegateProxy`，`gaborapp://login-callback` 才到得了 `appUrlOpen`。
+- **驗收**：
+  - [x] iPhone 實機可啟動並顯示登入頁（Way，2026-10-12）；iOS 26.5 模擬器同樣可啟動
+  - [x] Google 登入後的回呼有送進 App（實機主控台確認）
+  - [ ] 冷啟動時由網址開啟 App、Universal Link — **未驗證**（目前流程用不到）
+- **備註**：實機建置需要在 Xcode 的 Signing & Capabilities 選 Team。Team ID 依 Way 的決定不進版控，`project.pbxproj` 的這項異動只留在本機，重新 clone 後要再選一次。
+
+#### B07｜iOS 上 Google 登入後又回到登入頁 ✅（`582b724`）
+- **問題**：回呼送達、`setSession` 也成功，但 App 重新載入後不認得登入狀態。原本以為只是模擬器的偶發問題。
+- **原因**：在 `capacitor://localhost` 的 WebView 裡，`document.cookie` 的寫入會被直接丟掉。Supabase 模組把 session 存在 cookie，所以從來沒有存下來。以暫時的診斷紀錄在實機確認（每個時間點都是 `cookies=[]`），並在 iOS 26.5 模擬器用測試 cookie 重現。
+- **範圍**：`capacitor.config.json`
+- **做法**：啟用 Capacitor 內建的 `CapacitorCookies`，把 `document.cookie` 接到 iOS 原生的 cookie 儲存區。沒有新增套件。
+- **驗收**：
+  - [x] 模擬器：啟用前測試 cookie 讀不回來，啟用後讀得回來
+  - [x] 實機：登入後 session cookie 有寫入，並進到準備頁（Way，2026-10-13）
+  - [x] 實機：把 App 從背景滑掉再開仍是登入狀態（Way，2026-10-13）
+- **後續（同日完成）**：
+  - ✅ 登入 cookie 的保存時間由模組預設的 8 小時改為 400 天（`561658b`，`nuxt.config.ts` 的 `supabase.cookieOptions.maxAge`）。網頁版同樣適用；Safari 網頁版仍受 7 天上限限制。
+    - [ ] 超過 8 小時沒開 App 後仍保持登入 — **待 Way 隔天確認**（要先登出再登入一次，新效期才會生效）
+  - ✅ 移除 `login.vue` 手動寫入的備援 cookie 與三行主控台 log（`2eab814`）。備援 cookie 沒有使用者資料，會蓋住 Supabase 自己寫的完整 session；其中一行 log 會印出含 token 的回呼網址。Way 於實機確認登入、冷啟動、個人頁皆正常。
+  - Capacitor 在 Debug 版本自己的事件紀錄仍可能印出回呼網址；需要的話可在 `capacitor.config.json` 關閉，尚未處理。
+
+#### B08｜iOS 登入成功後又播一次歡迎動畫 ✅（`24fb35a`）
+- **問題**：登入後用硬跳轉（`window.location.href`）前往準備頁，WebView 整個重新載入並從首頁啟動，歡迎動畫重播一次才進準備頁。
+- **範圍**：`pages/login.vue`
+- **做法**：改為 App 內換頁（`router.push('/prepare')`）。硬跳轉原本是為了讓 WebView 重新讀到 cookie，B07 之後已不需要。網頁版登入走另一條路徑，不受影響。
+- **驗收**：
+  - [x] 實機：登入後直接進準備頁，不再播歡迎動畫；接著玩一局、個人頁資料正常；冷啟動時照常播歡迎動畫後進準備頁（Way，2026-10-13）
 
 ### 7.2 🟡 遊戲設計（需決策，先不要實作）
 
@@ -252,7 +284,8 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
 2. ✅ **第二批（P2 快速清理）**：C01、C02、C03、C04、C05、C06、C08
 3. ✅ **第三批**：S02 → S01（S01 需要 DB migration）、S03
 4. ✅ **決策後**：D01、D02、D03（另 C07、C10、C11）已實作，D01 與 D03 的數值待試玩後調整
-5. **待實機／登入後驗證**：B04（iPhone 3x）、B05（iOS 實機）、C02（iOS 震動）、S01（兩台裝置）、S02（斷網補傳）、D01／D02／D03（實機上的觀感與試玩後的數值）。B05、D01、D02 的手機版面與深色模式已於 2026-10-12 在瀏覽器模擬中驗證。
+5. ✅ **iOS 實機可用**：B06（啟動當機）、B07（登入後掉 session）、B08（登入後重播歡迎動畫）已修正並由 Way 實測。
+6. **待實機／登入後驗證**：B04（iPhone 3x）、B05（iOS 實機）、B07（隔天是否仍保持登入）、C02（iOS 震動）、S01（兩台裝置）、S02（斷網補傳）、D01 難度雲端同步（兩台裝置）、D01／D02／D03（實機上的觀感與試玩後的數值）。B05、D01、D02 的手機版面與深色模式已於 2026-10-12 在瀏覽器模擬中驗證。
 
 ## 9. 給 Claude Code 的執行規則
 
