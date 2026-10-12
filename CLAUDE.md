@@ -21,7 +21,7 @@ iOS workflow after native-relevant changes: `npm run generate && npx cap sync io
 
 Do **not** run `npm install`, `npm run build`, `npm run test`, or `git push` unless the user explicitly asks — these are disallowed by default in this repo.
 
-Note: `@playwright/test` is a devDependency and `test:e2e` scripts exist, but no `playwright.config.ts` or spec files currently exist in the repo — e2e testing is not yet wired up.
+E2E tests live in `e2e/` (`playwright.config.ts`; Chromium at 1280×800 and 375×667). `npm run test:e2e` starts the dev server itself, or reuses one already on port 3000. `e2e/training-flow.spec.ts` plays a full game unauthenticated by always clicking the first cell (every question takes one answer, right or wrong), then checks the results page and the saved LocalStorage stats. It does not cover login or Supabase sync.
 
 ## Architecture
 
@@ -100,4 +100,4 @@ Material Design 3 tokens, defined in `app/assets/css/main.css`. Key constraints 
 
 ## Verifying changes
 
-No automated test suite is currently exercised in this repo. Type checking is available via `npx nuxi typecheck` (vue-tsc); it still reports a handful of older errors in a few components, so compare against that baseline and do not add new ones. For UI changes, check desktop and mobile layouts, dark mode, navigation, and affected states manually. For game/scoring changes, verify feedback, progress, scoring, and persistence (both LocalStorage and, if testable, Supabase sync) manually.
+The only automated test is the e2e main-flow spec (`npm run test:e2e`, about 1.5 minutes); run it after changes to the training flow, results page, or persistence. Type checking is available via `npx nuxi typecheck` (vue-tsc); it still reports a handful of older errors in a few components, so compare against that baseline and do not add new ones. For UI changes, check desktop and mobile layouts, dark mode, navigation, and affected states manually. For game/scoring changes, verify feedback, progress, scoring, and persistence (both LocalStorage and, if testable, Supabase sync) manually.
