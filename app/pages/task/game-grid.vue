@@ -560,7 +560,8 @@ const handleGameOver = () => {
             persistence.updateConsecutiveDays();
             persistence.addTrainingTime(totalTime);
             persistence.setDifficultyLevel(session.difficultyLevel);
-            persistence.recordAchievement(Math.floor(score / 500) + 1);
+            // 每 700 分一級，2800 分以上才是 5 級；級距太窄時幾乎每局都滿級
+            persistence.recordAchievement(Math.floor(score / 700) + 1);
             await persistence.saveStats();
 
             router.push('/daily-goal');
