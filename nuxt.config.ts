@@ -24,7 +24,12 @@ export default defineNuxtConfig({
   },
   modules: ['@nuxt/icon', '@nuxt/fonts', '@nuxtjs/supabase'],
   supabase: {
-    redirect: false
+    redirect: false,
+    // The module default is 8 hours, which signs users out if they skip a day.
+    // 400 days is the longest lifetime browsers accept; the cookie is renewed on every token refresh.
+    cookieOptions: {
+      maxAge: 60 * 60 * 24 * 400
+    }
   },
   fonts: {
     families: [
