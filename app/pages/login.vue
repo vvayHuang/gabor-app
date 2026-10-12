@@ -24,8 +24,6 @@ const handleDeepLink = async (urlStr: string) => {
     // 嚴格檢查：如果不是 Native 環境，絕對不執行手動解析
     if (!Capacitor.isNativePlatform()) return
 
-    console.log('Login page received URL (Native):', urlStr)
-
     // 優先解析 Hash 中的 access_token (隱式流程)
     const hash = urlStr.split('#')[1]
     if (!hash) {
@@ -52,27 +50,14 @@ const handleDeepLink = async (urlStr: string) => {
 
     try {
         if (accessToken && refreshToken) {
-            console.log('Final attempt: Setting session and persistence cookies...')
-            
-            // 1. 設定 SDK Session
+            // 1. 設定 SDK Session；Supabase 模組會自己把 session 寫進 cookie
             const { error: sessionError } = await supabase.auth.setSession({
                 access_token: accessToken,
                 refresh_token: refreshToken
             })
             if (sessionError) throw sessionError
 
-            // 2. 手動寫入 Cookie 作為極致備援 (Nuxt Supabase 預設會讀取這些)
-            // 取得專案 ID 以構建正確的 Cookie 名稱
-            const projectRef = 'ickdtelqtjifjkledtjw'; 
-            document.cookie = `sb-${projectRef}-auth-token=${JSON.stringify({
-                access_token: accessToken,
-                refresh_token: refreshToken,
-                expires_at: Math.floor(Date.now() / 1000) + 3600
-            })}; path=/; max-age=3600; SameSite=Lax`;
-
-            console.log('Session and backup cookies set. Going to prepare...')
-
-            // 3. 直接在 App 內換頁。session 已經存進 cookie（CapacitorCookies），不需要重新載入；
+            // 2. 直接在 App 內換頁。session 已經存進 cookie（CapacitorCookies），不需要重新載入；
             // 硬跳轉會讓 WebView 從首頁重新啟動，登入後又播一次歡迎動畫。
             await router.push('/prepare')
         }
