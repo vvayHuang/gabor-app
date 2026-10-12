@@ -60,7 +60,7 @@ Derived values (`currentLevel`, `levelProgress`, `rankName`, `longestStreak`) ar
 Non-obvious and fragile — preserve unless explicitly changing it:
 - Uses **implicit flow** (`flowType: 'implicit'`), not PKCE, to avoid losing `code_verifier` in the iOS simulator webview.
 - Redirect URL is `gaborapp://login-callback` on native, `${origin}/prepare` on web.
-- On callback, manually writes the `sb-<project-ref>-auth-token` cookie before doing a hard `window.location.href` redirect, to force the webview to reload and pick up the Supabase auth cookie.
+- On callback, calls `setSession`, manually writes a backup `sb-<project-ref>-auth-token` cookie, then navigates with `router.push('/prepare')`. Do not go back to a hard `window.location.href` redirect: it restarts the webview at the index page, so the welcome animation plays again after login.
 - `capacitor.config.json` must keep `plugins.CapacitorCookies.enabled: true`. Without it `document.cookie` writes are silently dropped on `capacitor://localhost`, so the Supabase session (stored in cookies) is never saved and the app returns to the login page after the hard redirect.
 - The native app uses the UIScene life cycle (`SceneDelegate` in `ios/App/App/AppDelegate.swift`, scene manifest in `Info.plist`); the iOS 27 SDK refuses to launch without it. `SceneDelegate` forwards URL opens to Capacitor's `ApplicationDelegateProxy` — that is what delivers `gaborapp://login-callback` to the `appUrlOpen` listener, so keep it when regenerating the native project.
 - Prefer a physical device when testing login.

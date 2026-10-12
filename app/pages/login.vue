@@ -70,10 +70,11 @@ const handleDeepLink = async (urlStr: string) => {
                 expires_at: Math.floor(Date.now() / 1000) + 3600
             })}; path=/; max-age=3600; SameSite=Lax`;
 
-            console.log('Session and backup cookies set. Refreshing app...')
-            
-            // 3. 執行硬跳轉
-            window.location.href = '/prepare';
+            console.log('Session and backup cookies set. Going to prepare...')
+
+            // 3. 直接在 App 內換頁。session 已經存進 cookie（CapacitorCookies），不需要重新載入；
+            // 硬跳轉會讓 WebView 從首頁重新啟動，登入後又播一次歡迎動畫。
+            await router.push('/prepare')
         }
     } catch (e: any) {
         console.error('Final Auth sync error:', e.message)
