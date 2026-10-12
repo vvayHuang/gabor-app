@@ -117,7 +117,7 @@ const achievements = [
     { id: 'streak_3', name: '毅力初現', shapeIndex: 2, description: '連續訓練 3 天', check: (stats: any) => stats.consecutiveDays >= 3 },
     { id: 'level_10', name: '中級觀察員', shapeIndex: 3, description: '等級達到 10 級', check: (stats: any) => Math.floor(Math.sqrt(stats.totalXP / 100)) + 1 >= 10 },
     { id: 'pro_trainer', name: '訓練狂人', shapeIndex: 4, description: '累計訓練超過 60 分鐘', check: (stats: any) => stats.totalTimeMinutes >= 60 },
-    { id: 'high_scorer', name: '神準之眼', shapeIndex: 5, description: '歷史最高分超過 5000', check: (stats: any) => stats.highScore >= 5000 },
+    { id: 'high_scorer', name: '神準之眼', shapeIndex: 5, description: '歷史最高分超過 3500', check: (stats: any) => stats.highScore >= 3500 },
 ];
 
 const isUnlocked = (ach: any) => {
