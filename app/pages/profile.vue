@@ -59,6 +59,10 @@
                                         class="label-sm">/ 100</span></span>
                             </div>
                         </div>
+
+                        <p class="body-sm text-on-surface-variant text-pretty">
+                            等級隨累積經驗提升，不會下降。訓練難度則依每次作答的表現升降，決定題目的難易。
+                        </p>
                     </div>
                 </div>
 
