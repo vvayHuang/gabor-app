@@ -47,3 +47,54 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
 }
+
+// The iOS 27 SDK refuses to launch apps without the UIScene life cycle, so the window is owned
+// by a scene. With scenes, UIKit delivers URL opens and universal links to the scene delegate
+// instead of the app delegate; they are forwarded to Capacitor here so the App plugin's
+// appUrlOpen listener (the gaborapp://login-callback OAuth redirect) keeps working.
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+
+    var window: UIWindow?
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        // The window and its root view controller come from Main.storyboard (see UISceneStoryboardFile in Info.plist).
+        // Keep the app delegate's window pointing at it for code that still looks there.
+        (UIApplication.shared.delegate as? AppDelegate)?.window = window
+
+        // Cold launch from a URL or universal link. Deferred so the Capacitor bridge and its
+        // plugins exist before the open is forwarded.
+        let urlContexts = connectionOptions.urlContexts
+        let userActivities = connectionOptions.userActivities
+        if urlContexts.isEmpty && userActivities.isEmpty { return }
+        DispatchQueue.main.async {
+            self.forward(urlContexts)
+            userActivities.forEach(self.forward)
+        }
+    }
+
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        forward(URLContexts)
+    }
+
+    func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+        forward(userActivity)
+    }
+
+    private func forward(_ urlContexts: Set<UIOpenURLContext>) {
+        for context in urlContexts {
+            var options: [UIApplication.OpenURLOptionsKey: Any] = [.openInPlace: context.options.openInPlace]
+            if let sourceApplication = context.options.sourceApplication {
+                options[.sourceApplication] = sourceApplication
+            }
+            if let annotation = context.options.annotation {
+                options[.annotation] = annotation
+            }
+            _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, open: context.url, options: options)
+        }
+    }
+
+    private func forward(_ userActivity: NSUserActivity) {
+        _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, continue: userActivity, restorationHandler: { _ in })
+    }
+
+}

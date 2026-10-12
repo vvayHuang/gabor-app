@@ -1,5 +1,10 @@
 {
   "appId": "gabor.app",
   "appName": "gabor-app",
-  "webDir": ".output/public"
+  "webDir": ".output/public",
+  "plugins": {
+    "CapacitorCookies": {
+      "enabled": true
+    }
+  }
 }
