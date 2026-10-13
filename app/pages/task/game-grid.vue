@@ -319,9 +319,10 @@ const generateLevel = () => {
             const isTarget = i === targetIndex.value;
 
             // 樣式可各自變化，但答題判斷仍只看目標項的角度差。
-            // 擾動幅度刻意壓小（D03），避免單題難易被運氣左右、干擾 staircase。
+            // 對比的擾動幅度刻意壓小（D03），避免單題難易被運氣左右、干擾 staircase。
+            // 頻率範圍在 D04 放寬（D03 為 0.40–0.55，實機上格子粗細太像）。
             const orientation = isTarget ? targetAngle : baseAngle;
-            const frequency = baseSF * (0.40 + Math.random() * 0.15);
+            const frequency = baseSF * (0.25 + Math.random() * 0.5);
             const sigma = (3.7 + Math.random() * 1.5) * settings.pxPerMm.value;
             const phase = Math.random() * Math.PI * 2;
             const contrast = Math.min(1, diff.contrast * (1.0 + Math.random() * 0.10));

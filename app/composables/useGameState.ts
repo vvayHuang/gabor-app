@@ -58,8 +58,9 @@ export function useGameState() {
         // 原為 0.94 / 下限 0.03，實機上難度 20 以後條紋太淡（D04）。
         const contrast = Math.max(0.25, Math.pow(0.97, level - 1))
         
-        // 2. 角度差 (Angle Offset): 隨等級縮小 (強化版：起始 30, 係數 0.95)
-        const angleOffset = Math.max(2, 30 * Math.pow(0.95, level - 1))
+        // 2. 角度差 (Angle Offset): 隨等級縮小，起始 30、下限 2。
+        // 係數原為 0.95，粗細擾動放寬後實機上太難分辨，放慢為 0.97（D04）。
+        const angleOffset = Math.max(2, 30 * Math.pow(0.97, level - 1))
         
         // 3. 空間頻率 (Spatial Frequency): 隨等級增加細節 (提升斜率)
         const cyclesPerMm = 0.38 + (level * 0.005)
