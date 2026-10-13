@@ -33,7 +33,7 @@ E2E tests live in `e2e/` (`playwright.config.ts`; Chromium at 1280×800 and 375�
 ### Game/difficulty engine (`app/composables/useGameState.ts`)
 
 Singleton reactive state (`gameState: START|PLAYING|REST|RESULTS`, `session`). Difficulty parameters are computed from the **ability difficulty level** (1–100, `session.difficultyLevel`), which is separate from the XP level:
-- `contrast = max(0.03, 0.94^(level-1))`
+- `contrast = max(0.25, 0.97^(level-1))`
 - `angleOffset = max(2, 30 * 0.95^(level-1))` degrees
 - `cyclesPerMm = 0.38 + level*0.005`
 - grid size steps up at levels 8, 20, 45 (3×4 → 4×5 → 5×6 → 6×8)

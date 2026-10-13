@@ -54,8 +54,9 @@ export function useGameState() {
     // --- 科學難度引擎 (基於等級) ---
     // 透過等級 (1-100) 計算出當前的任務參數
     const getDifficultyParams = (level: number) => {
-        // 1. 對比度 (Contrast): 隨等級指數衰減 (強化版：0.96 -> 0.94)
-        const contrast = Math.max(0.03, Math.pow(0.94, level - 1))
+        // 1. 對比度 (Contrast): 隨等級指數衰減，下限 0.25（約難度 47 之後不再變淡）。
+        // 原為 0.94 / 下限 0.03，實機上難度 20 以後條紋太淡（D04）。
+        const contrast = Math.max(0.25, Math.pow(0.97, level - 1))
         
         // 2. 角度差 (Angle Offset): 隨等級縮小 (強化版：起始 30, 係數 0.95)
         const angleOffset = Math.max(2, 30 * Math.pow(0.95, level - 1))
