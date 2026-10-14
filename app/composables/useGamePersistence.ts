@@ -176,6 +176,9 @@ export function useGamePersistence() {
 
         const storedOwner = localStorage.getItem(STORAGE_OWNER_KEY)
         const localBelongsToOther = !!userId && !!storedOwner && storedOwner !== userId
+        // 只有本機資料確定屬於這個帳號，才把本機的最高分／徽章等跟雲端合併；
+        // 訪客身分玩的資料維持原本的處理方式（雲端已有資料列時以雲端為準）
+        const localIsMine = !!userId && storedOwner === userId
 
         if (localBelongsToOther) {
             // 本機殘留的是別的帳號的資料：先清空，等雲端資料回來再填
@@ -207,7 +210,7 @@ export function useGamePersistence() {
             // 先補傳上次失敗的場次，接著抓回來的歷史紀錄才會包含它們
             await flushPendingSessions(userId)
             await Promise.all([
-                fetchFromCloud(userId),
+                fetchFromCloud(userId, localIsMine),
                 fetchSessionHistory(userId)
             ])
         }
@@ -218,17 +221,35 @@ export function useGamePersistence() {
 
     // 以雲端資料列為準更新本機；累計值要再加上還沒送出的增量，
     // 否則離線時玩的進度會在下次載入時被雲端的舊數字蓋掉。
-    const applyCloudRow = (data: GameStatsRow) => {
+    // keepLocalBest：本機資料屬於同一個帳號時，最高分、最長連續、徽章、目前連續
+    // 改用與 increment_stats 相同的規則合併，離線拿到、還沒同步的紀錄才不會被雲端舊值蓋掉；
+    // 下一次 saveStats() 會把它們送上去。
+    const applyCloudRow = (data: GameStatsRow, keepLocalBest = false) => {
+        const local = stats.value
+        const cloudAchievements = data.achievements || {}
+        const cloudDate = (data.last_played_date || '').slice(0, 10)
+        const localIsNewer = keepLocalBest && local.lastPlayedDate > cloudDate
+
+        let achievements = cloudAchievements
+        if (keepLocalBest) {
+            // 徽章值是 'level-1'..'level-5'，字串比較就能取較高的一級（與伺服器的 max() 相同）
+            achievements = { ...cloudAchievements }
+            for (const [day, badge] of Object.entries(local.achievements || {})) {
+                const cloudBadge = achievements[day]
+                if (!cloudBadge || badge > cloudBadge) achievements[day] = badge
+            }
+        }
+
         stats.value = {
-            ...stats.value,
-            highScore: data.high_score || 0,
-            consecutiveDays: data.consecutive_days || 0,
+            ...local,
+            highScore: Math.max(data.high_score || 0, keepLocalBest ? local.highScore : 0),
+            consecutiveDays: Math.max(data.consecutive_days || 0, keepLocalBest ? local.consecutiveDays : 0),
             totalTimeMinutes: (data.total_time_minutes || 0) + pendingDelta.minutes,
             totalXP: (data.total_xp || 0) + pendingDelta.xp,
             totalSessions: (data.total_sessions || 0) + pendingDelta.sessions,
-            lastPlayedDate: data.last_played_date || '',
-            currentStreak: data.current_streak || 0,
-            achievements: data.achievements || {}
+            lastPlayedDate: localIsNewer ? local.lastPlayedDate : data.last_played_date || '',
+            currentStreak: localIsNewer ? local.currentStreak : data.current_streak || 0,
+            achievements
         }
 
         // 能力難度：雲端的值比本機新才採用，否則保留本機（例如離線玩完、還沒送上去的那一局）
@@ -242,7 +263,7 @@ export function useGamePersistence() {
         }
     }
 
-    const fetchFromCloud = async (userId: string) => {
+    const fetchFromCloud = async (userId: string, keepLocalBest: boolean) => {
         try {
             const { data, error } = await supabase
                 .from('game_stats')
@@ -257,7 +278,7 @@ export function useGamePersistence() {
             cloudLoaded.value = true
 
             if (data) {
-                applyCloudRow(data)
+                applyCloudRow(data, keepLocalBest)
             } else {
                 // 雲端還沒有資料列：本機現有的累計（例如登入前以訪客身分玩的）
                 // 全部算作待上傳的增量，第一次存檔時一次加上去。
