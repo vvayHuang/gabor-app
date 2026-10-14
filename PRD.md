@@ -308,7 +308,7 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 | ID | 項目 | 原因 | 狀態 |
 | --- | --- | --- | --- |
 | R01 | 移除設定頁的「訓練提醒」區塊（只有畫面、沒有通知功能） | 審核準則 2.1／2.3：功能不完整 | 🔶 已移除（`settings.vue`）；375×812 淺色／深色與桌機版面已在瀏覽器確認，iOS 實機待確認。同頁的「聯絡我們」也沒有動作，依 Way 決定併入 R06 處理 |
-| R02 | 只支援 iPhone、只開直向（`TARGETED_DEVICE_FAMILY = 1`、`Info.plist` 方向只留 Portrait） | iPad 與橫向版面未測；支援 iPad 需 iPad 截圖並會被以 iPad 審核 | 待做 |
+| R02 | 只支援 iPhone、只開直向（`TARGETED_DEVICE_FAMILY = 1`、`Info.plist` 方向只留 Portrait） | iPad 與橫向版面未測；支援 iPad 需 iPad 截圖並會被以 iPad 審核 | 🔶 已改（`project.pbxproj` 兩個設定檔、`Info.plist` 移除橫向與 iPad 方向）；模擬器建置成功，產出的 `UIDeviceFamily` 只有 1、方向只有 Portrait。實機旋轉鎖定待確認。iPhone 專用 App 仍可在 iPad 以相容模式執行 |
 | R03 | 訪客模式：登入頁加「先不登入」，未登入可完整遊玩（資料只存本機），之後登入時沿用現有規則合併 | 準則 5.1.1：核心功能不需帳號時不應強制登入；也方便審核 | 待做 |
 | R04 | Sign in with Apple（Web 與 iOS），沿用 Google 的 implicit flow 與 `gaborapp://login-callback` | 準則 4.8：提供第三方登入時必須同時提供 Apple 登入 | 待做（需 Way 在 Apple Developer 與 Supabase 後台設定） |
 | R05 | App 內刪除帳號：刪除 auth 使用者與 `game_stats`、`game_sessions`，並清空本機資料 | 準則 5.1.1(v) | 待做（需 Way 在 Supabase 套用 SQL 或 Edge Function） |
