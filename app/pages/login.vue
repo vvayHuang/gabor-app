@@ -9,6 +9,7 @@ import gsap from 'gsap'
 const router = useRouter()
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
+const { setGuestMode } = useGuestMode()
 
 // 獲取設定資訊
 const config = useRuntimeConfig()
@@ -98,9 +99,17 @@ onUnmounted(() => {
 // ... (watch user 邏輯不變)
 watch(user, (newUser) => {
     if (newUser) {
+        // 登入後就不再是訪客，登出時才會回到登入頁
+        setGuestMode(false)
         router.push('/prepare')
     }
 }, { immediate: true })
+
+// 訪客：資料只存本機，之後登入時依 useGamePersistence 的規則帶進帳號
+const handleGuestStart = () => {
+    setGuestMode(true)
+    router.push('/prepare')
+}
 
 const handleGoogleLogin = async () => {
     loading.value = true
@@ -173,6 +182,7 @@ const handleGoogleLogin = async () => {
                         <img src="@/assets/icons/google.svg" alt="Google" class="w-6 h-6" />
                     </template>
                 </Buttons>
+                <Buttons buttonStyle="Borderless" size="Large" labelType="Text" label="先不登入，直接開始" class="mt-2" :enabled="!loading" @click="handleGuestStart" />
             </div>
 
             <!-- Footer -->

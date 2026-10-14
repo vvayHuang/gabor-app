@@ -179,6 +179,8 @@ export function useGamePersistence() {
         // 只有本機資料確定屬於這個帳號，才把本機的最高分／徽章等跟雲端合併；
         // 訪客身分玩的資料維持原本的處理方式（雲端已有資料列時以雲端為準）
         const localIsMine = !!userId && storedOwner === userId
+        // 本機資料沒有擁有者＝未登入時（訪客）玩的
+        const localIsGuest = !!userId && !storedOwner
 
         if (localBelongsToOther) {
             // 本機殘留的是別的帳號的資料：先清空，等雲端資料回來再填
@@ -209,10 +211,32 @@ export function useGamePersistence() {
         if (userId) {
             // 先補傳上次失敗的場次，接著抓回來的歷史紀錄才會包含它們
             await flushPendingSessions(userId)
-            await Promise.all([
+            // fetchSessionHistory 會把 recentSessions 換成雲端的歷史，訪客的場次要先留一份
+            const guestSessions = localIsGuest ? [...stats.value.recentSessions] : []
+            const [isNewAccount] = await Promise.all([
                 fetchFromCloud(userId, localIsMine),
                 fetchSessionHistory(userId)
             ])
+
+            // 訪客玩過之後登入新帳號：累計已在 fetchFromCloud 算成待上傳增量，
+            // 每局紀錄也補傳上去，紀錄頁的歷史才不會變成空白。
+            // 已有資料的帳號維持以雲端為準，不帶入訪客的紀錄。
+            if (isNewAccount && guestSessions.length > 0) {
+                const rows = guestSessions.map((session): PendingSession => ({
+                    id: newSessionId(),
+                    user_id: userId,
+                    score: session.score,
+                    accuracy: session.accuracy,
+                    correct_count: session.correct_count,
+                    incorrect_count: session.incorrect_count,
+                    avg_response_time: session.avg_response_time,
+                    total_time_ms: session.total_time_ms,
+                    created_at: session.created_at ?? new Date().toISOString()
+                }))
+                writePendingSessions([...readPendingSessions(), ...rows])
+                await flushPendingSessions(userId)
+                await fetchSessionHistory(userId)
+            }
         }
 
         loadedUserId.value = userId
@@ -263,7 +287,8 @@ export function useGamePersistence() {
         }
     }
 
-    const fetchFromCloud = async (userId: string, keepLocalBest: boolean) => {
+    // 回傳 true 代表雲端還沒有這個帳號的資料列（新帳號）
+    const fetchFromCloud = async (userId: string, keepLocalBest: boolean): Promise<boolean> => {
         try {
             const { data, error } = await supabase
                 .from('game_stats')
@@ -289,9 +314,11 @@ export function useGamePersistence() {
                 }
             }
             persistLocal()
+            return !data
         } catch (e) {
             cloudLoaded.value = false
             console.error('Error fetching stats from cloud:', e)
+            return false
         }
     }
 

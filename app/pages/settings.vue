@@ -56,15 +56,24 @@
             />
           </div>
 
-          <!-- Logout Button -->
+          <!-- Logout Button（訪客改顯示登入） -->
           <div class="w-full lg:w-fit">
             <Buttons
+              v-if="user"
               buttonStyle="Bordered"
               label="登出"
               :destructive="true"
               size="Large"
               labelType="Text"
               @click="handleLogout"
+            />
+            <Buttons
+              v-else
+              buttonStyle="Bordered"
+              label="登入"
+              size="Large"
+              labelType="Text"
+              to="/login"
             />
           </div>
         </div>
@@ -80,6 +89,8 @@ import { onMounted } from "vue";
 
 const router = useRouter();
 const supabase = useSupabaseClient();
+const user = useSupabaseUser();
+const { setGuestMode } = useGuestMode();
 const persistence = useGamePersistence();
 const {
   isSoundEnabled,
@@ -98,6 +109,8 @@ const handleLogout = async () => {
     await supabase.auth.signOut();
     // 需等待清空完成再離開，否則 router.push 可能搶在本機資料清乾淨之前發生
     await persistence.resetStats();
+    // 登出後回到登入頁重新選擇，不沿用之前的訪客身分
+    setGuestMode(false);
     router.push("/");
   } catch (e) {
     console.error("Logout failed:", e);

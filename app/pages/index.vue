@@ -25,16 +25,18 @@ import { useAppSettings } from '~/composables/useAppSettings';
 const router = useRouter()
 const settings = useAppSettings()
 const user = useSupabaseUser()
+const { isGuest, loadGuestMode } = useGuestMode()
 const logoContainer = ref<HTMLElement | null>(null)
 const welcomeTextContainer = ref<HTMLElement | null>(null)
 
 onMounted(() => {
     settings.loadSettings();
+    loadGuestMode();
     if (logoContainer.value && welcomeTextContainer.value) {
         const tl = gsap.timeline({
             onComplete: () => {
-                // 動畫結束後檢查登入狀態
-                if (user.value) {
+                // 動畫結束後檢查登入狀態；選過「先不登入」的訪客也直接進準備頁
+                if (user.value || isGuest.value) {
                     router.push('/prepare');
                 } else {
                     router.push('/login');
