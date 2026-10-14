@@ -311,7 +311,7 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 | R02 | 只支援 iPhone、只開直向（`TARGETED_DEVICE_FAMILY = 1`、`Info.plist` 方向只留 Portrait） | iPad 與橫向版面未測；支援 iPad 需 iPad 截圖並會被以 iPad 審核 | 🔶 已改（`project.pbxproj` 兩個設定檔、`Info.plist` 移除橫向與 iPad 方向）；模擬器建置成功，產出的 `UIDeviceFamily` 只有 1、方向只有 Portrait。實機旋轉鎖定待確認。iPhone 專用 App 仍可在 iPad 以相容模式執行 |
 | R03 | 訪客模式：登入頁加「先不登入」，未登入可完整遊玩（資料只存本機），之後登入時沿用現有規則合併 | 準則 5.1.1：核心功能不需帳號時不應強制登入；也方便審核 | 🔶 已做，見下方 |
 | R04 | Sign in with Apple（Web 與 iOS），沿用 Google 的 implicit flow 與 `gaborapp://login-callback` | 準則 4.8：提供第三方登入時必須同時提供 Apple 登入 | 待做（需 Way 在 Apple Developer 與 Supabase 後台設定） |
-| R05 | App 內刪除帳號：刪除 auth 使用者與 `game_stats`、`game_sessions`，並清空本機資料 | 準則 5.1.1(v) | 待做（需 Way 在 Supabase 套用 SQL 或 Edge Function） |
+| R05 | App 內刪除帳號：刪除 auth 使用者與 `game_stats`、`game_sessions`，並清空本機資料 | 準則 5.1.1(v) | 🔶 已做，見下方；待 Way 套用 migration |
 | R06 | 隱私權政策（與服務條款）：公開網址，登入頁與設定頁可連到；設定頁「聯絡我們」改為開啟 email 或支援網頁（Way，2026-10-14），與 App Store Connect 的支援網址共用 | App Store Connect 必填；登入頁已提到但沒有連結 | 待做（內容與放置位置待 Way 決定） |
 | R07 | App 顯示名稱與 Bundle ID（目前 `gabor-app`／`gabor.app`，Bundle ID 第一次上傳後不能改） | 上架必填 | ⏸ 待 Way 決定名稱 |
 | R08 | 後台設定：Google OAuth 同意畫面發布為正式版、Supabase 方案（免費方案閒置一週會暫停）、App Store Connect 資料（截圖、描述、隱私問卷、審核備註） | 審核人員需能登入；上線後服務需持續可用 | ⏸ 請 Way 手動處理 |
@@ -323,6 +323,15 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 - [x] 已登入的網頁版：設定頁仍為「登出」，載入資料與雲端一致；型別檢查無新增錯誤；E2E 主流程桌機與手機皆通過
 - [ ] 訪客玩幾局後登入**新的** Google 帳號：XP 等累計與每局紀錄都帶進帳號 — 需要一個沒用過的帳號，**待 Way 實測**
 - [ ] iOS 實機
+
+**R05 刪除帳號（2026-10-14）**：
+- `supabase/migrations/20261014000000_delete_my_account.sql`：`delete_my_account()`（security definer）只刪除 `auth.uid()` 自己的 `game_sessions`、`game_stats` 與 auth 使用者；匿名不可呼叫。
+- 設定頁：登入的使用者在「登出」下方有「刪除帳號」，確認框說明會永久刪除、無法復原。刪除成功後只清本機 session（`signOut({ scope: 'local' })`）、丟掉該帳號待補傳的場次、清空本機資料與訪客標記，回到首頁 → 登入頁。失敗時在確認框顯示錯誤，資料不動。
+- 同時把登入頁標題由「登入以開始訓練」改為「選擇開始方式」（R03 後續，Way 同意）。
+- [x] 已登入網頁版 375×812 淺色／深色與桌機：按鈕位置、確認框外觀正常，「取消」關閉確認框且資料不變；未登入時不顯示「刪除帳號」；型別檢查無新增錯誤
+- [ ] Way 在 Supabase 套用 migration
+- [ ] 實際刪除一個測試帳號：`game_stats`、`game_sessions`、auth 使用者都消失，App 回到登入頁 — 可與 R03 的「訪客登入新帳號」共用同一個測試帳號，**待 Way 實測**
+- 注意：R04 加上 Apple 登入後，刪除帳號時還需撤銷 Apple 的授權（Apple 的要求），屆時再補。
 
 **上架前實測**（R 項目完成後，用 TestFlight／Release 版本）：
 - [ ] 全新安裝的新帳號：教學 → 第一局 → 雲端建立資料列（目前所有實測都是既有帳號）
