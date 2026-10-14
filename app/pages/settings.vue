@@ -36,47 +36,6 @@
               @update:model-value="toggleDarkMode"
             />
           </div>
-
-          <!-- Item: 訓練提醒 -->
-          <div class="flex flex-col gap-4">
-            <div class="flex items-center justify-between w-full h-7">
-              <span class="body-lg text-on-background">訓練提醒</span>
-              <Switch v-model="isReminderEnabled" />
-            </div>
-
-            <!-- Expandable Reminder Details -->
-            <transition name="expand">
-              <div v-if="isReminderEnabled" class="overflow-hidden">
-                <div
-                  class="bg-surface-dim rounded-2xl p-4 flex flex-col gap-[9px] w-full"
-                >
-                  <!-- Menu Item: Frequency -->
-                  <div
-                    class="flex flex-row items-center justify-between px-2 h-11 cursor-pointer hover:bg-on-surface/5 transition-colors rounded-lg"
-                  >
-                    <span class="text-base text-on-surface">每天</span>
-                    <Icon
-                      name="material-symbols:chevron-right-rounded"
-                      size="20"
-                      class="text-on-surface"
-                    />
-                  </div>
-
-                  <!-- Menu Item: Time -->
-                  <div
-                    class="flex flex-row items-center justify-between px-2 h-11 cursor-pointer hover:bg-on-surface/5 transition-colors rounded-lg"
-                  >
-                    <span class="text-base text-on-surface">下午 5:00</span>
-                    <Icon
-                      name="material-symbols:chevron-right-rounded"
-                      size="20"
-                      class="text-on-surface"
-                    />
-                  </div>
-                </div>
-              </div>
-            </transition>
-          </div>
         </div>
       </section>
 
@@ -117,7 +76,7 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useAppSettings } from "~/composables/useAppSettings";
-import { onMounted, ref } from "vue";
+import { onMounted } from "vue";
 
 const router = useRouter();
 const supabase = useSupabaseClient();
@@ -129,8 +88,6 @@ const {
   toggleDarkMode,
   loadSettings,
 } = useAppSettings();
-
-const isReminderEnabled = ref(false);
 
 onMounted(() => {
   loadSettings();
@@ -147,20 +104,3 @@ const handleLogout = async () => {
   }
 };
 </script>
-
-<style scoped>
-/* 展開/收合動畫 */
-.expand-enter-active,
-.expand-leave-active {
-  transition: all 0.3s ease-out;
-  max-height: 200px;
-  opacity: 1;
-}
-
-.expand-enter-from,
-.expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-  transform: translateY(-10px);
-}
-</style>
