@@ -626,6 +626,12 @@ export function useGamePersistence() {
         addXP(minutes * 10)
     }
 
+    // 刪除帳號後丟掉該帳號還沒補傳的場次（帳號已不存在，永遠送不上去）
+    const clearPendingSessions = (userId: string) => {
+        if (typeof window === 'undefined') return
+        writePendingSessions(readPendingSessions().filter(row => row.user_id !== userId))
+    }
+
     const resetStats = async () => {
         stats.value = createEmptyStats()
         pendingDelta = createEmptyDelta()
@@ -655,6 +661,7 @@ export function useGamePersistence() {
         updateConsecutiveDays,
         addTrainingTime,
         setDifficultyLevel,
+        clearPendingSessions,
         resetStats
     }
 }

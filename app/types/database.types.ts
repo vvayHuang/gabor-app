@@ -114,6 +114,11 @@ export interface Database {
         }
         Returns: Database['public']['Tables']['game_stats']['Row']
       }
+      /** 刪除呼叫者自己的帳號與遊戲資料（R05） */
+      delete_my_account: {
+        Args: Record<string, never>
+        Returns: undefined
+      }
     }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>

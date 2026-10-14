@@ -76,8 +76,52 @@
               to="/login"
             />
           </div>
+
+          <!-- Delete Account（只有登入的使用者才有帳號可刪） -->
+          <div v-if="user" class="w-full lg:w-fit">
+            <Buttons
+              buttonStyle="Borderless"
+              label="刪除帳號"
+              :destructive="true"
+              size="Large"
+              labelType="Text"
+              @click="showDeleteConfirmation = true"
+            />
+          </div>
         </div>
       </section>
+    </div>
+
+    <!-- Delete Account Confirmation Dialog -->
+    <div
+      v-if="showDeleteConfirmation"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm mb-0"
+    >
+      <div
+        class="bg-surface-container-high p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4 border border-outline-variant"
+      >
+        <h3 class="text-xl font-bold text-on-surface mb-2">確定要刪除帳號嗎？</h3>
+        <p class="text-on-surface-variant mb-6">
+          你的帳號、等級、訓練紀錄與徽章都會永久刪除，無法復原。
+        </p>
+        <p v-if="deleteError" class="text-error mb-4">{{ deleteError }}</p>
+        <div class="flex justify-end space-x-3">
+          <button
+            class="px-4 py-2 text-on-surface-variant hover:text-on-surface hover:bg-on-surface/10 rounded-full transition"
+            :disabled="isDeleting"
+            @click="cancelDelete"
+          >
+            取消
+          </button>
+          <button
+            class="px-4 py-2 bg-error text-on-error hover:bg-error-container hover:text-on-error-container rounded-full transition font-medium disabled:opacity-60"
+            :disabled="isDeleting"
+            @click="handleDeleteAccount"
+          >
+            {{ isDeleting ? "刪除中…" : "刪除" }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -85,7 +129,7 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useAppSettings } from "~/composables/useAppSettings";
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 
 const router = useRouter();
 const supabase = useSupabaseClient();
@@ -100,9 +144,18 @@ const {
   loadSettings,
 } = useAppSettings();
 
+const showDeleteConfirmation = ref(false);
+const isDeleting = ref(false);
+const deleteError = ref("");
+
 onMounted(() => {
   loadSettings();
 });
+
+const cancelDelete = () => {
+  showDeleteConfirmation.value = false;
+  deleteError.value = "";
+};
 
 const handleLogout = async () => {
   try {
@@ -114,6 +167,29 @@ const handleLogout = async () => {
     router.push("/");
   } catch (e) {
     console.error("Logout failed:", e);
+  }
+};
+
+// R05：刪除帳號。伺服器端的 delete_my_account 只會刪除呼叫者自己的資料與帳號
+const handleDeleteAccount = async () => {
+  const userId = user.value?.sub;
+  isDeleting.value = true;
+  deleteError.value = "";
+  try {
+    const { error } = await supabase.rpc("delete_my_account");
+    if (error) throw error;
+    // 帳號已不存在，只清本機的 session，不再呼叫伺服器登出
+    await supabase.auth.signOut({ scope: "local" });
+    if (userId) persistence.clearPendingSessions(userId);
+    await persistence.resetStats();
+    setGuestMode(false);
+    showDeleteConfirmation.value = false;
+    router.push("/");
+  } catch (e) {
+    console.error("Delete account failed:", e);
+    deleteError.value = "刪除失敗，請確認網路連線後再試一次。";
+  } finally {
+    isDeleting.value = false;
   }
 };
 </script>
