@@ -25,18 +25,31 @@ import { useAppSettings } from '~/composables/useAppSettings';
 const router = useRouter()
 const settings = useAppSettings()
 const user = useSupabaseUser()
-const { isGuest, loadGuestMode } = useGuestMode()
 const logoContainer = ref<HTMLElement | null>(null)
 const welcomeTextContainer = ref<HTMLElement | null>(null)
 
+// useSupabaseUser() stays null until the stored session is verified over the network,
+// so a failed check at launch would show the login page to a signed-in user.
+// The session itself lives in cookies named after cookiePrefix (split into `.0`, `.1`, ...
+// when large); checking for them works offline. Empty ones are leftovers of a deletion
+// (see plugins/supabase-cookie-cleanup.client.ts), not a session.
+const sessionCookiePrefix = useRuntimeConfig().public.supabase.cookiePrefix
+const hasStoredSession = () =>
+    document.cookie.split('; ').some((cookie) => {
+        const separator = cookie.indexOf('=')
+        const name = cookie.slice(0, separator)
+        const value = cookie.slice(separator + 1)
+        return value !== '' && (name === sessionCookiePrefix || name.startsWith(`${sessionCookiePrefix}.`))
+    })
+
 onMounted(() => {
     settings.loadSettings();
-    loadGuestMode();
     if (logoContainer.value && welcomeTextContainer.value) {
         const tl = gsap.timeline({
             onComplete: () => {
-                // 動畫結束後檢查登入狀態；選過「先不登入」的訪客也直接進準備頁
-                if (user.value || isGuest.value) {
+                // 動畫結束後檢查登入狀態：本機有 session（即使還沒連網驗證）就進準備頁；
+                // 未登入（包含選過「先不登入」的訪客）每次都回到登入頁重新選擇
+                if (user.value || hasStoredSession()) {
                     router.push('/prepare');
                 } else {
                     router.push('/login');

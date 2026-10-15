@@ -317,12 +317,17 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 | R08 | 後台設定：Google OAuth 同意畫面發布為正式版、Supabase 方案（免費方案閒置一週會暫停）、App Store Connect 資料（截圖、描述、隱私問卷、審核備註） | 審核人員需能登入；上線後服務需持續可用 | ⏸ 請 Way 手動處理 |
 
 **R03 訪客模式（2026-10-14）**：
-- 登入頁加「先不登入，直接開始」，選了之後在本機記訪客標記（`gabor_guest_mode`，`useGuestMode.ts`），之後開 App 直接進準備頁。設定頁對訪客顯示「登入」（前往登入頁）而非「登出」；登入成功或登出時清掉標記，登出後回到登入頁。
+- 登入頁加「先不登入，直接開始」，選了之後在本機記訪客標記（`gabor_guest_mode`，`useGuestMode.ts`）。設定頁對訪客顯示「登入」（前往登入頁）而非「登出」；登入成功或登出時清掉標記，登出後回到登入頁。
 - 訪客玩過再登入（Way 選 B）：登入**新帳號**時，訪客的累計（XP、場次、分鐘）照原本規則算成待上傳增量，每局紀錄也補傳到 `game_sessions`（新 id、沿用原本時間），紀錄頁的歷史不會變空白；登入**已有資料的帳號**仍以雲端為準，不帶入訪客資料。
+- 開 App 的去向改為（2026-10-15，Way 決定）：未登入（包含選過「先不登入」的訪客）每次都先到登入頁重新選擇，訪客標記不再影響啟動去向；本機留有 Supabase session cookie 就進準備頁，即使啟動時連網驗證失敗也一樣（原本驗證失敗會先停在登入頁，之後背景刷新成功又自動跳走）。改在 `index.vue`。下方 2026-10-14 測試中的「重新啟動直接進準備頁」已不適用。
+  - [x] 瀏覽器：有訪客標記 → 登入頁，按「先不登入」→ 準備頁；有過期 session 且模擬斷網 → 準備頁；無 session → 登入頁。型別檢查無新增錯誤，E2E 主流程桌機與手機皆通過
+  - [x] iOS 實機（2026-10-15，Way）：登入 → 登出 → 先不登入 → 重開回登入頁、個人頁不再閃現舊頭像；已登入重開與飛航模式啟動進準備頁；點隱私權連結切回仍在登入頁
+- iOS 登出後舊 session 復活（2026-10-15 修正）：`CapacitorCookies` 把 `document.cookie` 轉到原生 cookie jar，Supabase 登出時以 `Max-Age=0` 刪除 session cookie 只清掉 jar，WebView 自己的 cookie store 仍留著舊 session，重開 App 後又被同步回 jar，於是登出的使用者重開會以舊帳號身分進準備頁（個人頁閃現舊頭像，之後 `getUser` 失敗才清掉）。新增 `app/plugins/supabase-cookie-cleanup.client.ts`：原生環境收到 `SIGNED_OUT` 時，對 session cookie 與 `.0`–`.4` 分段先 `CapacitorCookies.setCookie` 空值再 `deleteCookie`（`deleteCookie` 只刪 jar 裡找得到的 cookie，jar 已被清掉時直接刪不到 WebView 那份）。`index.vue` 的啟動檢查也只認有值的 session cookie。
+  - [x] iOS 模擬器：寫入假 session 後 `signOut`，未修正時重開 App 舊 session 復活並進準備頁；修正後兩份 cookie 檔都清空、重開進登入頁。單獨呼叫 `deleteCookie` 無效（WebView 那份仍在）
 - [x] 全新瀏覽器（未登入）手機 375×667 與桌機 1280×800：啟動 → 登入頁 → 先不登入 → 準備頁；重新啟動直接進準備頁；設定頁只有「登入」；點登入回到登入頁。登入頁淺色與深色版面正常，主控台無錯誤
 - [x] 已登入的網頁版：設定頁仍為「登出」，載入資料與雲端一致；型別檢查無新增錯誤；E2E 主流程桌機與手機皆通過
 - [ ] 訪客玩幾局後登入**新的** Google 帳號：XP 等累計與每局紀錄都帶進帳號 — 需要一個沒用過的帳號，**待 Way 實測**
-- [ ] iOS 實機
+- [x] iOS 實機（2026-10-15，Way；見上方開 App 去向與 session 復活兩項）
 
 **R05 刪除帳號（2026-10-14）**：
 - `supabase/migrations/20261014000000_delete_my_account.sql`：`delete_my_account()`（security definer）只刪除 `auth.uid()` 自己的 `game_sessions`、`game_stats`、`profiles` 與 auth 使用者；匿名不可呼叫。
