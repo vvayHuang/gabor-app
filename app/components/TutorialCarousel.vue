@@ -31,7 +31,7 @@
                         </ClientOnly>
                     </div>                    <!-- Success Feedback (Only for Step 2) -->
                     <div v-if="step.id === 1 && i === 5" 
-                         class="absolute inset-0 rounded-full border-[6px] border-primary bg-primary/30 shadow-[0_0_30px_rgba(var(--primary-rgb),0.6)] z-30 animate-pulse">
+                         class="absolute inset-0 rounded-full border-[6px] border-primary bg-primary/30 shadow-[0_0_30px_color-mix(in_srgb,var(--color-primary)_60%,transparent)] z-30 animate-pulse">
                     </div>
                 </div>
             </div>
