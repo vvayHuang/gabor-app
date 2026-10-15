@@ -10,6 +10,7 @@ const router = useRouter()
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const { setGuestMode } = useGuestMode()
+const persistence = useGamePersistence()
 
 // 獲取設定資訊
 const config = useRuntimeConfig()
@@ -19,6 +20,8 @@ const supabaseKey = config.public.supabase.key
 const loginContainer = ref<HTMLElement | null>(null)
 const loading = ref(false)
 const errorMessage = ref('')
+// 未登入時玩過的紀錄登入後不會保留，登入前先確認
+const showGuestRecordsNotice = ref(false)
 
 // 處理 Deep Link 的函數
 const handleDeepLink = async (urlStr: string) => {
@@ -111,6 +114,19 @@ const handleGuestStart = () => {
     router.push('/prepare')
 }
 
+const handleGoogleClick = () => {
+    if (persistence.hasGuestRecords()) {
+        showGuestRecordsNotice.value = true
+        return
+    }
+    handleGoogleLogin()
+}
+
+const confirmGoogleLogin = () => {
+    showGuestRecordsNotice.value = false
+    handleGoogleLogin()
+}
+
 const handleGoogleLogin = async () => {
     loading.value = true
     try {
@@ -177,7 +193,7 @@ const handleGoogleLogin = async () => {
 
             <!-- Social Login -->
             <div class="w-full">
-                <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol + Text" label="Continue with Google" :enabled="!loading" @click="handleGoogleLogin">
+                <Buttons buttonStyle="Bordered" size="Large" labelType="Symbol + Text" label="Continue with Google" :enabled="!loading" @click="handleGoogleClick">
                     <template #icon>
                         <img src="@/assets/icons/google.svg" alt="Google" class="w-6 h-6" />
                     </template>
@@ -190,6 +206,29 @@ const handleGoogleLogin = async () => {
                 <p class="body-sm text-on-surface-variant">
                     繼續即表示您同意我們的<a :href="TERMS_URL" target="_blank" rel="noopener" class="text-primary underline">服務條款</a>和<a :href="PRIVACY_URL" target="_blank" rel="noopener" class="text-primary underline">隱私政策</a>。
                 </p>
+            </div>
+        </div>
+
+        <!-- Guest records notice -->
+        <div v-if="showGuestRecordsNotice"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div class="bg-surface-container-high p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4 border border-outline-variant">
+                <h3 class="text-xl font-bold text-on-surface mb-2">目前的紀錄不會保留</h3>
+                <p class="text-on-surface-variant mb-6">
+                    登入後會使用帳號裡的紀錄。未登入時玩的紀錄不會帶進帳號，也會從這台裝置上清除。
+                </p>
+                <div class="flex justify-end space-x-3">
+                    <button
+                        class="px-4 py-2 text-on-surface-variant hover:text-on-surface hover:bg-on-surface/10 rounded-full transition"
+                        @click="showGuestRecordsNotice = false">
+                        取消
+                    </button>
+                    <button
+                        class="px-4 py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-full transition font-medium"
+                        @click="confirmGoogleLogin">
+                        繼續登入
+                    </button>
+                </div>
             </div>
         </div>
     </div>

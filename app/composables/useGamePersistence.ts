@@ -176,14 +176,14 @@ export function useGamePersistence() {
 
         const storedOwner = localStorage.getItem(STORAGE_OWNER_KEY)
         const localBelongsToOther = !!userId && !!storedOwner && storedOwner !== userId
-        // 只有本機資料確定屬於這個帳號，才把本機的最高分／徽章等跟雲端合併；
-        // 訪客身分玩的資料維持原本的處理方式（雲端已有資料列時以雲端為準）
+        // 只有本機資料確定屬於這個帳號，才把本機的最高分／徽章等跟雲端合併
         const localIsMine = !!userId && storedOwner === userId
-        // 本機資料沒有擁有者＝未登入時（訪客）玩的
+        // 本機資料沒有擁有者＝未登入時（訪客）玩的。登入後一律只用帳號的紀錄，
+        // 訪客紀錄不帶進帳號（2026-10-15，Way 決定；登入頁會先提示）
         const localIsGuest = !!userId && !storedOwner
 
-        if (localBelongsToOther) {
-            // 本機殘留的是別的帳號的資料：先清空，等雲端資料回來再填
+        if (localBelongsToOther || localIsGuest) {
+            // 本機是別的帳號或訪客的資料：先清空，等雲端資料回來再填
             stats.value = createEmptyStats()
             pendingDelta = createEmptyDelta()
             localStorage.removeItem(STORAGE_KEY)
@@ -211,32 +211,10 @@ export function useGamePersistence() {
         if (userId) {
             // 先補傳上次失敗的場次，接著抓回來的歷史紀錄才會包含它們
             await flushPendingSessions(userId)
-            // fetchSessionHistory 會把 recentSessions 換成雲端的歷史，訪客的場次要先留一份
-            const guestSessions = localIsGuest ? [...stats.value.recentSessions] : []
-            const [isNewAccount] = await Promise.all([
+            await Promise.all([
                 fetchFromCloud(userId, localIsMine),
                 fetchSessionHistory(userId)
             ])
-
-            // 訪客玩過之後登入新帳號：累計已在 fetchFromCloud 算成待上傳增量，
-            // 每局紀錄也補傳上去，紀錄頁的歷史才不會變成空白。
-            // 已有資料的帳號維持以雲端為準，不帶入訪客的紀錄。
-            if (isNewAccount && guestSessions.length > 0) {
-                const rows = guestSessions.map((session): PendingSession => ({
-                    id: newSessionId(),
-                    user_id: userId,
-                    score: session.score,
-                    accuracy: session.accuracy,
-                    correct_count: session.correct_count,
-                    incorrect_count: session.incorrect_count,
-                    avg_response_time: session.avg_response_time,
-                    total_time_ms: session.total_time_ms,
-                    created_at: session.created_at ?? new Date().toISOString()
-                }))
-                writePendingSessions([...readPendingSessions(), ...rows])
-                await flushPendingSessions(userId)
-                await fetchSessionHistory(userId)
-            }
         }
 
         loadedUserId.value = userId
@@ -305,7 +283,7 @@ export function useGamePersistence() {
             if (data) {
                 applyCloudRow(data, keepLocalBest)
             } else {
-                // 雲端還沒有資料列：本機現有的累計（例如登入前以訪客身分玩的）
+                // 雲端還沒有資料列：本機現有的累計（這個帳號還沒同步上去的）
                 // 全部算作待上傳的增量，第一次存檔時一次加上去。
                 pendingDelta = {
                     xp: stats.value.totalXP,
@@ -632,6 +610,18 @@ export function useGamePersistence() {
         writePendingSessions(readPendingSessions().filter(row => row.user_id !== userId))
     }
 
+    // 本機有訪客（未登入時）玩過的紀錄：登入前要提示這些紀錄不會保留
+    const hasGuestRecords = () => {
+        if (typeof window === 'undefined') return false
+        if (localStorage.getItem(STORAGE_OWNER_KEY)) return false
+        try {
+            const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+            return (stored.totalSessions || 0) > 0
+        } catch {
+            return false
+        }
+    }
+
     const resetStats = async () => {
         stats.value = createEmptyStats()
         pendingDelta = createEmptyDelta()
@@ -662,6 +652,7 @@ export function useGamePersistence() {
         addTrainingTime,
         setDifficultyLevel,
         clearPendingSessions,
+        hasGuestRecords,
         resetStats
     }
 }
