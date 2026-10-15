@@ -40,11 +40,13 @@ export const useAppSettings = () => {
 
   const applyTheme = () => {
     if (!process.client) return;
-    if (isDarkMode.value) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    const root = document.documentElement;
+    // 換主題時先暫停所有轉場，否則帶 transition 的元素會慢慢從舊色過渡，看起來像閃一下
+    root.classList.add('theme-switching');
+    root.classList.toggle('dark', isDarkMode.value);
+    // 強制瀏覽器先套用新顏色，再恢復轉場
+    void root.offsetHeight;
+    root.classList.remove('theme-switching');
     // iOS 狀態列預設跟系統外觀走，需依 app 的主題指定文字顏色（Style.Dark = 深色背景用的淺色文字）
     if (Capacitor.isNativePlatform()) {
       StatusBar.setStyle({ style: isDarkMode.value ? Style.Dark : Style.Light })

@@ -124,6 +124,14 @@ body {
   mix-blend-mode: normal;
 }
 
+/* Applied for a single style pass while the theme class changes, so colors switch at once */
+.theme-switching,
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
+}
+
 /* Display */
 @utility display-lg {
   font-family: var(--font-sans);
