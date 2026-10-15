@@ -119,6 +119,25 @@ body {
   background-color: var(--color-surface);
 }
 
+/* App-like touch behavior: no double-tap zoom delay, tap highlight, long-press text selection or callout */
+html {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* plus-darker blends light text over a dark surface into black, so drop it in dark mode */
 .dark .mix-blend-plus-darker {
   mix-blend-mode: normal;
