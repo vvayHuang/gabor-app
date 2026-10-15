@@ -312,7 +312,7 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 | R03 | 訪客模式：登入頁加「先不登入」，未登入可完整遊玩（資料只存本機），之後登入時沿用現有規則合併 | 準則 5.1.1：核心功能不需帳號時不應強制登入；也方便審核 | 🔶 已做，見下方 |
 | R04 | Sign in with Apple（Web 與 iOS），沿用 Google 的 implicit flow 與 `gaborapp://login-callback` | 準則 4.8：提供第三方登入時必須同時提供 Apple 登入 | 待做（需 Way 在 Apple Developer 與 Supabase 後台設定） |
 | R05 | App 內刪除帳號：刪除 auth 使用者與 `game_stats`、`game_sessions`，並清空本機資料 | 準則 5.1.1(v) | 🔶 已做並套用 migration，見下方；待實際刪除測試 |
-| R06 | 隱私權政策（與服務條款）：公開網址，登入頁與設定頁可連到；設定頁「聯絡我們」改為開啟 email 或支援網頁（Way，2026-10-14），與 App Store Connect 的支援網址共用 | App Store Connect 必填；登入頁已提到但沒有連結 | 🔶 頁面與 App 內連結已做，見下方；待部署到 Vercel、補聯絡信箱 |
+| R06 | 隱私權政策（與服務條款）：公開網址，登入頁與設定頁可連到；設定頁「聯絡我們」改為開啟 email 或支援網頁（Way，2026-10-14），與 App Store Connect 的支援網址共用 | App Store Connect 必填；登入頁已提到但沒有連結 | 🔶 已部署到 `gabor-patch.vercel.app`，App 內連結已做，見下方；待補聯絡信箱 |
 | R07 | App 顯示名稱與 Bundle ID（目前 `gabor-app`／`gabor.app`，Bundle ID 第一次上傳後不能改） | 上架必填 | ⏸ 待 Way 決定名稱 |
 | R08 | 後台設定：Google OAuth 同意畫面發布為正式版、Supabase 方案（免費方案閒置一週會暫停）、App Store Connect 資料（截圖、描述、隱私問卷、審核備註） | 審核人員需能登入；上線後服務需持續可用 | ⏸ 請 Way 手動處理 |
 
@@ -341,7 +341,7 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 - App 內：網址集中在 `app/utils/links.ts`（暫定 `https://gabor-patch.vercel.app`，部署後依實際網域修改）。登入頁的「服務條款」「隱私政策」改為連結；設定頁「客服」區的「聯絡我們」改開支援頁，並新增「隱私權政策」「服務條款」兩列。iOS 上外部網址由 Capacitor 交給 Safari 開啟，未新增套件。
 - [x] 三個靜態頁在 375×812 淺色／深色無水平捲動（本機 `python3 -m http.server` 預覽）
 - [x] 設定頁 375×812 淺色、桌機深色：三列樣式與原本「聯絡我們」一致，連結正確；登入頁輸出的 HTML 含兩個連結；型別檢查在修改的檔案沒有錯誤
-- [ ] 部署到 Vercel，確認 `/privacy`、`/terms` 打得開，必要時修改 `links.ts` 的網域
+- [x] 部署到 Vercel（2026-10-15，team `vvayhuangs-projects` 的新專案 `gabor-patch`，以檔案直接上傳、未連 Git，production）：`https://gabor-patch.vercel.app` 的 `/`、`/privacy`、`/terms` 皆回 200、不需登入，內容與 `site/` 完全相同。之後修改內容要重新部署
 - [ ] 補上聯絡信箱
 - [ ] 登入頁的連結外觀（瀏覽器已登入會被導走，未實際看到畫面）；iOS 實機點連結會開 Safari
 - 注意：R04 加上 Apple 登入後，隱私權政策與服務條款要補上 Apple 登入的說明。
