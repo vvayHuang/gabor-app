@@ -188,7 +188,7 @@ const handleGoogleLogin = async () => {
             <!-- Footer -->
             <div class="w-full text-center">
                 <p class="body-sm text-on-surface-variant">
-                    繼續即表示您同意我們的服務條款和隱私政策。
+                    繼續即表示您同意我們的<a :href="TERMS_URL" target="_blank" rel="noopener" class="text-primary underline">服務條款</a>和<a :href="PRIVACY_URL" target="_blank" rel="noopener" class="text-primary underline">隱私政策</a>。
                 </p>
             </div>
         </div>

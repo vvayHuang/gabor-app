@@ -1,0 +1,89 @@
+/* Public legal/support pages. Colors mirror the MD3 tokens in app/assets/css/main.css. */
+:root {
+  --surface: #f9f9ff;
+  --on-surface: #181c23;
+  --on-surface-variant: #404754;
+  --primary: #005baf;
+  --outline-variant: #c0c6d6;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #101318;
+    --on-surface: #e1e2ec;
+    --on-surface-variant: #c0c6d6;
+    --primary: #a8c8ff;
+    --outline-variant: #404754;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: "Noto Sans TC", ui-sans-serif, system-ui, -apple-system, "PingFang TC", sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 16px 64px;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-bottom: 40px;
+  font-size: 14px;
+}
+
+a {
+  color: var(--primary);
+}
+
+h1 {
+  font-size: 28px;
+  line-height: 36px;
+  margin: 0 0 8px;
+}
+
+h2 {
+  font-size: 20px;
+  line-height: 28px;
+  margin: 40px 0 8px;
+}
+
+p,
+li {
+  color: var(--on-surface);
+}
+
+ul {
+  padding-left: 24px;
+}
+
+.meta {
+  color: var(--on-surface-variant);
+  font-size: 14px;
+  margin: 0 0 32px;
+}
+
+.placeholder {
+  font-weight: 700;
+}
+
+footer {
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid var(--outline-variant);
+  color: var(--on-surface-variant);
+  font-size: 14px;
+}

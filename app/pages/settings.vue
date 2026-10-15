@@ -44,17 +44,22 @@
         <h2 class="title-md-emphasis text-on-surface-variant">客服</h2>
 
         <div class="flex flex-col gap-6">
-          <!-- Menu Item: 聯絡我們 -->
-          <div
+          <!-- Menu Items: 支援網頁、隱私權政策、服務條款（R06，開啟外部網頁） -->
+          <a
+            v-for="link in supportLinks"
+            :key="link.href"
+            :href="link.href"
+            target="_blank"
+            rel="noopener"
             class="flex items-center justify-between px-2 h-11 rounded-lg gap-1"
           >
-            <span class="body-lg text-on-background">聯絡我們</span>
+            <span class="body-lg text-on-background">{{ link.label }}</span>
             <Icon
               name="material-symbols:chevron-right-rounded"
               size="20"
               class="text-on-background"
             />
-          </div>
+          </a>
 
           <!-- Logout Button（訪客改顯示登入） -->
           <div class="w-full lg:w-fit">
@@ -143,6 +148,12 @@ const {
   toggleDarkMode,
   loadSettings,
 } = useAppSettings();
+
+const supportLinks = [
+  { label: "聯絡我們", href: SUPPORT_URL },
+  { label: "隱私權政策", href: PRIVACY_URL },
+  { label: "服務條款", href: TERMS_URL },
+];
 
 const showDeleteConfirmation = ref(false);
 const isDeleting = ref(false);
