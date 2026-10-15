@@ -1,4 +1,6 @@
 import { ref } from 'vue';
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 // 將狀態移至函式外部以達成共享 (Singleton Pattern)
 const isSoundEnabled = ref(true);
@@ -42,6 +44,11 @@ export const useAppSettings = () => {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
+    }
+    // iOS 狀態列預設跟系統外觀走，需依 app 的主題指定文字顏色（Style.Dark = 深色背景用的淺色文字）
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setStyle({ style: isDarkMode.value ? Style.Dark : Style.Light })
+        .catch(e => console.error('Failed to set status bar style:', e));
     }
   };
 

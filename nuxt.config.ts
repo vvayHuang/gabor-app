@@ -20,6 +20,14 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico', sizes: 'any' },
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
       ],
+      script: [
+        {
+          // Pages are prerendered in the light theme; add the dark class before the first paint
+          // so a dark-mode user does not see a light flash before the settings plugin runs.
+          innerHTML: "try{if(JSON.parse(localStorage.getItem('gabor_settings')||'{}').isDarkMode)document.documentElement.classList.add('dark')}catch(e){}",
+          tagPosition: 'head',
+        },
+      ],
     },
   },
   modules: ['@nuxt/icon', '@nuxt/fonts', '@nuxtjs/supabase'],

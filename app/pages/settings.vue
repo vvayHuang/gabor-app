@@ -24,7 +24,7 @@
           <div class="flex items-center justify-between w-full h-7 gap-6">
             <span class="body-lg text-on-background">聲音</span>
             <Switch
-              :model-value="isSoundEnabled"
+              :model-value="isMounted && isSoundEnabled"
               @update:model-value="toggleSound"
             />
           </div>
@@ -32,7 +32,7 @@
           <div class="flex items-center justify-between w-full h-7 gap-6">
             <span class="body-lg text-on-background">深色模式</span>
             <Switch
-              :model-value="isDarkMode"
+              :model-value="isMounted && isDarkMode"
               @update:model-value="toggleDarkMode"
             />
           </div>
@@ -155,12 +155,17 @@ const supportLinks = [
   { label: "服務條款", href: TERMS_URL },
 ];
 
+// The page is prerendered with default settings; show the saved values only after mount,
+// otherwise hydration keeps the prerendered switch state (Vue does not patch class mismatches).
+const isMounted = ref(false);
+
 const showDeleteConfirmation = ref(false);
 const isDeleting = ref(false);
 const deleteError = ref("");
 
 onMounted(() => {
   loadSettings();
+  isMounted.value = true;
 });
 
 const cancelDelete = () => {
