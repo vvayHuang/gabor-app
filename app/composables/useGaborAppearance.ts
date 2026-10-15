@@ -10,7 +10,7 @@ export const useGaborAppearance = () => {
   const inkColor = computed(() => isDarkMode.value ? '#E1E2EC' : '#181C23');
   // on-surface 的墨色比純黑／純白弱，可見度改由 gamma < 1 抬升輪廓中低強度區補回，
   // 而不是把墨色調到色票以外。深色底缺少「白紙吸墨」的餘裕，需要抬得比淺色多。
-  const profileGamma = computed(() => isDarkMode.value ? 0.68 : 0.9);
+  const profileGamma = computed(() => isDarkMode.value ? 0.6 : 0.9);
 
   return { inkColor, profileGamma };
 };
