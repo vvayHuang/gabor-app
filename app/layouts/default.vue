@@ -2,6 +2,9 @@
     <!-- Screen Background (Uniform Color) -->
     <div class="min-h-screen bg-surface flex justify-center selection:bg-gray-700 selection:text-white relative overflow-hidden">
         
+        <!-- Status bar backdrop: keeps scrolled content from showing under the iOS status bar (zero height on web) -->
+        <div class="fixed top-0 inset-x-0 h-[env(safe-area-inset-top)] bg-surface z-40 pointer-events-none"></div>
+
         <!-- Desktop Navigation Rail (Fixed on the left) -->
         <NavigationRail v-if="showDesktopNavigation" />
 

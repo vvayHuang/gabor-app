@@ -113,6 +113,17 @@
   --glass-shadow: rgba(0, 0, 0, 0.36);
 }
 
+/* Keep the page background behind any gap or overscroll in both themes */
+html,
+body {
+  background-color: var(--color-surface);
+}
+
+/* plus-darker blends light text over a dark surface into black, so drop it in dark mode */
+.dark .mix-blend-plus-darker {
+  mix-blend-mode: normal;
+}
+
 /* Display */
 @utility display-lg {
   font-family: var(--font-sans);

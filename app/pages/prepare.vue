@@ -1,7 +1,7 @@
 <template>
     <div class="flex-1 flex flex-col px-4 overflow-hidden relative">
         <!-- Top Calibration Tip (Minimal Style) -->
-        <div class="pt-4 flex items-center justify-center">
+        <div class="pt-[max(1rem,env(safe-area-inset-top))] flex items-center justify-center">
             <div class="flex items-center space-x-2 bg-on-surface/[0.03] px-4 py-2 rounded-full border border-on-surface/[0.05]">
                 <Icon name="material-symbols:wb-sunny-outline" size="16" class="text-on-surface/40" />
                 <span class="text-[11px] font-medium text-on-surface/50 tracking-wide uppercase">
