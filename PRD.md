@@ -303,7 +303,7 @@ index（啟動動畫）→ login（Google 登入）→ tutorial（首次教學�
 
 ### 7.5 🚀 上架 App Store 前（2026-10-14 盤點）
 
-Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提醒先拿掉；只支援 iPhone、只開直向；App 名稱與 Bundle ID 待定；網頁版只當第二裝置測試用，不上線。
+Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提醒先拿掉；只支援 iPhone、只開直向；App 名稱與 Bundle ID 待定；以 iOS App 為主，網頁版維持上線（`gabor-app.vercel.app`，Vercel 專案 `gabor-app` 連 GitHub `main`，push 後自動部署）但不另外開發（Way，2026-10-15 釐清；原寫「不上線」不正確）。
 
 | ID | 項目 | 原因 | 狀態 |
 | --- | --- | --- | --- |
@@ -335,7 +335,7 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 - 注意：R04 加上 Apple 登入後，刪除帳號時還需撤銷 Apple 的授權（Apple 的要求），屆時再補。
 
 **R06 隱私權政策、服務條款、支援頁（2026-10-15）**：
-- 決定（Way）：放在 Vercel 的小靜態頁（不用 GitHub Pages、不上線網頁版 App）；服務條款一起做；聯絡信箱先留空位，之後補。
+- 決定（Way）：放在 Vercel 的小靜態頁（不用 GitHub Pages，另開專案 `gabor-patch`，與網頁版 App 分開）；服務條款一起做；聯絡信箱先留空位，之後補。
 - `site/`：`index.html`（支援頁，含聯絡方式與常見問題，也作為 App Store Connect 的支援網址）、`privacy.html`、`terms.html`、共用的 `style.css`（沿用 MD3 色彩，支援深色模式），`vercel.json` 開啟 `cleanUrls`，網址為 `/`、`/privacy`、`/terms`。三頁的聯絡信箱皆為 `[聯絡信箱待補]`（HTML 內標 `TODO(R06)`）。
 - 隱私權政策依目前實作撰寫：不登入時資料只在本機；登入後蒐集 Google 提供的 email／名稱／大頭貼、每局紀錄與累計統計，存於 Supabase；無廣告、無追蹤與第三方分析；可在設定頁刪除帳號。服務條款註明非醫療用途。App 名稱暫用「Gabor Patch」，R07 定案後要一併改。
 - App 內：網址集中在 `app/utils/links.ts`（暫定 `https://gabor-patch.vercel.app`，部署後依實際網域修改）。登入頁的「服務條款」「隱私政策」改為連結；設定頁「客服」區的「聯絡我們」改開支援頁，並新增「隱私權政策」「服務條款」兩列。iOS 上外部網址由 Capacitor 交給 Safari 開啟，未新增套件。
@@ -344,6 +344,7 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 - [x] 部署到 Vercel（2026-10-15，team `vvayhuangs-projects` 的新專案 `gabor-patch`，以檔案直接上傳、未連 Git，production）：`https://gabor-patch.vercel.app` 的 `/`、`/privacy`、`/terms` 皆回 200、不需登入，內容與 `site/` 完全相同。之後修改內容要重新部署
 - [ ] 補上聯絡信箱
 - [ ] 登入頁的連結外觀（瀏覽器已登入會被導走，未實際看到畫面）；iOS 實機點連結會開 Safari
+- 政策與條款的適用範圍包含 iOS App 與網頁版（2026-10-15，Way 同意）：開頭註明兩者並附網頁版網址，「本 App」改為「本服務」，補上網頁版資料存在瀏覽器、可清除網站資料的說明。網頁版的登入頁與設定頁和 App 是同一份程式碼，R06 的連結會在 push 後隨網頁版自動部署出現。
 - 注意：R04 加上 Apple 登入後，隱私權政策與服務條款要補上 Apple 登入的說明。
 
 **上架前實測**（R 項目完成後，用 TestFlight／Release 版本）：
