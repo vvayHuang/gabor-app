@@ -5,6 +5,8 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 // 將狀態移至函式外部以達成共享 (Singleton Pattern)
 const isSoundEnabled = ref(true);
 const isDarkMode = ref(false);
+// 使用者是否手動選過深淺色；沒選過就跟著系統外觀走
+const hasDarkModePreference = ref(false);
 const pxPerMm = ref(6.3);
 const noiseVolume = ref(50);
 const isLoaded = ref(false);
@@ -17,13 +19,23 @@ export const useAppSettings = () => {
       try {
         const parsed = JSON.parse(saved);
         isSoundEnabled.value = parsed.isSoundEnabled ?? true;
-        isDarkMode.value = parsed.isDarkMode ?? false;
+        if (typeof parsed.isDarkMode === 'boolean') {
+          isDarkMode.value = parsed.isDarkMode;
+          hasDarkModePreference.value = true;
+        }
         pxPerMm.value = parsed.pxPerMm ?? 6.3;
         noiseVolume.value = parsed.noiseVolume ?? 50;
       } catch (e) {
         console.error('Failed to parse settings:', e);
       }
     }
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+    if (!hasDarkModePreference.value) isDarkMode.value = systemDark.matches;
+    systemDark.addEventListener('change', (e) => {
+      if (hasDarkModePreference.value) return;
+      isDarkMode.value = e.matches;
+      applyTheme();
+    });
     applyTheme();
     isLoaded.value = true;
   };
@@ -32,7 +44,8 @@ export const useAppSettings = () => {
     if (!process.client) return;
     localStorage.setItem('gabor_settings', JSON.stringify({
       isSoundEnabled: isSoundEnabled.value,
-      isDarkMode: isDarkMode.value,
+      // 只在使用者手動選過時才存，否則存下系統當下的值會讓之後不再跟著系統
+      isDarkMode: hasDarkModePreference.value ? isDarkMode.value : undefined,
       pxPerMm: pxPerMm.value,
       noiseVolume: noiseVolume.value,
     }));
@@ -61,6 +74,7 @@ export const useAppSettings = () => {
 
   const toggleDarkMode = () => {
     isDarkMode.value = !isDarkMode.value;
+    hasDarkModePreference.value = true;
     applyTheme();
     saveSettings();
   };

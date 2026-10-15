@@ -24,7 +24,8 @@ export default defineNuxtConfig({
         {
           // Pages are prerendered in the light theme; add the dark class before the first paint
           // so a dark-mode user does not see a light flash before the settings plugin runs.
-          innerHTML: "try{if(JSON.parse(localStorage.getItem('gabor_settings')||'{}').isDarkMode)document.documentElement.classList.add('dark')}catch(e){}",
+          // Without a saved choice the app follows the system appearance.
+          innerHTML: "try{var d=JSON.parse(localStorage.getItem('gabor_settings')||'{}').isDarkMode;if(typeof d!=='boolean')d=matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark')}catch(e){}",
           tagPosition: 'head',
         },
       ],
