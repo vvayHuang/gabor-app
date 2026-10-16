@@ -313,7 +313,7 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 | R04 | Sign in with Apple（Web 與 iOS），沿用 Google 的 implicit flow 與 `gaborapp://login-callback` | 準則 4.8：提供第三方登入時必須同時提供 Apple 登入 | 待做（需 Way 在 Apple Developer 與 Supabase 後台設定） |
 | R05 | App 內刪除帳號：刪除 auth 使用者與 `game_stats`、`game_sessions`，並清空本機資料 | 準則 5.1.1(v) | 🔶 已做並套用 migration，見下方；待實際刪除測試 |
 | R06 | 隱私權政策（與服務條款）：公開網址，登入頁與設定頁可連到；設定頁「聯絡我們」改為開啟 email 或支援網頁（Way，2026-10-14），與 App Store Connect 的支援網址共用 | App Store Connect 必填；登入頁已提到但沒有連結 | 🔶 已部署到 `gabor-patch.vercel.app`，App 內連結已做，見下方；待補聯絡信箱 |
-| R07 | App 顯示名稱與 Bundle ID（目前 `gabor-app`／`gabor.app`，Bundle ID 第一次上傳後不能改） | 上架必填 | ⏸ 待 Way 決定名稱 |
+| R07 | App 顯示名稱與 Bundle ID（原為 `gabor-app`／`gabor.app`，Bundle ID 第一次上傳後不能改） | 上架必填 | 🔶 已改為「小波」（英文 Wavelet）／`online.vvayhuang.wavelet`，模擬器建置與啟動成功，支援頁已重新部署，見下方 |
 | R08 | 後台設定：Google OAuth 同意畫面發布為正式版、Supabase 方案（免費方案閒置一週會暫停）、App Store Connect 資料（截圖、描述、隱私問卷、審核備註） | 審核人員需能登入；上線後服務需持續可用 | ⏸ 請 Way 手動處理 |
 
 **R03 訪客模式（2026-10-14）**：
@@ -345,7 +345,7 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 **R06 隱私權政策、服務條款、支援頁（2026-10-15）**：
 - 決定（Way）：放在 Vercel 的小靜態頁（不用 GitHub Pages，另開專案 `gabor-patch`，與網頁版 App 分開）；服務條款一起做；聯絡信箱先留空位，之後補。
 - `site/`：`index.html`（支援頁，含聯絡方式與常見問題，也作為 App Store Connect 的支援網址）、`privacy.html`、`terms.html`、共用的 `style.css`（沿用 MD3 色彩，支援深色模式），`vercel.json` 開啟 `cleanUrls`，網址為 `/`、`/privacy`、`/terms`。三頁的聯絡信箱皆為 `[聯絡信箱待補]`（HTML 內標 `TODO(R06)`）。
-- 隱私權政策依目前實作撰寫：不登入時資料只在本機；登入後蒐集 Google 提供的 email／名稱／大頭貼、每局紀錄與累計統計，存於 Supabase；無廣告、無追蹤與第三方分析；可在設定頁刪除帳號。服務條款註明非醫療用途。App 名稱暫用「Gabor Patch」，R07 定案後要一併改。
+- 隱私權政策依目前實作撰寫：不登入時資料只在本機；登入後蒐集 Google 提供的 email／名稱／大頭貼、每局紀錄與累計統計，存於 Supabase；無廣告、無追蹤與第三方分析；可在設定頁刪除帳號。服務條款註明非醫療用途。App 名稱原暫用「Gabor Patch」，R07 定案後已改為「小波」（見 R07）。
 - App 內：網址集中在 `app/utils/links.ts`（暫定 `https://gabor-patch.vercel.app`，部署後依實際網域修改）。登入頁的「服務條款」「隱私政策」改為連結；設定頁「客服」區的「聯絡我們」改開支援頁，並新增「隱私權政策」「服務條款」兩列。iOS 上外部網址由 Capacitor 交給 Safari 開啟，未新增套件。
 - [x] 三個靜態頁在 375×812 淺色／深色無水平捲動（本機 `python3 -m http.server` 預覽）
 - [x] 設定頁 375×812 淺色、桌機深色：三列樣式與原本「聯絡我們」一致，連結正確；登入頁輸出的 HTML 含兩個連結；型別檢查在修改的檔案沒有錯誤
@@ -354,6 +354,17 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 - [ ] 登入頁的連結外觀（瀏覽器已登入會被導走，未實際看到畫面）；iOS 實機點連結會開 Safari
 - 政策與條款的適用範圍包含 iOS App 與網頁版（2026-10-15，Way 同意）：開頭註明兩者並附網頁版網址，「本 App」改為「本服務」，補上網頁版資料存在瀏覽器、可清除網站資料的說明。網頁版的登入頁與設定頁和 App 是同一份程式碼，R06 的連結會在 push 後隨網頁版自動部署出現。
 - 注意：R04 加上 Apple 登入後，隱私權政策與服務條款要補上 Apple 登入的說明。
+
+**R07 App 名稱與 Bundle ID（2026-10-16，Way 決定）**：
+- 名稱：中文「小波」、英文「Wavelet」；Bundle ID：`online.vvayhuang.wavelet`（`project.pbxproj` 兩個設定檔、`capacitor.config.json` 的 `appId`；`appName` 改為「小波」）。URL scheme `gaborapp://` 未改。
+- 顯示名稱：`Info.plist` 的 `CFBundleDisplayName` 為「小波」，另加 `en.lproj`／`zh-Hant.lproj` 的 `InfoPlist.strings`（en = Wavelet、zh-Hant = 小波），`project.pbxproj` 加入 `InfoPlist.strings` variant group 與 `knownRegions` 的 `zh-Hant`。
+- 圖示：`AppIcon.appiconset` 改用 `AppIcon-1024.png`（淺色）與 `AppIcon-1024-dark.png`（`luminosity: dark`），刪除舊的 `AppIcon-512@2x.png`。
+- 網頁版與支援頁：`nuxt.config.ts` 的 title、`NavigationRail.vue` 的名稱、`site/` 三頁改為「小波」，隱私權政策與服務條款開頭寫「小波（Wavelet，以下稱「本服務」…）」。
+- [x] 模擬器（iPhone 17 Pro，iOS 27.1 SDK，系統語言繁中）：建置成功；產出的 `Info.plist` Bundle ID 與名稱正確、`en.lproj`／`zh-Hant.lproj` 內容正確、`Assets.car` 含 AppIcon 的一般與深色版本；App 啟動到登入頁，主畫面顯示新圖示與「小波」
+- [ ] 主畫面深色圖示：模擬器切到深色外觀後主畫面圖示未切換（系統 App 的圖示也沒變，應是模擬器主畫面圖示樣式設定），待實機確認
+- [ ] 英文系統顯示「Wavelet」待確認
+- [x] 支援頁重新部署到 Vercel（2026-10-16，production `dpl_Bebnvps93W1ZXUa9mEjyhExpwwgR`）：`/`、`/privacy`、`/terms`、`/style.css` 皆回 200，內容與 `site/` 完全相同
+- 注意：新 Bundle ID 會被當成另一個 App 安裝，舊的 `gabor-app` 要手動刪除；Apple Developer 需註冊新 App ID（Sign in with Apple 等能力在 R04 時設定在這個 ID 上）。
 
 **上架前實測**（R 項目完成後，用 TestFlight／Release 版本）：
 - [ ] 全新安裝的新帳號：教學 → 第一局 → 雲端建立資料列（目前所有實測都是既有帳號）

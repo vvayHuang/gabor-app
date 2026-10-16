@@ -1,6 +1,6 @@
 {
-  "appId": "gabor.app",
-  "appName": "gabor-app",
+  "appId": "online.vvayhuang.wavelet",
+  "appName": "小波",
   "webDir": ".output/public",
   "plugins": {
     "CapacitorCookies": {

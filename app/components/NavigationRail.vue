@@ -21,7 +21,7 @@ const utilityItems = [
                     <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary font-bold text-sm">
                         G
                     </div>
-                    <span class="font-bold text-on-surface text-base tracking-wide">Gabor Patch</span>
+                    <span class="font-bold text-on-surface text-base tracking-wide">小波</span>
                 </div>
 
                 <!-- 導覽項目群組：參考 Apple Music 風格，橫向 icon + 文字排列 -->
