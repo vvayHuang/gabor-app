@@ -3,6 +3,7 @@
 > 版本：v2.0（2026-10-07）
 > 狀態：MVP 已完成，進入「修正與優化」階段
 > 進度（2026-10-14）：P0（B01–B08）、清理（C01–C11）、同步（S01–S03）、遊戲設計（D01–D03）已完成並 commit；iOS 實機已可啟動與登入（B06–B08），隔天仍保持登入已確認。依實機試玩調整了對比、粗細擾動與角度差（D04，`a458399`、`742b417`）。D04 三項調整皆已由 Way 實機確認（訓練難度 34 時角度差合適）；B05、C02、D02 的實機觀感與 B04 的 3x 清晰度也已確認。S01 多裝置累加與 D01 難度雲端同步已用 iPhone＋網頁登入同一帳號實測通過，S02 斷網補傳也已於 iPhone 實測通過。剩餘為 B04／B05 的 6×8 實機確認與 D01 正確率觀察，下一步見第 8 節第 7 點。
+> 進度（2026-10-16）：R07 完成並 push：App 改名「小波」（Wavelet）、Bundle ID `online.vvayhuang.wavelet`、新的 App 圖示（含深色與著色）、App 內 Logo、側邊欄圖示與 favicon 換成新圖像；支援頁已重新部署。待實機確認深色／著色圖示與英文名稱。
 > 本文件同時是 Claude Code 的執行清單：第 7 節的每一項都有 ID、範圍、驗收標準，可以逐項交辦。
 
 ---
@@ -313,7 +314,7 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 | R04 | Sign in with Apple（Web 與 iOS），沿用 Google 的 implicit flow 與 `gaborapp://login-callback` | 準則 4.8：提供第三方登入時必須同時提供 Apple 登入 | 待做（需 Way 在 Apple Developer 與 Supabase 後台設定） |
 | R05 | App 內刪除帳號：刪除 auth 使用者與 `game_stats`、`game_sessions`，並清空本機資料 | 準則 5.1.1(v) | 🔶 已做並套用 migration，見下方；待實際刪除測試 |
 | R06 | 隱私權政策（與服務條款）：公開網址，登入頁與設定頁可連到；設定頁「聯絡我們」改為開啟 email 或支援網頁（Way，2026-10-14），與 App Store Connect 的支援網址共用 | App Store Connect 必填；登入頁已提到但沒有連結 | 🔶 已部署到 `gabor-patch.vercel.app`，App 內連結已做，見下方；待補聯絡信箱 |
-| R07 | App 顯示名稱與 Bundle ID（原為 `gabor-app`／`gabor.app`，Bundle ID 第一次上傳後不能改） | 上架必填 | 🔶 已改為「小波」（英文 Wavelet）／`online.vvayhuang.wavelet`，模擬器建置與啟動成功，支援頁已重新部署，見下方 |
+| R07 | App 顯示名稱與 Bundle ID（原為 `gabor-app`／`gabor.app`，Bundle ID 第一次上傳後不能改） | 上架必填 | 🔶 已改為「小波」（英文 Wavelet）／`online.vvayhuang.wavelet`，模擬器建置與啟動成功，支援頁已重新部署；App 內 Logo、側邊欄圖示與 favicon 已換新圖像，見下方 |
 | R08 | 後台設定：Google OAuth 同意畫面發布為正式版、Supabase 方案（免費方案閒置一週會暫停）、App Store Connect 資料（截圖、描述、隱私問卷、審核備註） | 審核人員需能登入；上線後服務需持續可用 | ⏸ 請 Way 手動處理 |
 
 **R03 訪客模式（2026-10-14）**：
@@ -365,6 +366,12 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 - [ ] 主畫面深色與著色圖示：模擬器切到深色外觀後主畫面圖示未切換（系統 App 的圖示也沒變，應是模擬器主畫面圖示樣式設定），待實機確認
 - [ ] 英文系統顯示「Wavelet」待確認
 - [x] 支援頁重新部署到 Vercel（2026-10-16，production `dpl_Bebnvps93W1ZXUa9mEjyhExpwwgR`）：`/`、`/privacy`、`/terms`、`/style.css` 皆回 200，內容與 `site/` 完全相同
+- App 內與網頁的品牌圖像（2026-10-16，Way 要求）：
+  - 桌機側邊欄（`NavigationRail.vue`）的「G」方塊換成 App 圖示（`public/app-icon.png`／`app-icon-dark.png`，128px，依 `.dark` 切換）。注意 Vue scoped CSS 的 `:global(.dark) .x` 會被編譯成只剩 `.dark`，要寫成 `:global(.dark .x)`。
+  - `Logo.vue`（歡迎動畫、結算頁）由兩個圓環換成 `app/assets/logo.svg` 的五條波浪線（200×200，`stroke="currentColor"`）；歡迎動畫只對外層容器做透明度與縮放，不依賴 Logo 形狀，Logo 變高（200×155 → 200×200）不影響版面。
+  - favicon（`public/favicon.svg`／`favicon.ico`）由新版 App 圖示產生，並裁掉外圈 16%、提高對比，讓 16px 分頁圖示的條紋清楚；SVG 依 `prefers-color-scheme` 切換淺色／深色。
+  - [x] 瀏覽器：側邊欄圖示桌機淺色／深色；歡迎頁與結算頁 375×812 淺色／深色（動畫固定在顯示狀態後截圖）；favicon 16px、32px 放大比對；主控台無錯誤
+  - [ ] iOS App 需 `npm run generate && npx cap sync ios` 後才會看到新 Logo，實機觀感待確認
 - 注意：新 Bundle ID 會被當成另一個 App 安裝，舊的 `gabor-app` 要手動刪除；Apple Developer 需註冊新 App ID（Sign in with Apple 等能力在 R04 時設定在這個 ID 上）。
 
 **上架前實測**（R 項目完成後，用 TestFlight／Release 版本）：
