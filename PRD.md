@@ -358,10 +358,11 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 **R07 App 名稱與 Bundle ID（2026-10-16，Way 決定）**：
 - 名稱：中文「小波」、英文「Wavelet」；Bundle ID：`online.vvayhuang.wavelet`（`project.pbxproj` 兩個設定檔、`capacitor.config.json` 的 `appId`；`appName` 改為「小波」）。URL scheme `gaborapp://` 未改。
 - 顯示名稱：`Info.plist` 的 `CFBundleDisplayName` 為「小波」，另加 `en.lproj`／`zh-Hant.lproj` 的 `InfoPlist.strings`（en = Wavelet、zh-Hant = 小波），`project.pbxproj` 加入 `InfoPlist.strings` variant group 與 `knownRegions` 的 `zh-Hant`。
-- 圖示：`AppIcon.appiconset` 改用 `AppIcon-1024.png`（淺色）與 `AppIcon-1024-dark.png`（`luminosity: dark`），刪除舊的 `AppIcon-512@2x.png`。
+- 圖示：`AppIcon.appiconset` 改用 `AppIcon-1024.png`（淺色）、`AppIcon-1024-dark.png`（`luminosity: dark`）與 `AppIcon-1024-tinted.png`（`luminosity: tinted`），刪除舊的 `AppIcon-512@2x.png`。淺色與深色圖在 2026-10-16 換成新版，同日補上著色版。
 - 網頁版與支援頁：`nuxt.config.ts` 的 title、`NavigationRail.vue` 的名稱、`site/` 三頁改為「小波」，隱私權政策與服務條款開頭寫「小波（Wavelet，以下稱「本服務」…）」。
 - [x] 模擬器（iPhone 17 Pro，iOS 27.1 SDK，系統語言繁中）：建置成功；產出的 `Info.plist` Bundle ID 與名稱正確、`en.lproj`／`zh-Hant.lproj` 內容正確、`Assets.car` 含 AppIcon 的一般與深色版本；App 啟動到登入頁，主畫面顯示新圖示與「小波」
-- [ ] 主畫面深色圖示：模擬器切到深色外觀後主畫面圖示未切換（系統 App 的圖示也沒變，應是模擬器主畫面圖示樣式設定），待實機確認
+- [x] 補上著色版後重新建置（同一台模擬器）：建置成功，`Assets.car` 含 AppIcon 的一般、深色（`UIAppearanceDark`）與著色（`ISAppearanceTintable`）三個版本；App 可啟動，主畫面顯示新版波浪斑塊圖示與「小波」
+- [ ] 主畫面深色與著色圖示：模擬器切到深色外觀後主畫面圖示未切換（系統 App 的圖示也沒變，應是模擬器主畫面圖示樣式設定），待實機確認
 - [ ] 英文系統顯示「Wavelet」待確認
 - [x] 支援頁重新部署到 Vercel（2026-10-16，production `dpl_Bebnvps93W1ZXUa9mEjyhExpwwgR`）：`/`、`/privacy`、`/terms`、`/style.css` 皆回 200，內容與 `site/` 完全相同
 - 注意：新 Bundle ID 會被當成另一個 App 安裝，舊的 `gabor-app` 要手動刪除；Apple Developer 需註冊新 App ID（Sign in with Apple 等能力在 R04 時設定在這個 ID 上）。

@@ -18,9 +18,8 @@ const utilityItems = [
             <div class="flex flex-col items-center h-full py-8 w-full">
                 <!-- 頂部 Logo 與標題 -->
                 <div class="w-full px-6 mb-8 flex items-center space-x-3">
-                    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary font-bold text-sm">
-                        G
-                    </div>
+                    <img src="/app-icon.png" alt="" class="brand-icon-light w-8 h-8 rounded-lg">
+                    <img src="/app-icon-dark.png" alt="" class="brand-icon-dark w-8 h-8 rounded-lg">
                     <span class="font-bold text-on-surface text-base tracking-wide">小波</span>
                 </div>
 
@@ -71,6 +70,19 @@ const utilityItems = [
     height: auto !important;
     font-weight: 500 !important;
     mix-blend-mode: normal !important;
+}
+
+/* 依主題切換淺色／深色的 App 圖示 */
+.brand-icon-dark {
+    display: none;
+}
+
+:global(.dark .brand-icon-light) {
+    display: none;
+}
+
+:global(.dark .brand-icon-dark) {
+    display: block;
 }
 
 /* 讓 Active 選取背景的圓角同樣對齊為 8px */
