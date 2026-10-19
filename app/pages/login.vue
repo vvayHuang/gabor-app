@@ -28,6 +28,9 @@ const handleDeepLink = async (urlStr: string) => {
     // 嚴格檢查：如果不是 Native 環境，絕對不執行手動解析
     if (!Capacitor.isNativePlatform()) return
 
+    // 回到前景時 resume 會先把按鈕恢復，處理回呼期間要再鎖住，避免重複登入
+    loading.value = true
+
     // 優先解析 Hash 中的 access_token (隱式流程)
     const hash = urlStr.split('#')[1]
     if (!hash) {
@@ -73,6 +76,7 @@ const handleDeepLink = async (urlStr: string) => {
 }
 
 let appListener: any = null
+let resumeListener: any = null
 
 onMounted(async () => {
     if (loginContainer.value) {
@@ -90,12 +94,19 @@ onMounted(async () => {
         appListener = await App.addListener('appUrlOpen', (event: any) => {
             handleDeepLink(event.url)
         })
+        // 在 Safari 登入到一半就切回 App 時不會有回呼，按鈕要在回到前景時恢復可按
+        resumeListener = await App.addListener('resume', () => {
+            loading.value = false
+        })
     }
 })
 
 onUnmounted(() => {
     if (appListener) {
         appListener.remove()
+    }
+    if (resumeListener) {
+        resumeListener.remove()
     }
 })
 
