@@ -339,7 +339,7 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
 - 原因：`login.vue` 原生環境按下登入時把 `loading` 設為 true，之後只有收到 `gaborapp://login-callback` 或發生錯誤才會恢復；中途切回 App 時沒有任何事件會恢復。
 - 修正：原生環境監聽 `@capacitor/app` 的 `resume`，回到前景就把 `loading` 恢復為 false；處理 deep link 回呼時再設回 true，避免 `setSession` 進行中又被按一次。
 - [x] iOS 模擬器（iPhone 17 Pro Max）：修正前重現按鈕卡在停用；修正後同樣步驟回到 App，兩個按鈕都可按，「先不登入」可進準備頁；型別檢查未回報 `login.vue` 錯誤
-- [ ] 實機完成一次 Google 登入，確認回呼後仍正常進準備頁（模擬器無法完成 Google 登入）
+- [x] iOS 實機（2026-10-19，Way）：完整 Google 登入後正常進準備頁；登入到一半切回 App，兩個按鈕都可按
 
 - `supabase/migrations/20261014000000_delete_my_account.sql`：`delete_my_account()`（security definer）只刪除 `auth.uid()` 自己的 `game_sessions`、`game_stats`、`profiles` 與 auth 使用者；匿名不可呼叫。
 - 後台查詢結果（2026-10-14）：`game_stats`、`game_sessions` 的外鍵指向 `profiles`，`profiles` 再指向 `auth.users`；`profiles` 由 `on_auth_user_created` trigger 在註冊時建立，程式碼本身沒有使用。函式依「場次、統計 → profiles → 使用者」的順序刪除，不依賴外鍵是否連帶刪除；任何一步失敗整個函式回復。
