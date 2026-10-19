@@ -4,6 +4,7 @@
 > 狀態：MVP 已完成，進入「修正與優化」階段
 > 進度（2026-10-14）：P0（B01–B08）、清理（C01–C11）、同步（S01–S03）、遊戲設計（D01–D03）已完成並 commit；iOS 實機已可啟動與登入（B06–B08），隔天仍保持登入已確認。依實機試玩調整了對比、粗細擾動與角度差（D04，`a458399`、`742b417`）。D04 三項調整皆已由 Way 實機確認（訓練難度 34 時角度差合適）；B05、C02、D02 的實機觀感與 B04 的 3x 清晰度也已確認。S01 多裝置累加與 D01 難度雲端同步已用 iPhone＋網頁登入同一帳號實測通過，S02 斷網補傳也已於 iPhone 實測通過。剩餘為 B04／B05 的 6×8 實機確認與 D01 正確率觀察，下一步見第 8 節第 7 點。
 > 進度（2026-10-16）：R07 完成並 push：App 改名「小波」（Wavelet）、Bundle ID `online.vvayhuang.wavelet`、新的 App 圖示（含深色與著色）、App 內 Logo、側邊欄圖示與 favicon 換成新圖像；支援頁已重新部署。待實機確認深色／著色圖示與英文名稱。
+> 進度（2026-10-19）：R04 需付費的 Apple Developer 帳號，Way 決定暫緩；R06 聯絡信箱尚未決定。先做不需付費的上架準備（R08 的 App 端與 App Store Connect 資料）：App 隱私清單、出口加密聲明、上架文字草稿與 6.9 吋截圖，見第 7.5 節 R08。
 > 本文件同時是 Claude Code 的執行清單：第 7 節的每一項都有 ID、範圍、驗收標準，可以逐項交辦。
 
 ---
@@ -373,6 +374,17 @@ Way 的決定（2026-10-14）：訪客模式與 Apple 登入都做；訓練提�
   - [x] 瀏覽器：側邊欄圖示桌機淺色／深色；歡迎頁與結算頁 375×812 淺色／深色（動畫固定在顯示狀態後截圖）；favicon 16px、32px 放大比對；主控台無錯誤
   - [ ] iOS App 需 `npm run generate && npx cap sync ios` 後才會看到新 Logo，實機觀感待確認
 - 注意：新 Bundle ID 會被當成另一個 App 安裝，舊的 `gabor-app` 要手動刪除；Apple Developer 需註冊新 App ID（Sign in with Apple 等能力在 R04 時設定在這個 ID 上）。
+
+**R08 不需付費帳號的上架準備（2026-10-19）**：
+- 背景：沒有加入 Apple Developer Program 就不能上傳 App Store Connect 或 TestFlight，R04（Apple 登入）也要付費帳號；Way 決定暫不付費，先做其餘準備。只要保留 Google 登入，準則 4.8 仍要求 R04，付費後優先做。
+- `ios/App/App/PrivacyInfo.xcprivacy`（加入 `project.pbxproj` 的 Resources）：檢查過 `AppDelegate.swift` 與 `@capacitor/app`、`haptics`、`keyboard`、`status-bar` 的原生程式碼，都沒有用到需申報理由的 API，Capacitor 核心附帶的清單也是空的，因此 `NSPrivacyAccessedAPITypes` 為空。蒐集的資料依隱私權政策申報：電子郵件、姓名、使用者 ID、遊戲內容，皆與身分連結、用於 App 功能、不用於追蹤。
+- `Info.plist` 加 `ITSAppUsesNonExemptEncryption = NO`（只用 HTTPS），每次上傳不必再回答出口加密問題。
+- `appstore/listing.md`：App Store Connect 資料草稿（名稱、副標題、繁中與英文描述、關鍵字、類別建議、App 隱私問卷對照、審核備註）。描述避免醫療宣稱。
+- `appstore/screenshots/`：6.9 吋（iPhone 17 Pro Max 模擬器，1320×2868）8 張，訪客模式實際玩一局後拍攝，JPEG 無透明通道。
+- [x] 模擬器（iPhone 17 Pro Max，iOS 26.5，iOS 27.1 SDK）：建置成功，App 內含 `PrivacyInfo.xcprivacy`，`Info.plist` 的 `ITSAppUsesNonExemptEncryption` 為 false；App 可正常遊玩一局
+- [ ] 結果頁截圖的平均反應 10.73 秒偏慢（截圖時每題都先截圖再判斷），建議 Way 實際玩一局後重拍；紀錄頁只有一天的紀錄
+- [ ] 隱私清單與隱私問卷要等第一次上傳後，在 App Store Connect 確認沒有警告
+- 觀察：訪客沒有頭像時，個人頁從 `api.dicebear.com` 載入預設頭像（`profile.vue:21`），與隱私權政策「無第三方服務」的說法不完全一致，之後可考慮改成 App 內建圖片（未修改）。
 
 **上架前實測**（R 項目完成後，用 TestFlight／Release 版本）：
 - [ ] 全新安裝的新帳號：教學 → 第一局 → 雲端建立資料列（目前所有實測都是既有帳號）
